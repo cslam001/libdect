@@ -1,0 +1,5 @@
+SUBDIRS		+= include
+SUBDIRS		+= src
+SUBDIRS		+= example
+
+include Makefile.rules

@@ -1,0 +1,19 @@
+CFLAGS		+= -fPIC
+LIBS		+= dect
+
+dect-destdir	:= usr/lib
+
+dect-obj	+= libdect.o
+dect-obj	+= identities.o
+dect-obj	+= s_msg.o
+dect-obj	+= lce.o
+dect-obj	+= cc.o
+dect-obj	+= ss.o
+dect-obj	+= keypad.o
+dect-obj	+= dsaa.o
+dect-obj	+= netlink.o
+dect-obj	+= utils.o
+
+dect-obj	+= ccitt-adpcm/g711.o
+dect-obj	+= ccitt-adpcm/g72x.o
+dect-obj	+= ccitt-adpcm/g721.o
