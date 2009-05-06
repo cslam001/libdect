@@ -1,7 +1,12 @@
 /*
- * From: https://dedected.org/trac/wiki/DSAA-Reversing
+ * DECT Standard Authentication Algorithm
  *
- * FIXME: LICENSE? Copyrights?
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * Copyright (c) 2009 Matthias Wenzel <dect at mazzoo dot de>
+ *
  */
 
 #include <stdlib.h>
