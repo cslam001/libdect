@@ -303,25 +303,25 @@ enum dect_sfmt_ie_flags {
 };
 
 /**
- * struct dect_sfmt_ie_desc	- S-Format IE description
+ * struct dect_sfmt_ie_desc - S-Format IE description
  *
  * @offset:	offset of corresponding S-Format IE storage
  * @type:	IE type
- * @f_p:	Status in direction FP->PP
- * @p_f:	Status in direction PP->FP
+ * @fp_pp:	Status in direction FP->PP
+ * @pp_fp:	Status in direction PP->FP
  * @flags:	Global flags
  */
 struct dect_sfmt_ie_desc {
 	uint16_t			type;
-	enum dect_sfmt_ie_status	f_p:8;
-	enum dect_sfmt_ie_status	p_f:8;
+	enum dect_sfmt_ie_status	fp_pp:8;
+	enum dect_sfmt_ie_status	pp_fp:8;
 	uint8_t				flags;
 };
 
-#define DECT_SFMT_IE(_type, _f_p, _p_f, _flags) {	\
+#define DECT_SFMT_IE(_type, _fp_pp, _pp_fp, _flags) {	\
 	.type	= (_type),				\
-	.f_p	= DECT_SFMT_ ## _f_p,			\
-	.p_f	= DECT_SFMT_ ## _p_f,			\
+	.fp_pp	= DECT_SFMT_ ## _fp_pp,			\
+	.pp_fp	= DECT_SFMT_ ## _pp_fp,			\
 	.flags	= (_flags),				\
 }
 

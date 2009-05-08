@@ -690,6 +690,24 @@ static const struct dect_ie_handler {
 	},
 };
 
+static enum dect_sfmt_ie_status dect_rx_status(const struct dect_handle *dh,
+					       const struct dect_sfmt_ie_desc *desc)
+{
+	if (dh->mode == DECT_MODE_FP)
+		return desc->pp_fp;
+	else
+		return desc->fp_pp;
+}
+
+static enum dect_sfmt_ie_status dect_tx_status(const struct dect_handle *dh,
+					       const struct dect_sfmt_ie_desc *desc)
+{
+	if (dh->mode == DECT_MODE_FP)
+		return desc->fp_pp;
+	else
+		return desc->pp_fp;
+}
+
 static struct dect_ie_common **
 dect_next_ie(const struct dect_sfmt_ie_desc *desc, struct dect_ie_common **ie)
 {
@@ -833,7 +851,7 @@ enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,
 			if (desc->flags & DECT_SFMT_IE_END)
 				goto out;
 
-			switch (desc->f_p) {
+			switch (dect_rx_status(dh, desc)) {
 			case DECT_SFMT_IE_MANDATORY:
 				if (desc->type == ie->id)
 					goto found;
@@ -861,7 +879,7 @@ enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,
 found:
 		/* Ignore corrupt optional IEs */
 		if (dect_parse_sfmt_ie(dh, desc, dst, ie) < 0 &&
-		    desc->f_p == DECT_SFMT_IE_MANDATORY)
+		    dect_rx_status(dh, desc) == DECT_SFMT_IE_MANDATORY)
 			return DECT_SFMT_MANDATORY_IE_ERROR;
 
 next:
@@ -874,7 +892,7 @@ next:
 out:
 	while (!(desc->flags & DECT_SFMT_IE_END)) {
 		dect_debug("clear missing IE: <%s>\n", dect_ie_handlers[desc->type].name);
-		if (desc->f_p == DECT_SFMT_IE_MANDATORY)
+		if (dect_rx_status(dh, desc) == DECT_SFMT_IE_MANDATORY)
 			return DECT_SFMT_MANDATORY_IE_MISSING;
 		dst = dect_next_ie(desc, dst);
 		desc++;
@@ -895,7 +913,7 @@ dect_build_sfmt_ie(const struct dect_handle *dh,
 	struct dect_sfmt_ie dst;
 	enum dect_sfmt_error err = 0;
 
-	if (desc->p_f == DECT_SFMT_IE_NONE)
+	if (dect_tx_status(dh, desc) == DECT_SFMT_IE_NONE)
 		return DECT_SFMT_INVALID_IE;
 
 	if (type == S_DO_IE_SINGLE_DISPLAY) {
