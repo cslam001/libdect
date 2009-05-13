@@ -9,6 +9,7 @@ dect-obj	+= s_msg.o
 dect-obj	+= lce.o
 dect-obj	+= cc.o
 dect-obj	+= ss.o
+dect-obj	+= mm.o
 dect-obj	+= keypad.o
 dect-obj	+= dsaa.o
 dect-obj	+= netlink.o
