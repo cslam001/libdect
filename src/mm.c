@@ -56,6 +56,7 @@ static const struct dect_sfmt_ie_desc mm_locate_accept_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_MODEL_IDENTIFIER,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE_END_MSG
 };
 
 static const struct dect_sfmt_ie_desc mm_locate_reject_msg_desc[] = {
@@ -64,6 +65,7 @@ static const struct dect_sfmt_ie_desc mm_locate_reject_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
 	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE_END_MSG
 };
 
 static const struct dect_sfmt_ie_desc mm_locate_request_msg_desc[] = {
@@ -80,6 +82,7 @@ static const struct dect_sfmt_ie_desc mm_locate_request_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_MODEL_IDENTIFIER,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_NONE,      IE_OPTIONAL,  0),
+	DECT_SFMT_IE_END_MSG
 };
 
 #define mm_debug(fmt, args...) \
@@ -204,9 +207,17 @@ static void dect_mm_open(struct dect_handle *dh,
 	dect_debug("MM: unknown transaction msg type: %x\n", mb->type);
 
 	switch (mb->type) {
+	case DECT_MM_LOCATE_REQUEST:
+		return dect_mm_rcv_locate_request(dh, mb);
 	default:
 		break;
 	}
+}
+
+static void dect_mm_shutdown(struct dect_handle *dh,
+			     struct dect_transaction *ta)
+{
+	dect_debug("MM: shutdown\n");
 }
 
 static const struct dect_nwk_protocol mm_protocol = {
@@ -214,7 +225,7 @@ static const struct dect_nwk_protocol mm_protocol = {
 	.pd			= DECT_S_PD_MM,
 	.max_transactions	= 1,
 	.open			= dect_mm_open,
-	//.shutdown		= dect_mm_shutdown,
+	.shutdown		= dect_mm_shutdown,
 	.rcv			= dect_mm_rcv,
 };
 
