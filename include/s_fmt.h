@@ -143,6 +143,8 @@ enum dect_sfmt_variable_length_ies {
 	__S_VL_IE_MAX
 };
 
+#define DECT_OCTET_GROUP_END			0x80
+
 /* Repeat indicator */
 
 /* Basic service */

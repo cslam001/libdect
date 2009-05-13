@@ -222,10 +222,13 @@ static int dect_sfmt_parse_portable_identity(const struct dect_handle *dh,
 
 	if (src->len < S_VL_IE_PORTABLE_IDENTITY_MIN_SIZE)
 		return -1;
-	if (!(src->data[2] & 0x80))
-		return -1;
 
+	if (!(src->data[2] & DECT_OCTET_GROUP_END))
+		return -1;
 	dst->type = src->data[2] & S_VL_IE_PORTABLE_IDENTITY_TYPE_MASK;
+
+	if (!(src->data[3] & DECT_OCTET_GROUP_END))
+		return -1;
 	len = src->data[3] & S_VL_IE_PORTABLE_IDENTITY_LENGTH_MASK;
 
 	switch (dst->type) {
@@ -262,8 +265,8 @@ static int dect_sfmt_build_portable_identity(struct dect_sfmt_ie *dst,
 		return -1;
 	}
 
-	dst->data[3] = 0x80 | len;
-	dst->data[2] = 0x80 | ie->type;
+	dst->data[3] = DECT_OCTET_GROUP_END | len;
+	dst->data[2] = DECT_OCTET_GROUP_END | ie->type;
 	dst->len = 9;
 	return 0;
 }
@@ -278,10 +281,13 @@ static int dect_sfmt_parse_fixed_identity(const struct dect_handle *dh,
 
 	if (src->len < S_VL_IE_FIXED_IDENTITY_MIN_SIZE)
 		return -1;
-	if (!(src->data[2] & 0x80))
-		return -1;
 
+	if (!(src->data[2] & DECT_OCTET_GROUP_END))
+		return -1;
 	dst->type = src->data[2] & S_VL_IE_FIXED_IDENTITY_TYPE_MASK;
+
+	if (!(src->data[3] & DECT_OCTET_GROUP_END))
+		return -1;
 	len = src->data[3] & S_VL_IE_FIXED_IDENTITY_LENGTH_MASK;
 
 	ari  = __be64_to_cpu(*(__be64 *)&src->data[4]);
@@ -314,8 +320,8 @@ static int dect_sfmt_build_fixed_identity(struct dect_sfmt_ie *dst,
 	dst->data[6] = ari >> 40;
 	dst->data[5] = ari >> 48;
 	dst->data[4] = ari >> 56;
-	dst->data[3] = 0x80 | (DECT_ARC_A_LEN + 1);
-	dst->data[2] = 0x80 | src->type;
+	dst->data[3] = DECT_OCTET_GROUP_END | (DECT_ARC_A_LEN + 1);
+	dst->data[2] = DECT_OCTET_GROUP_END | src->type;
 	dst->len = 9;
 	return 0;
 }
@@ -336,8 +342,8 @@ static int dect_sfmt_build_progress_indicator(struct dect_sfmt_ie *dst,
 {
 	struct dect_ie_progress_indicator *src = dect_ie_container(src, ie);
 
-	dst->data[3] = 0x80 | src->progress;
-	dst->data[2] = 0x80 | src->location;
+	dst->data[3] = DECT_OCTET_GROUP_END | src->progress;
+	dst->data[2] = DECT_OCTET_GROUP_END | src->location;
 	dst->len = 4;
 	return 0;
 }
