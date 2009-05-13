@@ -30,7 +30,7 @@ CFLAGS		+= @CFLAGS@ @DEFS@
 CFLAGS		+= -include config.h -I include
 CFLAGS		+= -fno-strict-aliasing
 
-CFLAGS		+= -Wall -Werror
+CFLAGS		+= -Wall #-Werror
 CFLAGS		+= -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations
 CFLAGS		+= -Wdeclaration-after-statement -Wsign-compare -Winit-self
 CFLAGS		+= -Wformat-nonliteral -Wformat-security -Wmissing-format-attribute
