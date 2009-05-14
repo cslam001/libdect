@@ -1,8 +1,11 @@
 LDFLAGS		+= -Lsrc -ldect
-PROGRAMS	+= test
+PROGRAMS	+= test mm
 
 test-destdir	:= usr/bin
 
 test-obj	+= event_ops.o
 test-obj	+= audio.o
 test-obj	+= test.o
+
+mm-obj		+= event_ops.o
+mm-obj		+= mm.o
