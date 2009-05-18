@@ -4,49 +4,50 @@
 #include <dect/libdect.h>
 #include "common.h"
 
-enum phones { PHONE1, PHONE2, PHONE3, };
-static const struct dect_ipui ipuis[] = {
-	[PHONE1] = {
-		.put		= DECT_IPUI_N,
-		.pun.n.ipei = {
-			.emc	= 0x08ae,
-			.psn	= 0x83d1e,
-		},
-	},
-	[PHONE2] = {
-		.put		= DECT_IPUI_N,
-		.pun.n.ipei = {
-			.emc	= 0x08ae,
-			.psn	= 0x8969f,
-		},
-	},
-	[PHONE3] = {
-		.put		= DECT_IPUI_N,
-		.pun.n.ipei = {
-			.emc	= 0x08ae,
-			.psn	= 0x5b9a0,
-		},
-	},
-};
+static uint8_t prefix[3] = { 1, 0, 0};
+static uint16_t num;
 
-static const struct dect_mm_ops mm_ops = {
-	.mm_access_rights_ind	= 0,
-	.mm_access_rights_cfm	= 0,
-};
-
-static int mm_access_rights_request(struct dect_handle *dh)
+static void dect_mm_locate_ind(struct dect_handle *dh,
+			       struct dect_mm_transaction *mmta,
+			       const struct dect_mm_locate_param *param)
 {
 	struct dect_ie_portable_identity portable_identity;
-	struct dect_mm_access_rights_param param = {
+	struct dect_ie_duration duration;
+	struct dect_mm_locate_param reply = {
+		.location_area		= param->location_area,
 		.portable_identity	= &portable_identity,
+		.duration		= &duration,
 	};
 
-	dect_ie_init(&portable_identity);
-	portable_identity.type = ID_TYPE_IPUI;
-	portable_identity.ipui = ipuis[PHONE1];
+	printf("MM_LOCATE-ind\n");
 
-	return dect_mm_access_rights_req(dh, &param);
+	dect_ie_init(&portable_identity);
+	portable_identity.type = ID_TYPE_TPUI;
+	portable_identity.tpui.type = DECT_TPUI_INDIVIDUAL_ASSIGNED;
+	memcpy(&portable_identity.tpui.ia.digits, prefix, sizeof(prefix));
+	portable_identity.tpui.ia.digits[3] = num / 10;
+	portable_identity.tpui.ia.digits[4] = num % 10;
+	num++;
+
+	dect_ie_init(&duration);
+	duration.lock = DECT_LOCK_TEMPORARY_USER_LIMIT_1;
+	duration.time = DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_1;
+	duration.duration = 1;
+
+	dect_mm_locate_res(dh, mmta, &reply);
 }
+
+static void dect_mm_identity_assign_cfm(struct dect_handle *dh,
+					struct dect_mm_transaction *mmta,
+					const struct dect_mm_identity_assign_param *param)
+{
+	printf("MM_IDENTITY_ASSIGN-cfm\n");
+}
+
+static const struct dect_mm_ops mm_ops = {
+	.mm_locate_ind		= dect_mm_locate_ind,
+	.mm_identity_assign_cfm	= dect_mm_identity_assign_cfm,
+};
 
 static struct dect_ops ops = {
 	.mm_ops			= &mm_ops,
@@ -62,9 +63,6 @@ int main(int argc, char **argv)
 		exit(1);
 
 	if (dect_init(dh) < 0)
-		exit(1);
-
-	if (mm_access_rights_request(dh) < 0)
 		exit(1);
 
 	dect_event_loop();

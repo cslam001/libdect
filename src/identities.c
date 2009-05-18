@@ -160,15 +160,15 @@ bool dect_ipui_cmp(const struct dect_ipui *i1, const struct dect_ipui *i2)
 	return memcmp(i1, i2, sizeof(*i1));
 }
 
-void dect_default_individual_tpui(struct dect_tpui *tpui,
-				  const struct dect_ipui *ipui)
+static uint32_t dect_build_default_individual_tpui(const struct dect_tpui *tpui)
 {
-	tpui->tpui = DECT_TPUI_DEFAULT_INDIVIDUAL_ID;
+	const struct dect_ipui *ipui = tpui->id.ipui;
+	uint32_t t;
 
+	t = DECT_TPUI_DEFAULT_INDIVIDUAL_ID;
 	switch (ipui->put) {
 	case DECT_IPUI_N:
-		tpui->tpui |= ipui->pun.n.ipei.psn &
-			      DECT_TPUI_DEFAULT_INDIVIDUAL_IPUI_MASK;
+		t |= ipui->pun.n.ipei.psn & DECT_TPUI_DEFAULT_INDIVIDUAL_IPUI_MASK;
 		break;
 	case DECT_IPUI_O:
 	case DECT_IPUI_P:
@@ -177,6 +177,36 @@ void dect_default_individual_tpui(struct dect_tpui *tpui,
 	case DECT_IPUI_S:
 	case DECT_IPUI_T:
 	case DECT_IPUI_U:
-		return;
+		break;
 	}
+	return t;
+}
+
+uint32_t dect_build_tpui(const struct dect_tpui *tpui)
+{
+	uint32_t t = 0;
+
+	switch (tpui->type) {
+	case DECT_TPUI_INDIVIDUAL_ASSIGNED:
+		t  = tpui->ia.digits[0] << 16;
+		t |= tpui->ia.digits[1] << 12;
+		t |= tpui->ia.digits[2] << 8;
+		t |= tpui->ia.digits[3] << 4;
+		t |= tpui->ia.digits[4] << 0;
+		break;
+	case DECT_TPUI_CONNECTIONLESS_GROUP:
+		t  = DECT_TPUI_CONNECTIONLESS_GROUP_ID;
+		break;
+	case DECT_TPUI_CALL_GROUP:
+		t  = DECT_TPUI_CALL_GROUP_ID;
+		break;
+	case DECT_TPUI_INDIVIDUAL_DEFAULT:
+		t  = dect_build_default_individual_tpui(tpui);
+		break;
+	case DECT_TPUI_EMERGENCY:
+		t  = DECT_TPUI_EMERGENCY_ID;
+		break;
+	}
+
+	return t;
 }

@@ -82,6 +82,8 @@ extern uint8_t dect_build_ipui(uint8_t *ptr, const struct dect_ipui *ipui);
 
 #define DECT_TPUI_EMERGENCY_ID			0xf1000
 
+extern uint32_t dect_build_tpui(const struct dect_tpui *tpui);
+
 /*
  * PMID (Portable Part Identifier)
  */

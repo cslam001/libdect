@@ -71,8 +71,10 @@ static ssize_t dect_mbuf_rcv(const struct dect_fd *dfd, struct dect_msg_buf *mb)
 	memset(mb, 0, sizeof(*mb));
 	mb->data = mb->head;
 	len = recv(dfd->fd, mb->data, sizeof(mb->head), 0);
-	if (len < 0)
+	if (len < 0) {
+		dect_debug("recv %Zd: %s\n", len, strerror(errno));
 		return len;
+	}
 	mb->len = len;
 	return len;
 }
@@ -145,10 +147,11 @@ static int dect_lce_page(const struct dect_handle *dh,
 	struct dect_tpui tpui;
 	uint16_t page;
 
-	dect_default_individual_tpui(&tpui, ipui);
+	tpui.type = DECT_TPUI_INDIVIDUAL_DEFAULT;
+	tpui.id.ipui = ipui;
 
 	msg.hdr = DECT_LCE_PAGE_GENERAL_VOICE;
-	page = tpui.tpui & DECT_LCE_SHORT_PAGE_TPUI_MASK;
+	page = dect_build_tpui(&tpui) & DECT_LCE_SHORT_PAGE_TPUI_MASK;
 	msg.information = __cpu_to_be16(page);
 
 	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg));
@@ -300,7 +303,8 @@ static int dect_send(const struct dect_handle *dh,
 
 	dect_mbuf_dump(mb, "TX");
 	len = send(ddl->dfd->fd, mb->data, mb->len, 0);
-	assert(len == (ssize_t)mb->len);
+	if (len < 0)
+		ddl_debug(ddl, "send %Zd: %s\n", len, strerror(errno));
 	dect_free(dh, mb);
 	return len;
 }

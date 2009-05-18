@@ -225,11 +225,11 @@ static int dect_sfmt_parse_portable_identity(const struct dect_handle *dh,
 
 	if (!(src->data[2] & DECT_OCTET_GROUP_END))
 		return -1;
-	dst->type = src->data[2] & S_VL_IE_PORTABLE_IDENTITY_TYPE_MASK;
+	dst->type = src->data[2] & ~DECT_OCTET_GROUP_END;
 
 	if (!(src->data[3] & DECT_OCTET_GROUP_END))
 		return -1;
-	len = src->data[3] & S_VL_IE_PORTABLE_IDENTITY_LENGTH_MASK;
+	len = src->data[3] & ~DECT_OCTET_GROUP_END;
 
 	switch (dst->type) {
 	case ID_TYPE_IPUI:
@@ -250,6 +250,7 @@ static int dect_sfmt_build_portable_identity(struct dect_sfmt_ie *dst,
 					     const struct dect_ie_common *src)
 {
 	const struct dect_ie_portable_identity *ie = dect_ie_container(ie, src);
+	uint32_t tpui;
 	uint8_t len;
 
 	switch (ie->type) {
@@ -259,15 +260,22 @@ static int dect_sfmt_build_portable_identity(struct dect_sfmt_ie *dst,
 			return -1;
 		break;
 	case ID_TYPE_IPEI:
-	case ID_TYPE_TPUI:
 		return -1;
+	case ID_TYPE_TPUI:
+		tpui = dect_build_tpui(&ie->tpui);
+		tpui |= 0x0 << 20;
+		dst->data[6] = tpui;
+		dst->data[5] = tpui >> 8;
+		dst->data[4] = tpui >> 16;
+		len = 20;
+		break;
 	default:
 		return -1;
 	}
 
 	dst->data[3] = DECT_OCTET_GROUP_END | len;
 	dst->data[2] = DECT_OCTET_GROUP_END | ie->type;
-	dst->len = 9;
+	dst->len = 4 + div_round_up(len, 8);
 	return 0;
 }
 
@@ -284,11 +292,11 @@ static int dect_sfmt_parse_fixed_identity(const struct dect_handle *dh,
 
 	if (!(src->data[2] & DECT_OCTET_GROUP_END))
 		return -1;
-	dst->type = src->data[2] & S_VL_IE_FIXED_IDENTITY_TYPE_MASK;
+	dst->type = src->data[2] & ~DECT_OCTET_GROUP_END;
 
 	if (!(src->data[3] & DECT_OCTET_GROUP_END))
 		return -1;
-	len = src->data[3] & S_VL_IE_FIXED_IDENTITY_LENGTH_MASK;
+	len = src->data[3] & ~DECT_OCTET_GROUP_END;
 
 	ari  = __be64_to_cpu(*(__be64 *)&src->data[4]);
 	ari_len = dect_parse_ari(&dst->ari, ari << 1);
@@ -323,6 +331,30 @@ static int dect_sfmt_build_fixed_identity(struct dect_sfmt_ie *dst,
 	dst->data[3] = DECT_OCTET_GROUP_END | (DECT_ARC_A_LEN + 1);
 	dst->data[2] = DECT_OCTET_GROUP_END | src->type;
 	dst->len = 9;
+	return 0;
+}
+
+static int dect_sfmt_parse_location_area(const struct dect_handle *dh,
+					 struct dect_ie_common **ie,
+					 const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_location_area *dst = dect_ie_container(dst, *ie);
+
+	dst->type  = (src->data[2] & DECT_LOCATION_AREA_TYPE_MASK) >>
+		     DECT_LOCATION_AREA_TYPE_SHIFT;
+	dst->level = (src->data[2] & DECT_LOCATION_LEVEL_MASK);
+	dect_debug("\ttype: %x level: %x\n", dst->type, dst->level);
+	return 0;
+}
+
+static int dect_sfmt_build_location_area(struct dect_sfmt_ie *dst,
+					 const struct dect_ie_common *ie)
+{
+	struct dect_ie_location_area *src = dect_ie_container(src, ie);
+
+	dst->data[2]  = src->type << DECT_LOCATION_AREA_TYPE_SHIFT;
+	dst->data[2] |= src->level;
+	dst->len = 3;
 	return 0;
 }
 
@@ -378,6 +410,186 @@ static int dect_sfmt_parse_reject_reason(const struct dect_handle *dh,
 
 	dst->reason = src->data[2];
 	dect_debug("reject reason: %x\n", dst->reason);
+	return 0;
+}
+
+static int dect_sfmt_build_reject_reason(struct dect_sfmt_ie *dst,
+					 const struct dect_ie_common *ie)
+{
+	struct dect_ie_reject_reason *src = dect_ie_container(src, ie);
+
+	dst->data[2] = src->reason;
+	dst->len = 3;
+	return 0;
+}
+
+static const char *display_capabilities[] = {
+	[DECT_DISPLAY_CAPABILITY_NOT_APPLICABLE]	= "not applicable",
+	[DECT_DISPLAY_CAPABILITY_NO_DISPLAY]		= "no display",
+	[DECT_DISPLAY_CAPABILITY_NUMERIC]		= "numeric",
+	[DECT_DISPLAY_CAPABILITY_NUMERIC_PLUS]		= "numeric-plus",
+	[DECT_DISPLAY_CAPABILITY_ALPHANUMERIC]		= "alphanumeric",
+	[DECT_DISPLAY_CAPABILITY_FULL_DISPLAY]		= "full display",
+};
+
+static const char *tone_capabilities[] = {
+	[DECT_TONE_CAPABILITY_NOT_APPLICABLE]		= "not applicable",
+	[DECT_TONE_CAPABILITY_NO_TONE]			= "no tone",
+	[DECT_TONE_CAPABILITY_DIAL_TONE_ONLY]		= "dial tone only",
+	[DECT_TONE_CAPABILITY_ITU_T_E182_TONES]		= "ITU-T E.182 tones",
+	[DECT_TONE_CAPABILITY_COMPLETE_DECT_TONES]	= "complete DECT tones",
+};
+
+static const char *echo_parameters[] = {
+	[DECT_ECHO_PARAMETER_NOT_APPLICABLE]		= "not applicable",
+	[DECT_ECHO_PARAMETER_MINIMUM_TCLW]		= "TCL > 34 dB",
+	[DECT_ECHO_PARAMETER_FULL_TCLW]			= "TCL > 46 dB",
+	[DECT_ECHO_PARAMETER_VOIP_COMPATIBLE_TLCW]	= "TCL > 55 dB",
+};
+
+static const char *noise_rejection_capabilities[] = {
+	[DECT_NOISE_REJECTION_NOT_APPLICABLE]		= "not applicable",
+	[DECT_NOISE_REJECTION_NONE]			= "none",
+	[DECT_NOISE_REJECTION_PROVIDED]			= "provided",
+};
+
+static const char *volume_ctrl_provisions[] = {
+	[DECT_ADAPTIVE_VOLUME_NOT_APPLICABLE]		= "not applicable",
+	[DECT_ADAPTIVE_VOLUME_PP_CONTROL_NONE]		= "no PP adaptive volume control",
+	[DECT_ADAPTIVE_VOLUME_PP_CONTROL_USED]		= "PP adaptive volume control",
+	[DECT_ADAPTIVE_VOLUME_FP_CONTROL_DISABLE]	= "disable FP adaptive volume control",
+};
+
+static const char *scrolling_behaviour[] = {
+	[DECT_SCROLLING_NOT_SPECIFIED]			= "not specified",
+	[DECT_SCROLLING_TYPE_1]				= "type 1",
+	[DECT_SCROLLING_TYPE_2]				= "type 2",
+};
+
+static void dect_sfmt_dump_terminal_capability(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_terminal_capability *ie = dect_ie_container(ie, _ie);
+
+	dect_debug("\tdisplay capability: %s\n", display_capabilities[ie->display]);
+	dect_debug("\ttone capability: %s\n", tone_capabilities[ie->tone]);
+	dect_debug("\techo parameters: %s\n", echo_parameters[ie->echo]);
+	dect_debug("\tnoise rejection capability: %s\n", noise_rejection_capabilities[ie->noise_rejection]);
+	dect_debug("\tadaptive volume control provision: %s\n", volume_ctrl_provisions[ie->volume_ctrl]);
+	dect_debug("\tslot capabilities: %x\n", ie->slot);
+	dect_debug("\tdisplay memory: %u\n", ie->display_memory);
+	dect_debug("\tdisplay lines: %u\n", ie->display_lines);
+	dect_debug("\tdisplay columns: %u\n", ie->display_columns);
+	dect_debug("\tscrolling behaviour: %s\n", scrolling_behaviour[ie->scrolling]);
+	dect_debug("\tprofile indicator: %llx\n", ie->profile_indicator);
+	dect_debug("\tdisplay control: %x\n", ie->display_control);
+	dect_debug("\tdisplay charsets: %x\n", ie->display_charsets);
+}
+
+static int dect_sfmt_parse_terminal_capability(const struct dect_handle *dh,
+					       struct dect_ie_common **ie,
+					       const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_terminal_capability *dst = dect_ie_container(dst, *ie);
+	uint8_t i, n = 2;
+
+	/* Octet group 3 */
+	dst->display = (src->data[n] & DECT_TERMINAL_CAPABILITY_DISPLAY_MASK);
+	dst->tone    = (src->data[n] & DECT_TERMINAL_CAPABILITY_TONE_MASK) >>
+		       DECT_TERMINAL_CAPABILITY_TONE_SHIFT;
+	if (src->data[n++] & DECT_OCTET_GROUP_END)
+		goto group4;
+
+	dst->echo	     = (src->data[n] & DECT_TERMINAL_CAPABILITY_ECHO_MASK) >>
+			       DECT_TERMINAL_CAPABILITY_ECHO_SHIFT;
+	dst->noise_rejection = (src->data[n] & DECT_TERMINAL_CAPABILITY_NOISE_MASK) >>
+			       DECT_TERMINAL_CAPABILITY_NOISE_SHIFT;
+	dst->volume_ctrl     = (src->data[n] & DECT_TERMINAL_CAPABILITY_VOLUME_MASK);
+	if (src->data[n++] & DECT_OCTET_GROUP_END)
+		goto group4;
+
+	dst->slot = src->data[n] & ~DECT_OCTET_GROUP_END;
+	if (src->data[n++] & DECT_OCTET_GROUP_END)
+		goto group4;
+
+	dst->display_memory = src->data[n] & ~DECT_OCTET_GROUP_END;
+	if (src->data[n++] & DECT_OCTET_GROUP_END)
+		goto group4;
+	dst->display_memory <<= 7;
+
+	dst->display_memory += src->data[n] & ~DECT_OCTET_GROUP_END;
+	if (src->data[n++] & DECT_OCTET_GROUP_END)
+		goto group4;
+
+	dst->display_lines   = src->data[n] & ~DECT_OCTET_GROUP_END;
+	if (src->data[n++] & DECT_OCTET_GROUP_END)
+		goto group4;
+
+	dst->display_columns = src->data[n] & ~DECT_OCTET_GROUP_END;
+	if (src->data[n++] & DECT_OCTET_GROUP_END)
+		goto group4;
+
+	dst->scrolling	     = src->data[n] & ~DECT_OCTET_GROUP_END;
+	if (src->data[n++] & DECT_OCTET_GROUP_END)
+		goto group4;
+
+group4:
+	for (i = 0; i < 8; i++) {
+		dst->profile_indicator |=
+			(uint64_t)(src->data[n] & ~DECT_OCTET_GROUP_END) <<
+			(64 - 8 * (i + 1));
+		if (src->data[n++] & DECT_OCTET_GROUP_END)
+			goto group5;
+	}
+
+group5:
+	dst->display_control = src->data[n] &= 0x7;
+	if (src->data[n++] & DECT_OCTET_GROUP_END)
+		goto group6;
+	dst->display_charsets = src->data[n] & ~DECT_OCTET_GROUP_END;
+	if (src->data[n++] & DECT_OCTET_GROUP_END)
+		goto group6;
+
+group6:
+	/* Older equipment may not include octet group 6 */
+	if (n == src->len)
+		goto group7;
+	if (src->data[n++] & DECT_OCTET_GROUP_END)
+		goto group7;
+	if (!(src->data[n++] & DECT_OCTET_GROUP_END))
+		return -1;
+
+group7:
+	dect_sfmt_dump_terminal_capability(*ie);
+	return 0;
+}
+
+static int dect_sfmt_parse_duration(const struct dect_handle *dh,
+				    struct dect_ie_common **ie,
+				    const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_duration *dst = dect_ie_container(dst, *ie);
+
+	dst->lock = src->data[2] & 0x70;
+	dst->time = src->data[2] & 0x0f;
+	if (!(src->data[2] & DECT_OCTET_GROUP_END))
+		dst->duration = src->data[3];
+	return 0;
+}
+
+static int dect_sfmt_build_duration(struct dect_sfmt_ie *dst,
+				    const struct dect_ie_common *ie)
+{
+	struct dect_ie_duration *src = dect_ie_container(src, ie);
+
+	dst->len = 3;
+	dst->data[2] = (src->lock << 4) | src->time;
+	if (src->time != DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_1 &&
+	    src->time != DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_2)
+		dst->data[2] |= DECT_OCTET_GROUP_END;
+	else {
+		dst->data[3] = src->duration;
+		dst->len++;
+	}
 	return 0;
 }
 
@@ -488,6 +700,8 @@ static const struct dect_ie_handler {
 	[S_VL_IE_LOCATION_AREA]			= {
 		.name	= "location area",
 		.size	= sizeof(struct dect_ie_location_area),
+		.parse	= dect_sfmt_parse_location_area,
+		.build	= dect_sfmt_build_location_area,
 	},
 	[S_VL_IE_NWK_ASSIGNED_IDENTITY]		= {
 		.name	= "NWK assigned identity",
@@ -609,6 +823,7 @@ static const struct dect_ie_handler {
 		.name	= "reject reason",
 		.size	= sizeof(struct dect_ie_reject_reason),
 		.parse	= dect_sfmt_parse_reject_reason,
+		.build	= dect_sfmt_build_reject_reason,
 	},
 	[S_VL_IE_SETUP_CAPABILITY]		= {
 		.name	= "setup capability",
@@ -617,6 +832,7 @@ static const struct dect_ie_handler {
 	[S_VL_IE_TERMINAL_CAPABILITY]		= {
 		.name	= "terminal capability",
 		.size	= sizeof(struct dect_ie_terminal_capability),
+		.parse	= dect_sfmt_parse_terminal_capability,
 	},
 	[S_VL_IE_END_TO_END_COMPATIBILITY]	= {
 		.name	= "end-to-end compatibility",
@@ -653,6 +869,8 @@ static const struct dect_ie_handler {
 	[S_VL_IE_DURATION]			= {
 		.name	= "duration",
 		.size	= sizeof(struct dect_ie_duration),
+		.parse	= dect_sfmt_parse_duration,
+		.build	= dect_sfmt_build_duration,
 	},
 	[S_VL_IE_SEGMENTED_INFO]		= {
 		.name	= "segmented info",
@@ -817,7 +1035,7 @@ static int dect_parse_sfmt_ie(const struct dect_handle *dh,
 			goto err1;
 	}
 
-	dect_debug("parse: IE <%s> dst %p len %u\n", ieh->name, *dst, ie->len);
+	dect_debug("parse IE: <%s> dst %p len %u\n", ieh->name, *dst, ie->len);
 	err = ieh->parse(dh, dst, ie);
 	if (err < 0)
 		goto err2;

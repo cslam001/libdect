@@ -196,9 +196,6 @@ enum dect_sfmt_variable_length_ies {
 
 #define S_VL_IE_FIXED_IDENTITY_MIN_SIZE		2
 
-#define S_VL_IE_FIXED_IDENTITY_TYPE_MASK	0x7f
-#define S_VL_IE_FIXED_IDENTITY_LENGTH_MASK	0x7f
-
 /* Identity type IE */
 
 /* Info type IE */
@@ -213,6 +210,11 @@ enum dect_sfmt_variable_length_ies {
 
 /* Location area IE */
 
+#define DECT_LOCATION_AREA_TYPE_MASK			0xc0
+#define DECT_LOCATION_AREA_TYPE_SHIFT			6
+
+#define DECT_LOCATION_LEVEL_MASK			0x3f
+
 /* Multi-display IE */
 
 /* Multi-keypad IE */
@@ -224,9 +226,6 @@ enum dect_sfmt_variable_length_ies {
 /* Portable identity IE */
 
 #define S_VL_IE_PORTABLE_IDENTITY_MIN_SIZE		2
-
-#define S_VL_IE_PORTABLE_IDENTITY_TYPE_MASK		0x7f
-#define S_VL_IE_PORTABLE_IDENTITY_LENGTH_MASK		0x7f
 
 /* IPUI */
 
@@ -258,6 +257,19 @@ enum dect_sfmt_variable_length_ies {
 /* Setup capability IE */
 
 /* Terminal capability IE */
+
+#define DECT_TERMINAL_CAPABILITY_DISPLAY_MASK	0x0f
+
+#define DECT_TERMINAL_CAPABILITY_TONE_MASK	0x70
+#define DECT_TERMINAL_CAPABILITY_TONE_SHIFT	4
+
+#define DECT_TERMINAL_CAPABILITY_ECHO_MASK	0x70
+#define DECT_TERMINAL_CAPABILITY_ECHO_SHIFT	4
+
+#define DECT_TERMINAL_CAPABILITY_NOISE_MASK	0x0c
+#define DECT_TERMINAL_CAPABILITY_NOISE_SHIFT	2
+
+#define DECT_TERMINAL_CAPABILITY_VOLUME_MASK	0x03
 
 /* Transit delay IE */
 

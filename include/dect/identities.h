@@ -157,7 +157,17 @@ enum dect_tpui_types {
  */
 struct dect_tpui {
 	enum dect_tpui_types	type;
-	uint32_t		tpui;
+	union {
+		struct {
+			uint8_t	digits[5];
+		} ia;
+		struct {
+			uint16_t group;
+		} cg;
+		struct {
+			const struct dect_ipui *ipui;
+		} id;
+	};
 };
 
 extern void dect_default_individual_tpui(struct dect_tpui *tpui,

@@ -23,16 +23,64 @@ struct dect_mm_access_rights_param {
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 };
 
+struct dect_mm_locate_param {
+	struct dect_ie_portable_identity	*portable_identity;
+	struct dect_ie_fixed_identity		*fixed_identity;
+	struct dect_ie_location_area		*location_area;
+	struct dect_ie_nwk_assigned_identity	*nwk_assigned_identity;
+	struct dect_ie_cipher_info		*cipher_info;
+	struct dect_ie_reject_reason		*reject_reason;
+	struct dect_ie_setup_capability		*setup_capability;
+	struct dect_ie_terminal_capability	*terminal_capability;
+	struct dect_ie_duration			*duration;
+	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
+	struct dect_ie_model_identifier		*model_identifier;
+};
+
+struct dect_mm_identity_assign_param {
+	struct dect_ie_portable_identity	*portable_identity;
+	struct dect_ie_nwk_assigned_identity	*nwk_assigned_identity;
+	struct dect_ie_duration			*duration;
+	struct dect_ie_reject_reason		*reject_reason;
+	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
+};
+
+struct dect_mm_transaction;
+
 struct dect_mm_ops {
 	void	(*mm_access_rights_ind)(struct dect_handle *dh,
 					const struct dect_mm_access_rights_param *param);
 	void	(*mm_access_rights_cfm)(struct dect_handle *dh,
 					const struct dect_mm_access_rights_param *param);
+
+	void	(*mm_locate_ind)(struct dect_handle *dh,
+				 struct dect_mm_transaction *mmta,
+				 const struct dect_mm_locate_param *param);
+	void	(*mm_locate_res)(struct dect_handle *dh,
+				 struct dect_mm_transaction *mmta,
+				 const struct dect_mm_locate_param *param);
+
+	void	(*mm_identity_assign_ind)(struct dect_handle *dh,
+					  struct dect_mm_transaction *mmta,
+					  const struct dect_mm_identity_assign_param *param);
+	void	(*mm_identity_assign_cfm)(struct dect_handle *dh,
+					  struct dect_mm_transaction *mmta,
+					  const struct dect_mm_identity_assign_param *param);
 };
 
 extern int dect_mm_access_rights_req(struct dect_handle *dh,
 				     const struct dect_mm_access_rights_param *param);
 extern int dect_mm_access_rights_res(struct dect_handle *dh,
 				     const struct dect_mm_access_rights_param *param);
+
+extern int dect_mm_locate_req(struct dect_handle *dh, struct dect_mm_transaction *mmta,
+			      const struct dect_mm_locate_param *param);
+extern int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_transaction *mmta,
+			      const struct dect_mm_locate_param *param);
+
+extern int mm_identity_assign_req(struct dect_handle *dh, struct dect_mm_transaction *mmta,
+				  const struct dect_mm_identity_assign_param *param);
+extern int mm_identity_assign_cfm(struct dect_handle *dh, struct dect_mm_transaction *mmta,
+				  const struct dect_mm_identity_assign_param *param);
 
 #endif /* _LIBDECT_DECT_MM_H */
