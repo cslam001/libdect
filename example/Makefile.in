@@ -1,5 +1,5 @@
 LDFLAGS		+= -Lsrc -ldect
-PROGRAMS	+= test mm
+PROGRAMS	+= test mm discover
 
 test-destdir	:= usr/bin
 
@@ -9,3 +9,6 @@ test-obj	+= test.o
 
 mm-obj		+= event_ops.o
 mm-obj		+= mm.o
+
+discover-obj	+= event_ops.o
+discover-obj	+= discover.o
