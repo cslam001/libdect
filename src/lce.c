@@ -72,7 +72,7 @@ static ssize_t dect_mbuf_rcv(const struct dect_fd *dfd, struct dect_msg_buf *mb)
 	mb->data = mb->head;
 	len = recv(dfd->fd, mb->data, sizeof(mb->head), 0);
 	if (len < 0) {
-		dect_debug("recv %Zd: %s\n", len, strerror(errno));
+		dect_debug("recv: %s\n", strerror(errno));
 		return len;
 	}
 	mb->len = len;
@@ -350,6 +350,18 @@ int dect_lce_send(const struct dect_handle *dh,
 	}
 }
 
+static void dect_ddl_shutdown(struct dect_handle *dh,
+			      struct dect_data_link *ddl)
+{
+	struct dect_transaction *ta, *next;
+	LIST_HEAD(transactions);
+
+	ddl_debug(ddl, "shutdown");
+	list_splice_init(&ddl->transactions, &transactions);
+	list_for_each_entry_safe(ta, next, &transactions, list)
+		protocols[ta->pd]->shutdown(dh, ta);
+}
+
 /**
  * dect_ddl_establish - Establish an outgoing data link
  *
@@ -547,11 +559,12 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 	uint8_t pd, tv;
 	bool f;
 
+	if (dect_mbuf_rcv(ddl->dfd, mb) < 0)
+		return dect_ddl_shutdown(dh, ddl);
+
 	if (ddl->sdu_timer != NULL)
 		dect_ddl_stop_sdu_timer(dh, ddl);
 
-	if (dect_mbuf_rcv(ddl->dfd, mb) < 0)
-		return;
 	dect_mbuf_dump(mb, "RX");
 
 	if (mb->len < DECT_S_HDR_SIZE)
@@ -775,16 +788,10 @@ err1:
 
 void dect_lce_exit(struct dect_handle *dh)
 {
-	struct dect_data_link *ddl, *ddl_next;
-	struct dect_transaction *ta, *ta_next;
-	LIST_HEAD(transactions);
+	struct dect_data_link *ddl, *next;
 
-	list_for_each_entry_safe(ddl, ddl_next, &dh->links, list) {
-		ddl_debug(ddl, "shutdown");
-		list_splice_init(&ddl->transactions, &transactions);
-		list_for_each_entry_safe(ta, ta_next, &transactions, list)
-			protocols[ta->pd]->shutdown(dh, ta);
-	}
+	list_for_each_entry_safe(ddl, next, &dh->links, list)
+		dect_ddl_shutdown(dh, ddl);
 
 	dect_unregister_fd(dh, dh->s_sap);
 	dect_close(dh, dh->s_sap);

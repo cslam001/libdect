@@ -319,7 +319,7 @@ static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 			struct dect_msg_buf *mb)
 {
 	struct dect_mm_transaction *mmta;
-       
+
 	mmta = container_of(ta, struct dect_mm_transaction, transaction);
 	switch (mb->type) {
 	case DECT_MM_AUTHENTICATION_REQUEST:
@@ -378,7 +378,11 @@ static void dect_mm_open(struct dect_handle *dh,
 static void dect_mm_shutdown(struct dect_handle *dh,
 			     struct dect_transaction *ta)
 {
-	dect_debug("MM: shutdown\n");
+	struct dect_mm_transaction *mmta;
+
+	mmta = container_of(ta, struct dect_mm_transaction, transaction);
+	mm_debug("MM: shutdown\n");
+	dect_close_transaction(dh, &mmta->transaction);
 }
 
 static const struct dect_nwk_protocol mm_protocol = {
