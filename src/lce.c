@@ -239,8 +239,10 @@ static void dect_ddl_destroy(struct dect_handle *dh, struct dect_data_link *ddl)
 	assert(list_empty(&ddl->transactions));
 
 	list_del(&ddl->list);
+	dect_free(dh, ddl->page_timer);
 	list_for_each_entry_safe(mb, next, &ddl->msg_queue, list)
 		dect_free(dh, mb);
+
 	if (ddl->dfd != NULL) {
 		dect_unregister_fd(dh, ddl->dfd);
 		dect_close(dh, ddl->dfd);
@@ -362,6 +364,19 @@ static void dect_ddl_shutdown(struct dect_handle *dh,
 		protocols[ta->pd]->shutdown(dh, ta);
 }
 
+static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer)
+{
+	struct dect_data_link *ddl = timer->data;
+
+	ddl_debug(ddl, "Page timer");
+	if (ddl->page_count++ == DECT_DDL_PAGE_RETRANS_MAX)
+		dect_ddl_shutdown(dh, ddl);
+	else {
+		dect_lce_page(dh, &ddl->ipui);
+		dect_start_timer(dh, ddl->page_timer, DECT_DDL_PAGE_TIMEOUT);
+	}
+}
+
 /**
  * dect_ddl_establish - Establish an outgoing data link
  *
@@ -382,7 +397,14 @@ static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
 
 	if (dh->mode == DECT_MODE_FP) {
 		memcpy(&ddl->ipui, ipui, sizeof(ddl->ipui));
-		dect_lce_page(dh, ipui);
+
+		ddl->page_timer = dect_alloc_timer(dh);
+		if (ddl->page_timer == NULL)
+			goto err2;
+		ddl->page_timer->data = ddl;
+		ddl->page_timer->callback = dect_ddl_page_timer;
+
+		dect_ddl_page_timer(dh, ddl->page_timer);
 	} else {
 		ddl->dfd = dect_socket(dh, SOCK_SEQPACKET, DECT_S_SAP);
 		if (ddl->dfd == NULL)

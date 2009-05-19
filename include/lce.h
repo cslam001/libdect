@@ -131,6 +131,8 @@ enum dect_data_link_states {
  * @ipui:	International Portable User ID
  * @state:	Data link state
  * @sdu_timer:	Establish without SDU timer
+ * @page_timer:	Indirect establish timer (LCE.03)
+ * @page_count:	Number of page messages sent
  * @msg_queue:	Message queue used during ESTABLISH_PENDING state
  */
 struct dect_data_link {
@@ -140,11 +142,15 @@ struct dect_data_link {
 	struct dect_fd			*dfd;
 	enum dect_data_link_states	state;
 	struct dect_timer		*sdu_timer;
-	struct list_head		transactions;
+	struct dect_timer		*page_timer;
+	uint8_t				page_count;
 	struct list_head		msg_queue;
+	struct list_head		transactions;
 };
 
 #define DECT_DDL_ESTABLISH_SDU_TIMEOUT	5	/* seconds */
+#define DECT_DDL_PAGE_TIMEOUT		5	/* seconds */
+#define DECT_DDL_PAGE_RETRANS_MAX	3	/* N.300 */
 
 extern int dect_lce_group_ring(struct dect_handle *dh,
 			       enum dect_ring_patterns pattern);
