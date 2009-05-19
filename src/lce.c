@@ -413,21 +413,6 @@ err1:
 	return NULL;
 }
 
-#if 0
-int dect_send_reject(const struct dect_handle *dh,
-		     const struct dect_transaction *ta,
-		     enum dect_reject_reasons reason)
-{
-	struct dect_ie_reject_reason reject_reason;
-	struct dect_lce_page_reject msg = {
-		.portable_identity	= NULL,
-		.reject_reason		= &reject_reason,
-	};
-
-	dect_send(dh, ta, mb);
-}
-#endif
-
 static void dect_ddl_complete_direct_establish(struct dect_handle *dh,
 					       struct dect_data_link *ddl)
 {
@@ -471,6 +456,23 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 	dect_ddl_destroy(dh, req);
 }
 
+static int dect_send_reject(const struct dect_handle *dh,
+			    const struct dect_transaction *ta,
+			    enum dect_reject_reasons reason)
+{
+	struct dect_ie_reject_reason reject_reason;
+	struct dect_lce_page_reject msg = {
+		.portable_identity	= NULL,
+		.reject_reason		= &reject_reason,
+	};
+
+	dect_ie_init(&reject_reason);
+	reject_reason.reason = reason;
+
+	return dect_lce_send(dh, ta, lce_page_reject_msg, &msg.common,
+			     DECT_LCE_PAGE_REJECT, "LCE-PAGE-REJECT");
+}
+
 static void dect_lce_rcv_page_response(struct dect_handle *dh,
 				       const struct dect_transaction *ta,
 				       struct dect_msg_buf *mb)
@@ -500,7 +502,7 @@ static void dect_lce_rcv_page_response(struct dect_handle *dh,
 	if (req != NULL)
 		dect_ddl_complete_indirect_establish(dh, ta->link, req);
 	else {
-		/* send page reject */
+		dect_send_reject(dh, ta, DECT_REJECT_IPUI_UNKNOWN);
 		dect_ddl_destroy(dh, ta->link);
 	}
 
