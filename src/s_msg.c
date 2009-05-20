@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 #include <asm/byteorder.h>
 
 #include <libdect.h>
@@ -480,7 +481,7 @@ static void dect_sfmt_dump_terminal_capability(const struct dect_ie_common *_ie)
 	dect_debug("\tdisplay lines: %u\n", ie->display_lines);
 	dect_debug("\tdisplay columns: %u\n", ie->display_columns);
 	dect_debug("\tscrolling behaviour: %s\n", scrolling_behaviour[ie->scrolling]);
-	dect_debug("\tprofile indicator: %llx\n", ie->profile_indicator);
+	dect_debug("\tprofile indicator: %" PRIx64 "\n", ie->profile_indicator);
 	dect_debug("\tdisplay control: %x\n", ie->display_control);
 	dect_debug("\tdisplay charsets: %x\n", ie->display_charsets);
 }
