@@ -1,4 +1,4 @@
-LDFLAGS		+= -Lsrc -ldect
+LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect
 PROGRAMS	+= test mm discover
 
 test-destdir	:= usr/bin
