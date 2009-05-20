@@ -239,7 +239,6 @@ static void dect_ddl_destroy(struct dect_handle *dh, struct dect_data_link *ddl)
 	assert(list_empty(&ddl->transactions));
 
 	list_del(&ddl->list);
-	dect_free(dh, ddl->page_timer);
 	list_for_each_entry_safe(mb, next, &ddl->msg_queue, list)
 		dect_free(dh, mb);
 
@@ -459,6 +458,10 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 {
 	struct dect_transaction *ta, *ta_next;
 	struct dect_msg_buf *mb, *mb_next;
+
+	/* Stop page timer */
+	dect_stop_timer(dh, ddl->sdu_timer);
+	dect_free(dh, ddl->page_timer);
 
 	ddl_debug(ddl, "complete indirect link establishment req %p", req);
 	/* Transfer transactions to the new link */
