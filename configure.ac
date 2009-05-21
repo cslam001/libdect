@@ -42,8 +42,12 @@ AC_CHECK_LIB([SDL], [SDL_OpenAudio], ,
 AC_HEADER_STDC
 AC_HEADER_ASSERT
 AC_CHECK_HEADERS([fcntl.h inttypes.h libintl.h limits.h malloc.h \
-		  stddef.h stdint.h stdlib.h string.h unistd.h], ,
+		  stddef.h stdint.h stdlib.h string.h unistd.h \
+		  sys/socket.h], ,
 		 AC_MSG_ERROR([Header file not found]))
+AC_CHECK_HEADERS([linux/dect.h linux/dect_netlink.h], ,
+		 AC_MSG_ERROR([DECT kernel header files not found]),
+		 [#include <sys/socket.h>])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
