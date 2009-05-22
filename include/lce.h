@@ -125,15 +125,16 @@ enum dect_data_link_states {
 /**
  * struct dect_data_link
  *
- * @list:	DECT handle link list node
- * @dfd:	Associated socket file descriptor
- * @dlei:	Data Link Endpoint identifier
- * @ipui:	International Portable User ID
- * @state:	Data link state
- * @sdu_timer:	Establish without SDU timer
- * @page_timer:	Indirect establish timer (LCE.03)
- * @page_count:	Number of page messages sent
- * @msg_queue:	Message queue used during ESTABLISH_PENDING state
+ * @list:		DECT handle link list node
+ * @dfd:		Associated socket file descriptor
+ * @dlei:		Data Link Endpoint identifier
+ * @ipui:		International Portable User ID
+ * @state:		Data link state
+ * @sdu_timer:		Establish without SDU timer (LCE.05)
+ * @release_timer:	Normal link release timer (LCE.01)
+ * @page_timer:		Indirect establish timer (LCE.03)
+ * @page_count:		Number of page messages sent
+ * @msg_queue:		Message queue used during ESTABLISH_PENDING state
  */
 struct dect_data_link {
 	struct list_head		list;
@@ -142,12 +143,14 @@ struct dect_data_link {
 	struct dect_fd			*dfd;
 	enum dect_data_link_states	state;
 	struct dect_timer		*sdu_timer;
+	struct dect_timer		*release_timer;
 	struct dect_timer		*page_timer;
 	uint8_t				page_count;
 	struct list_head		msg_queue;
 	struct list_head		transactions;
 };
 
+#define DECT_DDL_RELEASE_TIMEOUT	5	/* seconds */
 #define DECT_DDL_ESTABLISH_SDU_TIMEOUT	5	/* seconds */
 #define DECT_DDL_PAGE_TIMEOUT		5	/* seconds */
 #define DECT_DDL_PAGE_RETRANS_MAX	3	/* N.300 */
