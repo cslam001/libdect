@@ -543,7 +543,7 @@ group4:
 	}
 
 group5:
-	dst->display_control = src->data[n] &= 0x7;
+	dst->display_control = src->data[n] & 0x7;
 	if (src->data[n++] & DECT_OCTET_GROUP_END)
 		goto group6;
 	dst->display_charsets = src->data[n] & ~DECT_OCTET_GROUP_END;
