@@ -52,6 +52,14 @@ struct dect_timer *dect_alloc_timer(const struct dect_handle *dh)
 			   dh->ops->event_ops->timer_priv_size);
 }
 
+void dect_setup_timer(struct dect_timer *timer,
+		      void (*cb)(struct dect_handle *, struct dect_timer *),
+		      void *data)
+{
+	timer->callback = cb;
+	timer->data = data;
+}
+
 void dect_start_timer(const struct dect_handle *dh,
 		      struct dect_timer *timer, unsigned int timeout)
 {

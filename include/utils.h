@@ -20,6 +20,9 @@ extern void *dect_zalloc(const struct dect_handle *dh, size_t size);
 extern void dect_free(const struct dect_handle *dh, void *ptr);
 
 extern struct dect_timer *dect_alloc_timer(const struct dect_handle *dh);
+extern void dect_setup_timer(struct dect_timer *timer,
+			     void (*cb)(struct dect_handle *, struct dect_timer *),
+			     void *data);
 extern void dect_start_timer(const struct dect_handle *dh,
 			     struct dect_timer *timer, unsigned int timeout);
 extern void dect_stop_timer(const struct dect_handle *dh, struct dect_timer *timer);

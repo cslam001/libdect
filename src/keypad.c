@@ -65,8 +65,7 @@ dect_keypad_buffer_init(const struct dect_handle *dh, uint8_t timeout,
 	kb->timer = dect_alloc_timer(dh);
 	if (kb->timer == NULL)
 		goto err2;
-	kb->timer->callback = dect_keypad_timer;
-	kb->timer->data     = kb;
+	dect_setup_timer(kb->timer, dect_keypad_timer, kb);
 
 	kb->complete = complete;
 	kb->priv     = priv;

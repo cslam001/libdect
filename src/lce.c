@@ -280,8 +280,7 @@ static int dect_ddl_schedule_sdu_timer(const struct dect_handle *dh,
 	ddl->sdu_timer = dect_alloc_timer(dh);
 	if (ddl->sdu_timer == NULL)
 		return -1;
-	ddl->sdu_timer->data = ddl;
-	ddl->sdu_timer->callback = dect_ddl_sdu_timer;
+	dect_setup_timer(ddl->sdu_timer, dect_ddl_sdu_timer, ddl);
 	dect_start_timer(dh, ddl->sdu_timer, DECT_DDL_ESTABLISH_SDU_TIMEOUT);
 	ddl_debug(ddl, "start SDU timer");
 	return 0;
@@ -400,9 +399,7 @@ static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
 		ddl->page_timer = dect_alloc_timer(dh);
 		if (ddl->page_timer == NULL)
 			goto err2;
-		ddl->page_timer->data = ddl;
-		ddl->page_timer->callback = dect_ddl_page_timer;
-
+		dect_setup_timer(ddl->page_timer, dect_ddl_page_timer, ddl);
 		dect_ddl_page_timer(dh, ddl->page_timer);
 	} else {
 		ddl->dfd = dect_socket(dh, SOCK_SEQPACKET, DECT_S_SAP);
