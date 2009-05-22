@@ -360,6 +360,7 @@ static void dect_call_disconnect_uplane(const struct dect_handle *dh,
 	dect_unregister_fd(dh, call->lu_sap);
 	dect_close(dh, call->lu_sap);
 	call->lu_sap = NULL;
+	cc_debug(call, "U-Plane disconnected");
 }
 
 struct dect_call *dect_call_alloc(const struct dect_handle *dh)
@@ -506,6 +507,24 @@ int dect_mncc_setup_ack_req(struct dect_handle *dh, struct dect_call *call,
 int dect_mncc_reject_req(struct dect_handle *dh, struct dect_call *call,
 			 const struct dect_mncc_release_param *param)
 {
+	struct dect_cc_release_com_msg msg = {
+		.release_reason			= param->release_reason,
+		.identity_type			= param->identity_type,
+		.location_area			= param->location_area,
+		.iwu_attributes			= param->iwu_attributes,
+		//.facility			= param->facility,
+		.display			= param->display,
+		.feature_indicate		= param->feature_indicate,
+		.network_parameter		= param->network_parameter,
+		.iwu_to_iwu			= param->iwu_to_iwu,
+		.iwu_packet			= param->iwu_packet,
+	};
+
+	dect_cc_send_msg(dh, call, cc_release_com_msg_desc, &msg.common,
+			 CC_RELEASE_COM, "CC-RELEASE_COM");
+
+	dect_close_transaction(dh, &call->transaction);
+	dect_call_destroy(dh, call);
 	return 0;
 }
 
