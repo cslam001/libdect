@@ -453,8 +453,7 @@ static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
 		ddl->dlei.dect_lln = 1;
 		ddl->dlei.dect_sapi = 0;
 
-		ddl->dfd->callback = dect_lce_data_link_event;
-		ddl->dfd->data = ddl;
+		dect_setup_fd(ddl->dfd, dect_lce_data_link_event, ddl);
 		if (dect_register_fd(dh, ddl->dfd, DECT_FD_WRITE) < 0)
 			goto err2;
 
@@ -787,8 +786,7 @@ static void dect_lce_ssap_listener_event(struct dect_handle *dh,
 		goto err2;
 	ddl->dfd = nfd;
 
-	nfd->callback = dect_lce_data_link_event;
-	nfd->data = ddl;
+	dect_setup_fd(nfd, dect_lce_data_link_event, ddl);
 	if (dect_register_fd(dh, nfd, DECT_FD_READ) < 0)
 		goto err3;
 
@@ -827,7 +825,7 @@ int dect_lce_init(struct dect_handle *dh)
 	if (bind(dh->b_sap->fd, (struct sockaddr *)&b_addr, sizeof(b_addr)) < 0)
 		goto err2;
 
-	dh->b_sap->callback = dect_lce_bsap_event;
+	dect_setup_fd(dh->b_sap, dect_lce_bsap_event, NULL);
 	if (dect_register_fd(dh, dh->b_sap, DECT_FD_READ) < 0)
 		goto err2;
 
@@ -846,7 +844,7 @@ int dect_lce_init(struct dect_handle *dh)
 	if (listen(dh->s_sap->fd, 10) < 0)
 		goto err4;
 
-	dh->s_sap->callback = dect_lce_ssap_listener_event;
+	dect_setup_fd(dh->s_sap, dect_lce_ssap_listener_event, NULL);
 	if (dect_register_fd(dh, dh->s_sap, DECT_FD_READ) < 0)
 		goto err4;
 

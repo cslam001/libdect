@@ -103,7 +103,7 @@ int dect_netlink_init(struct dect_handle *dh)
 		goto err2;
 	dh->nlfd->fd = nl_socket_get_fd(dh->nlsock);
 
-	dh->nlfd->callback = dect_netlink_event;
+	dect_setup_fd(dh->nlfd, dect_netlink_event, NULL);
 	if (dect_register_fd(dh, dh->nlfd, DECT_FD_READ))
 		goto err3;
 

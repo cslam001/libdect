@@ -87,6 +87,14 @@ struct dect_fd *dect_alloc_fd(const struct dect_handle *dh)
 	return dfd;
 }
 
+void dect_setup_fd(struct dect_fd *fd,
+		   void (*cb)(struct dect_handle *, struct dect_fd *, uint32_t),
+		   void *data)
+{
+	fd->callback = cb;
+	fd->data = data;
+}
+
 int dect_register_fd(const struct dect_handle *dh, struct dect_fd *dfd,
 		     uint32_t events)
 {

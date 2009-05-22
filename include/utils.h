@@ -15,6 +15,9 @@
 #define __aligned(x)		__attribute__((aligned(x)))
 #define __packed		__attribute__((packed))
 
+extern void dect_debug(const char *fmt, ...) __fmtstring(1, 2);
+extern void dect_hexdump(const char *prefix, const uint8_t *buf, size_t size);
+
 extern void *dect_malloc(const struct dect_handle *dh, size_t size);
 extern void *dect_zalloc(const struct dect_handle *dh, size_t size);
 extern void dect_free(const struct dect_handle *dh, void *ptr);
@@ -27,11 +30,11 @@ extern void dect_start_timer(const struct dect_handle *dh,
 			     struct dect_timer *timer, unsigned int timeout);
 extern void dect_stop_timer(const struct dect_handle *dh, struct dect_timer *timer);
 
-struct dect_fd *dect_alloc_fd(const struct dect_handle *dh);
+extern struct dect_fd *dect_alloc_fd(const struct dect_handle *dh);
+extern void dect_setup_fd(struct dect_fd *fd,
+			  void (*cb)(struct dect_handle *, struct dect_fd *, uint32_t),
+			  void *data);
 extern void dect_close(const struct dect_handle *dh, struct dect_fd *dfd);
-
-extern void dect_debug(const char *fmt, ...) __fmtstring(1, 2);
-extern void dect_hexdump(const char *prefix, const uint8_t *buf, size_t size);
 
 #include <sys/socket.h> // FIXME: socklen_t
 extern struct dect_fd *dect_socket(const struct dect_handle *dh,
