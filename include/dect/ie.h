@@ -441,16 +441,16 @@ struct dect_ie_feature_indicate {
 /* Fixed identity IE */
 
 /**
- * @ID_TYPE_ARI:	Access rights identity
- * @ID_TYPE_ARI_RPN:	Access rights identity plus radio fixed part number
- * @ID_TYPE_ARI_WRS:	Access rights identity plus radio fixed part number for WRS
- * @ID_TYPE_PARK:	Portable access rights key
+ * @DECT_FIXED_ID_TYPE_ARI:	Access rights identity
+ * @DECT_FIXED_ID_TYPE_ARI_RPN:	Access rights identity plus radio fixed part number
+ * @DECT_FIXED_ID_TYPE_ARI_WRS:	Access rights identity plus radio fixed part number for WRS
+ * @DECT_FIXED_ID_TYPE_PARK:	Portable access rights key
  */
 enum fixed_identity_types {
-	ID_TYPE_ARI		= 0x00,
-	ID_TYPE_ARI_RPN		= 0x01,
-	ID_TYPE_ARI_WRS		= 0x02,
-	ID_TYPE_PARK		= 0x20,
+	DECT_FIXED_ID_TYPE_ARI			= 0x00,
+	DECT_FIXED_ID_TYPE_ARI_RPN		= 0x01,
+	DECT_FIXED_ID_TYPE_ARI_WRS		= 0x02,
+	DECT_FIXED_ID_TYPE_PARK			= 0x20,
 };
 
 #define S_VL_IE_FIXED_IDENTITY_MIN_SIZE		2
@@ -529,14 +529,14 @@ struct dect_ie_network_parameter {
 /* Portable identity IE */
 
 /**
- * @ID_TYPE_IPUI:	International Portable User Identity (IPUI)
- * @ID_TYPE_IPEI:	International Portable Equipment Identity (IPEI)
- * @ID_TYPE_TPUI:	Temporary Portable User Identity (TPUI)
+ * @DECT_PORTABLE_ID_TYPE_IPUI:	International Portable User Identity (IPUI)
+ * @DECT_PORTABLE_ID_TYPE_IPEI:	International Portable Equipment Identity (IPEI)
+ * @DECT_PORTABLE_ID_TYPE_TPUI:	Temporary Portable User Identity (TPUI)
  */
 enum portable_identity_types {
-	ID_TYPE_IPUI		= 0x0,
-	ID_TYPE_IPEI		= 0x10,
-	ID_TYPE_TPUI		= 0x20,
+	DECT_PORTABLE_ID_TYPE_IPUI		= 0x0,
+	DECT_PORTABLE_ID_TYPE_IPEI		= 0x10,
+	DECT_PORTABLE_ID_TYPE_TPUI		= 0x20,
 };
 
 struct dect_ie_portable_identity {

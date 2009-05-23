@@ -233,13 +233,13 @@ static int dect_sfmt_parse_portable_identity(const struct dect_handle *dh,
 	len = src->data[3] & ~DECT_OCTET_GROUP_END;
 
 	switch (dst->type) {
-	case ID_TYPE_IPUI:
+	case DECT_PORTABLE_ID_TYPE_IPUI:
 		if (!dect_parse_ipui(&dst->ipui, src->data + 4, len))
 			dect_debug("parsing failed\n");
 		return 0;
-	case ID_TYPE_IPEI:
+	case DECT_PORTABLE_ID_TYPE_IPEI:
 		return 0;
-	case ID_TYPE_TPUI:
+	case DECT_PORTABLE_ID_TYPE_TPUI:
 		return 0;
 	default:
 		dect_debug("invalid type %u\n", dst->type);
@@ -255,16 +255,15 @@ static int dect_sfmt_build_portable_identity(struct dect_sfmt_ie *dst,
 	uint8_t len;
 
 	switch (ie->type) {
-	case ID_TYPE_IPUI:
+	case DECT_PORTABLE_ID_TYPE_IPUI:
 		len = dect_build_ipui(&dst->data[4], &ie->ipui);
 		if (len == 0)
 			return -1;
 		break;
-	case ID_TYPE_IPEI:
+	case DECT_PORTABLE_ID_TYPE_IPEI:
 		return -1;
-	case ID_TYPE_TPUI:
+	case DECT_PORTABLE_ID_TYPE_TPUI:
 		tpui = dect_build_tpui(&ie->tpui);
-		tpui |= 0x0 << 20;
 		dst->data[6] = tpui;
 		dst->data[5] = tpui >> 8;
 		dst->data[4] = tpui >> 16;
@@ -305,11 +304,11 @@ static int dect_sfmt_parse_fixed_identity(const struct dect_handle *dh,
 		return -1;
 
 	switch (dst->type) {
-	case ID_TYPE_ARI:
-	case ID_TYPE_PARK:
+	case DECT_FIXED_ID_TYPE_ARI:
+	case DECT_FIXED_ID_TYPE_PARK:
 		return ari_len + 1 == len;
-	case ID_TYPE_ARI_RPN:
-	case ID_TYPE_ARI_WRS:
+	case DECT_FIXED_ID_TYPE_ARI_RPN:
+	case DECT_FIXED_ID_TYPE_ARI_WRS:
 		return 0;
 	default:
 		dect_debug("invalid type %u\n", dst->type);

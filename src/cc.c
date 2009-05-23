@@ -460,9 +460,9 @@ int dect_mncc_setup_req(struct dect_handle *dh, struct dect_call *call,
 	if (dect_open_transaction(dh, &call->transaction, ipui) < 0)
 		goto err1;
 
-	fixed_identity.type = ID_TYPE_PARK;
+	fixed_identity.type = DECT_FIXED_ID_TYPE_PARK;
 	memcpy(&fixed_identity.ari, &dh->pari, sizeof(fixed_identity.ari));
-	portable_identity.type = ID_TYPE_IPUI;
+	portable_identity.type = DECT_PORTABLE_ID_TYPE_IPUI;
 	portable_identity.ipui = *ipui;
 
 	if (dect_cc_send_msg(dh, call, cc_setup_msg_desc, &msg.common,

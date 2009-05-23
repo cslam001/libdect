@@ -22,7 +22,7 @@ static void dect_mm_locate_ind(struct dect_handle *dh,
 	printf("MM_LOCATE-ind\n");
 
 	dect_ie_init(&portable_identity);
-	portable_identity.type = ID_TYPE_TPUI;
+	portable_identity.type = DECT_PORTABLE_ID_TYPE_TPUI;
 	portable_identity.tpui.type = DECT_TPUI_INDIVIDUAL_ASSIGNED;
 	memcpy(&portable_identity.tpui.ia.digits, prefix, sizeof(prefix));
 	portable_identity.tpui.ia.digits[3] = num / 10;
