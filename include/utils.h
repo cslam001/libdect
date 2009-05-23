@@ -1,4 +1,4 @@
-#ifndef _UITLS_H
+#ifndef _UTILS_H
 #define _UTILS_H
 
 #include <assert.h>
@@ -21,6 +21,11 @@ extern void dect_hexdump(const char *prefix, const uint8_t *buf, size_t size);
 extern void *dect_malloc(const struct dect_handle *dh, size_t size);
 extern void *dect_zalloc(const struct dect_handle *dh, size_t size);
 extern void dect_free(const struct dect_handle *dh, void *ptr);
+
+enum dect_timer_state {
+	DECT_TIMER_STOPPED,
+	DECT_TIMER_RUNNING,
+};
 
 extern struct dect_timer *dect_alloc_timer(const struct dect_handle *dh);
 extern void dect_setup_timer(struct dect_timer *timer,

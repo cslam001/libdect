@@ -88,12 +88,14 @@ struct dect_fd {
  *
  * @callback:		callback to invoke on timer expiry
  * @data:		libdect internal data
+ * @state:		libdect internal state
  * @priv:		libdect user private timer storage
  */
 struct dect_timer {
 	void		(*callback)(struct dect_handle *,
 				    struct dect_timer *);
 	void		*data;
+	uint32_t	state;
 	uint8_t		priv[];
 };
 
