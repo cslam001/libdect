@@ -550,7 +550,7 @@ int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 {
 	struct dect_cc_alerting_msg msg = {
 		.facility		= param->facility,
-		//.progress_indicator	= param->progress_indicator,
+		.progress_indicator	= param->progress_indicator,
 		.display		= param->display,
 		.signal			= param->signal,
 		.feature_indicate	= param->feature_indicate,
@@ -560,13 +560,6 @@ int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 		.iwu_to_iwu		= param->iwu_to_iwu,
 		.iwu_packet		= param->iwu_packet,
 	};
-
-	// FIXME FIXME FIXME FIXME
-	if (param->progress_indicator.list.next != NULL) {
-		init_list_head(&msg.progress_indicator.list);
-		dect_ie_list_move(&msg.progress_indicator,
-				  (struct dect_ie_repeat_indicator *)&param->progress_indicator);
-	}
 
 	return dect_cc_send_msg(dh, call, &cc_alerting_msg_desc,
 				&msg.common, CC_ALERTING);
@@ -673,7 +666,7 @@ int dect_mncc_info_req(struct dect_handle *dh, struct dect_call *call,
 		.location_area			= param->location_area,
 		.nwk_assigned_identity		= param->nwk_assigned_identity,
 		.facility			= param->facility,
-//		.progress_indicator		= param->progress_indicator,
+		.progress_indicator		= param->progress_indicator,
 		.display			= param->display,
 		.keypad				= param->keypad,
 		.signal				= param->signal,
@@ -688,13 +681,6 @@ int dect_mncc_info_req(struct dect_handle *dh, struct dect_call *call,
 		.iwu_to_iwu			= param->iwu_to_iwu,
 		.iwu_packet			= param->iwu_packet,
 	};
-
-	// FIXME FIXME FIXME FIXME
-	if (param->progress_indicator.list.next != NULL) {
-		init_list_head(&msg.progress_indicator.list);
-		dect_ie_list_move(&msg.progress_indicator,
-				  (struct dect_ie_repeat_indicator *)&param->progress_indicator);
-	}
 
 	dect_cc_send_msg(dh, call, &cc_info_msg_desc, &msg.common, CC_INFO);
 	return 0;
@@ -1037,7 +1023,10 @@ static void dect_mncc_setup_ind(struct dect_handle *dh,
 {
 	struct dect_mncc_setup_param param = {
 		.basic_service			= msg->basic_service,
+		.iwu_attributes			= msg->iwu_attributes,
 		.cipher_info			= msg->cipher_info,
+		.facility			= msg->facility,
+		.progress_indicator		= msg->progress_indicator,
 		.display			= msg->display,
 		.keypad				= msg->keypad,
 		.signal				= msg->signal,
@@ -1058,10 +1047,6 @@ static void dect_mncc_setup_ind(struct dect_handle *dh,
 		.iwu_packet			= msg->iwu_packet,
 	};
 
-	dect_ie_list_move(&param.iwu_attributes, &msg->iwu_attributes);
-	dect_ie_list_move(&param.facility, &msg->facility);
-	dect_ie_list_move(&param.progress_indicator, &msg->progress_indicator);
-
 	dh->ops->cc_ops->mncc_setup_ind(dh, call, &param);
 }
 
@@ -1078,10 +1063,10 @@ static void dect_cc_rcv_setup(struct dect_handle *dh,
 	if (dect_parse_sfmt_msg(dh, &cc_setup_msg_desc, &msg.common, mb) < 0)
 		return;
 
-	dect_foreach_ie(call_attributes, msg.call_attributes)
+	dect_foreach_ie(call_attributes, &msg.call_attributes)
 		dect_debug("call attributes\n");
 
-	dect_foreach_ie(connection_attributes, msg.connection_attributes)
+	dect_foreach_ie(connection_attributes, &msg.connection_attributes)
 		dect_debug("connection attributes\n");
 
 	call = dect_call_alloc(dh);

@@ -9,16 +9,15 @@
 
 #include <string.h>
 #include <dect/utils.h>
-#include <list.h>
 
 /**
  * struct dect_ie_common - common representation of a DECT IE
  *
- * @list:		repeat indicator list node
+ * @next:		repeat indicator list node
  * @refcnt:		reference count
  */
 struct dect_ie_common {
-	struct list_head		list;
+	struct dect_ie_common		*next;
 	unsigned int			refcnt;
 };
 
@@ -27,6 +26,7 @@ struct dect_ie_common {
 static inline struct dect_ie_common *__dect_ie_init(struct dect_ie_common *ie)
 {
 	ie->refcnt = 1;
+	ie->next   = NULL;
 	return ie;
 }
 
@@ -57,23 +57,34 @@ enum dect_ie_list_types {
 struct dect_ie_repeat_indicator {
 	struct dect_ie_common		common;
 	enum dect_ie_list_types		type;
-	struct list_head		list;
+	struct dect_ie_common		*list;
 };
 
 static inline void dect_repeat_indicator_init(struct dect_ie_repeat_indicator *ie)
 {
 	dect_ie_init(ie);
-	init_list_head(&ie->list);
+	ie->list = NULL;
 }
+
+static inline void __dect_repeat_indicator_add(struct dect_ie_common *ie,
+					       struct dect_ie_repeat_indicator *repeat)
+{
+	struct dect_ie_common **pprev;
+
+	pprev = &repeat->list;
+	while (*pprev != NULL && (*pprev)->next != NULL)
+		pprev = &(*pprev)->next;
+
+	ie->next = NULL;
+	*pprev = ie;
+}
+
+#define dect_repeat_indicator_add(ie, repeat) \
+	__dect_repeat_indicator_add(&(ie)->common, repeat)
 
 #define dect_foreach_ie(ptr, repeat) \
-	list_for_each_entry(ptr, &(repeat).list, common.list)
-
-static inline void dect_ie_list_move(struct dect_ie_repeat_indicator *to,
-				     struct dect_ie_repeat_indicator *from)
-{
-	list_splice_init(&from->list, &to->list);
-}
+	for (ptr = (void *)(repeat)->list; ptr != NULL; \
+	     ptr = (void *)((struct dect_ie_common *)ptr)->next)
 
 /* Sending complete */
 

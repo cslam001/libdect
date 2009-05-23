@@ -14,6 +14,7 @@
 #include <dect/identities.h>
 #include <dect/cc.h>
 #include <dect/mm.h>
+#include <list.h>
 
 struct dect_handle;
 

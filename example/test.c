@@ -70,7 +70,6 @@ static void dect_mncc_timer(int fd, short even, void *data)
 	};
 	static int code;
 
-	init_list_head(&info.progress_indicator.list);
 	dect_ie_init(&signal);
 	signal.code = DECT_SIGNAL_ALERTING_BASE | (code % 10);
 
@@ -139,9 +138,7 @@ static void dect_mncc_info_ind(struct dect_handle *dh, struct dect_call *call,
 	dect_ie_init(&progress_indicator);
 	progress_indicator.location = DECT_LOCATION_PRIVATE_NETWORK_SERVING_LOCAL_USER;
 	progress_indicator.progress = DECT_PROGRESS_INBAND_INFORMATION_NOW_AVAILABLE;
-
-	init_list_head(&info.progress_indicator.list);
-	list_add_tail(&progress_indicator.common.list, &info.progress_indicator.list);
+	info.progress_indicator.list = &progress_indicator.common;
 
 	dect_mncc_info_req(dh, call, &info);
 }

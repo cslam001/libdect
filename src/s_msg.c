@@ -38,7 +38,6 @@ static int dect_sfmt_parse_repeat_indicator(const struct dect_handle *dh,
 {
 	struct dect_ie_repeat_indicator *dst = dect_ie_container(dst, *ie);
 
-	init_list_head(&dst->list);
 	dst->type = src->data[0] & DECT_SFMT_IE_FIXED_VAL_MASK;
 	switch (dst->type) {
 	case DECT_SFMT_IE_LIST_NORMAL:
@@ -55,7 +54,7 @@ static int dect_sfmt_build_repeat_indicator(struct dect_sfmt_ie *dst,
 {
 	struct dect_ie_repeat_indicator *src = dect_ie_container(src, ie);
 
-	dect_debug("build repeat indicator list %p %p\n", src->list.prev, src->list.next);
+	dect_debug("build repeat indicator list %p\n", src->list);
 	dst->data[0] = src->type;
 	return 0;
 }
@@ -994,7 +993,7 @@ dect_next_ie(const struct dect_sfmt_ie_desc *desc, struct dect_ie_common **ie)
 static void dect_msg_ie_init(const struct dect_sfmt_ie_desc *desc,
 			     struct dect_ie_common **ie)
 {
-	struct dect_ie_repeat_indicator *rep;
+	struct dect_ie_repeat_indicator *repeat_indicator;
 
 	if (desc->flags & DECT_SFMT_IE_END)
 		return;
@@ -1003,8 +1002,8 @@ static void dect_msg_ie_init(const struct dect_sfmt_ie_desc *desc,
 	//	 ie, dect_ie_handlers[desc->type].name);
 
 	if (desc->type == S_SO_IE_REPEAT_INDICATOR) {
-		rep = dect_ie_container(rep, (struct dect_ie_common *)ie);
-		init_list_head(&rep->list);
+		repeat_indicator = dect_ie_container(repeat_indicator, (struct dect_ie_common *)ie);
+		repeat_indicator->list = NULL;
 	} else if (!(desc->flags & DECT_SFMT_IE_REPEAT))
 		*ie = NULL;
 }
@@ -1226,27 +1225,27 @@ enum dect_sfmt_error dect_build_sfmt_msg(const struct dect_handle *dh,
 {
 	const struct dect_sfmt_ie_desc *desc = mdesc->ie;
 	struct dect_ie_common * const *src = &_src->ie[0], **next, *rsrc;
-	struct dect_ie_repeat_indicator *rep;
+	struct dect_ie_repeat_indicator *repeat_indicator;
 	enum dect_sfmt_error err;
 
 	while (!(desc->flags & DECT_SFMT_IE_END)) {
 		next = dect_next_ie(desc, (struct dect_ie_common **)src);
 
 		if (desc->type == S_SO_IE_REPEAT_INDICATOR) {
-			rep = (struct dect_ie_repeat_indicator *)src;
-			if (rep->list.next == NULL || list_empty(&rep->list)) {
+			repeat_indicator = (struct dect_ie_repeat_indicator *)src;
+			if (repeat_indicator->list == NULL) {
 				desc++;
 				goto next;
 			}
 
-			if (rep->list.next->next != &rep->list)
-				err = dect_build_sfmt_ie(dh, desc, mb, &rep->common);
+			/* Add repeat indicator if more than one element on the list */
+			if (repeat_indicator->list->next != NULL)
+				err = dect_build_sfmt_ie(dh, desc, mb, &repeat_indicator->common);
 			desc++;
 
 			assert(desc->flags & DECT_SFMT_IE_REPEAT);
-			assert(!list_empty(&rep->list));
-			list_for_each_entry(rsrc, &rep->list, list) {
-				dect_debug("list elem %p next %p\n", rsrc, rsrc->list.next);
+			dect_foreach_ie(rsrc, repeat_indicator) {
+				dect_debug("list elem %p\n", rsrc);
 				err = dect_build_sfmt_ie(dh, desc, mb, rsrc);
 			}
 		} else {
