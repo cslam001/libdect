@@ -22,6 +22,23 @@
 #include <lce.h>
 #include <mm.h>
 
+static DECT_SFMT_MSG_DESC(mm_access_rights_accept,
+	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_MANDATORY, IE_NONE,      0),
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_FIXED_IDENTITY,		IE_MANDATORY, IE_NONE,      DECT_SFMT_IE_REPEAT),
+	DECT_SFMT_IE(S_VL_IE_LOCATION_AREA,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_AUTH_TYPE,			IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_CIPHER_INFO,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_ZAP_FIELD,			IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_SERVICE_CLASS,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_SETUP_CAPABILITY,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_MODEL_IDENTIFIER,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE_END_MSG
+);
+
 static DECT_SFMT_MSG_DESC(mm_access_rights_request,
 	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_NONE,      IE_MANDATORY, 0),
 	DECT_SFMT_IE(S_VL_IE_AUTH_TYPE,			IE_NONE,      IE_OPTIONAL,  0),
@@ -116,6 +133,12 @@ static DECT_SFMT_MSG_DESC(mm_temporary_identity_assign_rej,
 #define mm_debug(fmt, args...) \
 	dect_debug("MM: " fmt "\n", ## args)
 
+static void dect_mm_transaction_destroy(struct dect_handle *dh,
+					struct dect_mm_transaction *mmta)
+{
+	dect_free(dh, mmta);
+}
+
 static struct dect_mm_transaction *dect_mm_transaction_alloc(const struct dect_handle *dh)
 {
 	struct dect_mm_transaction *mmta;
@@ -139,6 +162,7 @@ static int dect_mm_send_msg(struct dect_handle *dh,
 }
 
 int dect_mm_access_rights_req(struct dect_handle *dh,
+			      struct dect_mm_transaction *mmta,
 			      const struct dect_mm_access_rights_param *param)
 {
 	static struct dect_transaction transaction;
@@ -154,7 +178,7 @@ int dect_mm_access_rights_req(struct dect_handle *dh,
 		.escape_to_proprietary	= NULL,
 	};
 
-	mm_debug("access rights request");
+	mm_debug("ACCESS_RIGHTS-req");
 	transaction.pd = DECT_S_PD_MM;
 
 	if (dect_open_transaction(dh, &transaction, &ipui) < 0)
@@ -169,6 +193,71 @@ err2:
 	dect_close_transaction(dh, &transaction, DECT_DDL_RELEASE_PARTIAL);
 err1:
 	return -1;
+}
+
+int dect_mm_access_rights_res(struct dect_handle *dh,
+			      struct dect_mm_transaction *mmta, bool accept,
+			      const struct dect_mm_access_rights_param *param)
+{
+	struct dect_mm_access_rights_accept_msg msg = {
+		.portable_identity	= param->portable_identity,
+		.fixed_identity		= param->fixed_identity,
+		.auth_type		= param->auth_type,
+		.location_area		= param->location_area,
+		.cipher_info		= param->cipher_info,
+		.setup_capability	= NULL,
+		.model_identifier	= param->model_identifier,
+		//.iwu_to_iwu		= param->iwu_to_iwu,
+		//.codec_list		= param->codec_list,
+		//.escape_to_proprietary= param->escape_to_proprietary,
+	};
+	struct dect_ie_fixed_identity fixed_identity;
+	int err;
+
+	if (param->fixed_identity.list == NULL) {
+		fixed_identity.type = DECT_FIXED_ID_TYPE_PARK;
+		fixed_identity.ari = dh->pari;
+		fixed_identity.rpn = 0;
+		dect_repeat_indicator_add(&fixed_identity, &msg.fixed_identity);
+	}
+
+	mm_debug("ACCESS_RIGHTS-res");
+	err = dect_mm_send_msg(dh, mmta, &mm_access_rights_accept_msg_desc,
+			       &msg.common, DECT_MM_ACCESS_RIGHTS_ACCEPT);
+
+	dect_close_transaction(dh, &mmta->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_mm_transaction_destroy(dh, mmta);
+	return err;
+}
+
+static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
+					      const struct dect_transaction *req,
+					      struct dect_msg_buf *mb)
+{
+	struct dect_mm_access_rights_request_msg msg;
+	struct dect_mm_access_rights_param param;
+	struct dect_mm_transaction *mmta;
+
+	mm_debug("ACCESS-RIGHTS-REQUEST");
+	if (dect_parse_sfmt_msg(dh, &mm_access_rights_request_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	mmta = dect_mm_transaction_alloc(dh);
+	if (mmta == NULL)
+		goto err1;
+
+	dect_confirm_transaction(dh, &mmta->transaction, req);
+
+	memset(&param, 0, sizeof(param));
+	param.portable_identity   = msg.portable_identity;
+	param.auth_type		  = msg.auth_type;
+	param.cipher_info	  = msg.cipher_info;
+	param.terminal_capability = msg.terminal_capability;
+
+	dh->ops->mm_ops->mm_access_rights_ind(dh, mmta, &param);
+err1:
+	dect_msg_free(dh, &mm_access_rights_request_msg_desc, &msg.common);
 }
 
 static void dect_mm_rcv_access_rights_reject(struct dect_handle *dh,
@@ -370,6 +459,8 @@ static void dect_mm_open(struct dect_handle *dh,
 	dect_debug("MM: unknown transaction msg type: %x\n", mb->type);
 
 	switch (mb->type) {
+	case DECT_MM_ACCESS_RIGHTS_REQUEST:
+		return dect_mm_rcv_access_rights_request(dh, req, mb);
 	case DECT_MM_LOCATE_REQUEST:
 		return dect_mm_rcv_locate_request(dh, req, mb);
 	default:

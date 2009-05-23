@@ -41,6 +41,17 @@ enum dect_mm_msg_types {
 
 struct dect_mm_access_rights_accept_msg {
 	struct dect_msg_common			common;
+	struct dect_ie_portable_identity	*portable_identity;
+	struct dect_ie_repeat_indicator		fixed_identity;
+	struct dect_ie_location_area		*location_area;
+	struct dect_ie_auth_type		*auth_type;
+	struct dect_ie_cipher_info		*cipher_info;
+	struct dect_ie_zap_field		*zap_field;
+	struct dect_ie_service_class		*service_class;
+	struct dect_ie_setup_capability		*setup_capability;
+	struct dect_ie_model_identifier		*model_identifier;
+	struct dect_ie_codec_list		*codec_list;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_access_rights_reject_msg {

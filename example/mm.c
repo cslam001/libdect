@@ -7,6 +7,14 @@
 static uint8_t prefix[3] = { 1, 0, 0};
 static uint16_t num;
 
+static void dect_mm_access_rights_ind(struct dect_handle *dh,
+				      struct dect_mm_transaction *mmta,
+				      const struct dect_mm_access_rights_param *param)
+{
+	printf("MM_ACCESS_RIGHTS-ind\n");
+	dect_mm_access_rights_res(dh, mmta, true, param);
+}
+
 static void dect_mm_locate_ind(struct dect_handle *dh,
 			       struct dect_mm_transaction *mmta,
 			       const struct dect_mm_locate_param *param)
@@ -45,6 +53,7 @@ static void dect_mm_identity_assign_cfm(struct dect_handle *dh,
 }
 
 static const struct dect_mm_ops mm_ops = {
+	.mm_access_rights_ind	= dect_mm_access_rights_ind,
 	.mm_locate_ind		= dect_mm_locate_ind,
 	.mm_identity_assign_cfm	= dect_mm_identity_assign_cfm,
 };

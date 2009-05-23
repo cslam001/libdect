@@ -11,11 +11,12 @@
 
 struct dect_mm_access_rights_param {
 	struct dect_ie_portable_identity	*portable_identity;
-	struct dect_ie_fixed_identity		*fixed_identity;
+	struct dect_ie_repeat_indicator		fixed_identity;
 	struct dect_ie_location_area		*location_area;
 	struct dect_ie_auth_type		*auth_type;
 	struct dect_ie_cipher_info		*cipher_info;
 	struct dect_ie_zap_field		*zap_field;
+	struct dect_ie_terminal_capability	*terminal_capability;
 	struct dect_ie_service_class		*service_class;
 	struct dect_ie_model_identifier		*model_identifier;
 	struct dect_ie_reject_reason		*reject_reason;
@@ -49,8 +50,10 @@ struct dect_mm_transaction;
 
 struct dect_mm_ops {
 	void	(*mm_access_rights_ind)(struct dect_handle *dh,
+					struct dect_mm_transaction *mmta,
 					const struct dect_mm_access_rights_param *param);
 	void	(*mm_access_rights_cfm)(struct dect_handle *dh,
+					struct dect_mm_transaction *mmta, bool accept,
 					const struct dect_mm_access_rights_param *param);
 
 	void	(*mm_locate_ind)(struct dect_handle *dh,
@@ -68,10 +71,10 @@ struct dect_mm_ops {
 					  const struct dect_mm_identity_assign_param *param);
 };
 
-extern int dect_mm_access_rights_req(struct dect_handle *dh,
+extern int dect_mm_access_rights_req(struct dect_handle *dh, struct dect_mm_transaction *mmta,
 				     const struct dect_mm_access_rights_param *param);
-extern int dect_mm_access_rights_res(struct dect_handle *dh,
-				     const struct dect_mm_access_rights_param *param);
+extern int dect_mm_access_rights_res(struct dect_handle *dh, struct dect_mm_transaction *mmta,
+				     bool accept, const struct dect_mm_access_rights_param *param);
 
 extern int dect_mm_locate_req(struct dect_handle *dh, struct dect_mm_transaction *mmta,
 			      const struct dect_mm_locate_param *param);
