@@ -416,7 +416,7 @@ static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer
 	release_reason.reason = DECT_RELEASE_TIMER_EXPIRY;
 	dh->ops->cc_ops->mncc_reject_ind(dh, call, &param);
 
-	dect_close_transaction(dh, &call->transaction);
+	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
 }
 
@@ -475,7 +475,7 @@ int dect_mncc_setup_req(struct dect_handle *dh, struct dect_call *call,
 	return 0;
 
 err2:
-	dect_close_transaction(dh, &call->transaction);
+	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 err1:
 	return -1;
 }
@@ -522,7 +522,7 @@ int dect_mncc_reject_req(struct dect_handle *dh, struct dect_call *call,
 	dect_cc_send_msg(dh, call, cc_release_com_msg_desc, &msg.common,
 			 CC_RELEASE_COM, "CC-RELEASE_COM");
 
-	dect_close_transaction(dh, &call->transaction);
+	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
 	return 0;
 }
@@ -658,7 +658,7 @@ int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
 			 CC_RELEASE_COM,  "CC-RELEASE_COM");
 
 	dect_call_disconnect_uplane(dh, call);
-	dect_close_transaction(dh, &call->transaction);
+	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
 	return 0;
 }
@@ -931,7 +931,7 @@ static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *ca
 
 	if (call->lu_sap != NULL)
 		dect_call_disconnect_uplane(dh, call);
-	dect_close_transaction(dh, &call->transaction);
+	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
 }
 
@@ -1127,7 +1127,7 @@ static void dect_cc_shutdown(struct dect_handle *dh,
 
 	cc_debug(call, "shutdown");
 	dh->ops->cc_ops->mncc_reject_ind(dh, call, NULL);
-	dect_close_transaction(dh, &call->transaction);
+	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
 }
 

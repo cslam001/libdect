@@ -164,7 +164,7 @@ int dect_mm_access_rights_req(struct dect_handle *dh,
 	return 0;
 
 err2:
-	dect_close_transaction(dh, &transaction);
+	dect_close_transaction(dh, &transaction, DECT_DDL_RELEASE_PARTIAL);
 err1:
 	return -1;
 }
@@ -381,8 +381,8 @@ static void dect_mm_shutdown(struct dect_handle *dh,
 	struct dect_mm_transaction *mmta;
 
 	mmta = container_of(ta, struct dect_mm_transaction, transaction);
-	mm_debug("MM: shutdown\n");
-	dect_close_transaction(dh, &mmta->transaction);
+	mm_debug("shutdown");
+	dect_close_transaction(dh, &mmta->transaction, DECT_DDL_RELEASE_NORMAL);
 }
 
 static const struct dect_nwk_protocol mm_protocol = {

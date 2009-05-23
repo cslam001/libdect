@@ -33,6 +33,11 @@ enum dect_transaction_role {
 /* Connectionless NWK layer transaction value */
 #define DECT_TV_CONNECTIONLESS		6
 
+enum dect_release_modes {
+	DECT_DDL_RELEASE_NORMAL,
+	DECT_DDL_RELEASE_PARTIAL,
+};
+
 /**
  * struct dect_transaction - DECT protocol transaction
  *
@@ -58,7 +63,8 @@ extern void dect_confirm_transaction(struct dect_handle *dh,
 				     struct dect_transaction *ta,
 				     const struct dect_transaction *req);
 extern void dect_close_transaction(struct dect_handle *dh,
-				   struct dect_transaction *ta);
+				   struct dect_transaction *ta,
+				   enum dect_release_modes mode);
 extern void dect_transaction_get_ulei(struct sockaddr_dect_lu *addr,
 				      const struct dect_transaction *ta);
 

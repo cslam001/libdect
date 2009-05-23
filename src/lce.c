@@ -230,12 +230,34 @@ dect_ddl_transaction_lookup(const struct dect_data_link *ddl, uint8_t pd, uint8_
 	return NULL;
 }
 
+static struct dect_data_link *dect_ddl_alloc(const struct dect_handle *dh)
+{
+	struct dect_data_link *ddl;
+
+	ddl = dect_zalloc(dh, sizeof(*ddl));
+	if (ddl == NULL)
+		goto err1;
+	ddl->sdu_timer = dect_alloc_timer(dh);
+	if (ddl->sdu_timer == NULL)
+		goto err2;
+	ddl->state = DECT_DATA_LINK_RELEASED;
+	init_list_head(&ddl->list);
+	init_list_head(&ddl->transactions);
+	init_list_head(&ddl->msg_queue);
+	ddl_debug(ddl, "alloc");
+	return ddl;
+
+err2:
+	dect_free(dh, ddl);
+err1:
+	return NULL;
+}
+
 static void dect_ddl_destroy(struct dect_handle *dh, struct dect_data_link *ddl)
 {
 	struct dect_msg_buf *mb, *next;
 
 	ddl_debug(ddl, "destroy");
-	assert(ddl->sdu_timer == NULL);
 	assert(list_empty(&ddl->transactions));
 
 	list_del(&ddl->list);
@@ -246,23 +268,9 @@ static void dect_ddl_destroy(struct dect_handle *dh, struct dect_data_link *ddl)
 		dect_unregister_fd(dh, ddl->dfd);
 		dect_close(dh, ddl->dfd);
 	}
+	dect_free(dh, ddl->sdu_timer);
 	dect_free(dh, ddl->release_timer);
 	dect_free(dh, ddl);
-}
-
-static struct dect_data_link *dect_ddl_alloc(const struct dect_handle *dh)
-{
-	struct dect_data_link *ddl;
-
-	ddl = dect_zalloc(dh, sizeof(*ddl));
-	if (ddl == NULL)
-		return NULL;
-	ddl->state = DECT_DATA_LINK_RELEASED;
-	init_list_head(&ddl->list);
-	init_list_head(&ddl->transactions);
-	init_list_head(&ddl->msg_queue);
-	ddl_debug(ddl, "alloc");
-	return ddl;
 }
 
 static void dect_ddl_release_timer(struct dect_handle *dh, struct dect_timer *timer)
@@ -305,6 +313,23 @@ err1:
 	dect_ddl_destroy(dh, ddl);
 }
 
+static void dect_ddl_partial_release_timer(struct dect_handle *dh, struct dect_timer *timer)
+{
+	struct dect_data_link *ddl = timer->data;
+
+	ddl_debug(ddl, "partial release timeout");
+	if (list_empty(&ddl->transactions))
+		dect_ddl_destroy(dh, ddl);
+}
+
+static void dect_ddl_partial_release(struct dect_handle *dh,
+				     struct dect_data_link *ddl)
+{
+	ddl_debug(ddl, "partial release");
+	dect_setup_timer(ddl->sdu_timer, dect_ddl_partial_release_timer, ddl);
+	dect_start_timer(dh, ddl->sdu_timer, DECT_DDL_ESTABLISH_SDU_TIMEOUT);
+}
+
 static void dect_ddl_shutdown(struct dect_handle *dh,
 			      struct dect_data_link *ddl)
 {
@@ -322,17 +347,12 @@ static void dect_ddl_sdu_timer(struct dect_handle *dh, struct dect_timer *timer)
 	struct dect_data_link *ddl = timer->data;
 
 	ddl_debug(ddl, "SDU timer");
-	dect_free(dh, ddl->sdu_timer);
-	ddl->sdu_timer = NULL;
 	dect_ddl_destroy(dh, ddl);
 }
 
 static int dect_ddl_schedule_sdu_timer(const struct dect_handle *dh,
 				       struct dect_data_link *ddl)
 {
-	ddl->sdu_timer = dect_alloc_timer(dh);
-	if (ddl->sdu_timer == NULL)
-		return -1;
 	dect_setup_timer(ddl->sdu_timer, dect_ddl_sdu_timer, ddl);
 	dect_start_timer(dh, ddl->sdu_timer, DECT_DDL_ESTABLISH_SDU_TIMEOUT);
 	ddl_debug(ddl, "start SDU timer");
@@ -344,8 +364,6 @@ static void dect_ddl_stop_sdu_timer(const struct dect_handle *dh,
 {
 	ddl_debug(ddl, "stop SDU timer");
 	dect_stop_timer(dh, ddl->sdu_timer);
-	dect_free(dh, ddl->sdu_timer);
-	ddl->sdu_timer = NULL;
 }
 
 static int dect_send(const struct dect_handle *dh,
@@ -382,7 +400,7 @@ int dect_lce_send(const struct dect_handle *dh,
 	dect_mbuf_reserve(mb, DECT_S_HDR_SIZE);
 	dect_build_sfmt_msg(dh, desc, msg, mb);
 
-	if (ddl->sdu_timer != NULL)
+	if (ddl->sdu_timer->state == DECT_TIMER_RUNNING)
 		dect_ddl_stop_sdu_timer(dh, ddl);
 
 	dect_mbuf_push(mb, DECT_S_HDR_SIZE);
@@ -623,11 +641,21 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 	uint8_t pd, tv;
 	bool f;
 
+	if (ddl->sdu_timer->state == DECT_TIMER_RUNNING)
+		dect_ddl_stop_sdu_timer(dh, ddl);
+
 	if (dect_mbuf_rcv(ddl->dfd, mb) < 0) {
 		switch (errno) {
 		case ENOTCONN:
 			if (ddl->state == DECT_DATA_LINK_RELEASE_PENDING)
 				return dect_ddl_release_complete(dh, ddl);
+			else {
+				ddl->state = DECT_DATA_LINK_RELEASED;
+				if (list_empty(&ddl->transactions))
+					return dect_ddl_destroy(dh, ddl);
+				else
+					return dect_ddl_shutdown(dh, ddl);
+			}
 		case ECONNRESET:
 			ddl->state = DECT_DATA_LINK_RELEASED;
 			return dect_ddl_shutdown(dh, ddl);
@@ -635,9 +663,6 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 			BUG();
 		}
 	}
-
-	if (ddl->sdu_timer != NULL)
-		dect_ddl_stop_sdu_timer(dh, ddl);
 
 	dect_mbuf_dump(mb, "RX");
 
@@ -743,19 +768,27 @@ void dect_confirm_transaction(struct dect_handle *dh, struct dect_transaction *t
 	list_add_tail(&ta->list, &req->link->transactions);
 }
 
-void dect_close_transaction(struct dect_handle *dh, struct dect_transaction *ta)
+void dect_close_transaction(struct dect_handle *dh, struct dect_transaction *ta,
+			    enum dect_release_modes mode)
 {
 	struct dect_data_link *ddl = ta->link;
 
 	ddl_debug(ddl, "close transaction");
 	list_del(&ta->list);
-	if (!list_empty(&ddl->transactions))
-		return;
 
-	if (ddl->state != DECT_DATA_LINK_RELEASED)
-		dect_ddl_release(dh, ddl);
-	else
-		dect_ddl_destroy(dh, ddl);
+	/* If link is already down, destroy immediately */
+	if (ddl->state == DECT_DATA_LINK_RELEASED &&
+	    list_empty(&ddl->transactions))
+		return dect_ddl_destroy(dh, ddl);
+
+	switch (mode) {
+	case DECT_DDL_RELEASE_NORMAL:
+		if (!list_empty(&ddl->transactions))
+			return;
+		return dect_ddl_release(dh, ddl);
+	case DECT_DDL_RELEASE_PARTIAL:
+		return dect_ddl_partial_release(dh, ddl);
+	}
 }
 
 void dect_transaction_get_ulei(struct sockaddr_dect_lu *addr,
