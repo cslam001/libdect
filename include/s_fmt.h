@@ -343,12 +343,24 @@ struct dect_sfmt_ie_desc {
 	.flags	= DECT_SFMT_IE_END,			\
 }
 
-
 struct dect_sfmt_ie {
 	uint8_t			*data;
 	uint16_t		id;
 	uint8_t			len;
 };
+
+struct dect_sfmt_msg_desc {
+	const char			*name;
+	struct dect_sfmt_ie_desc	ie[];
+};
+
+#define DECT_SFMT_MSG_DESC(_name, _init...)			\
+	const struct dect_sfmt_msg_desc _name ## _msg_desc = {	\
+		.name	= # _name,				\
+		.ie	= {					\
+			_init,					\
+		},						\
+	}
 
 /**
  * enum dect_sfmt_error - S-Format message parsing/construction state
@@ -376,16 +388,16 @@ struct dect_msg_common {
 
 struct dect_msg_buf;
 extern enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,
-						const struct dect_sfmt_ie_desc *desc,
+						const struct dect_sfmt_msg_desc *desc,
 						struct dect_msg_common *dst,
 						struct dect_msg_buf *mb);
 extern enum dect_sfmt_error dect_build_sfmt_msg(const struct dect_handle *dh,
-						const struct dect_sfmt_ie_desc *desc,
+						const struct dect_sfmt_msg_desc *desc,
 						const struct dect_msg_common *src,
 						struct dect_msg_buf *mb);
 
 extern void dect_msg_free(const struct dect_handle *dh,
-			  const struct dect_sfmt_ie_desc *desc,
+			  const struct dect_sfmt_msg_desc *desc,
 			  struct dect_msg_common *msg);
 
 #endif /* _DECT_S_FMT_H */

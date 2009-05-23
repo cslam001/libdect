@@ -1098,10 +1098,11 @@ err1:
 }
 
 enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,
-					 const struct dect_sfmt_ie_desc *desc,
+					 const struct dect_sfmt_msg_desc *mdesc,
 					 struct dect_msg_common *_dst,
 					 struct dect_msg_buf *mb)
 {
+	const struct dect_sfmt_ie_desc *desc = mdesc->ie;
 	struct dect_ie_common **dst = &_dst->ie[0];
 	struct dect_sfmt_ie _ie[2], *ie;
 	uint8_t idx = 0;
@@ -1219,10 +1220,11 @@ err1:
 }
 
 enum dect_sfmt_error dect_build_sfmt_msg(const struct dect_handle *dh,
-					 const struct dect_sfmt_ie_desc *desc,
+					 const struct dect_sfmt_msg_desc *mdesc,
 					 const struct dect_msg_common *_src,
 					 struct dect_msg_buf *mb)
 {
+	const struct dect_sfmt_ie_desc *desc = mdesc->ie;
 	struct dect_ie_common * const *src = &_src->ie[0], **next, *rsrc;
 	struct dect_ie_repeat_indicator *rep;
 	enum dect_sfmt_error err;
@@ -1261,9 +1263,10 @@ next:
 }
 
 void dect_msg_free(const struct dect_handle *dh,
-		   const struct dect_sfmt_ie_desc *desc,
+		   const struct dect_sfmt_msg_desc *mdesc,
 		   struct dect_msg_common *msg)
 {
+	const struct dect_sfmt_ie_desc *desc = mdesc->ie;
 	struct dect_ie_common **ie = &msg->ie[0], **next;
 
 	while (!(desc->flags & DECT_SFMT_IE_END)) {

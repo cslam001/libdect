@@ -70,9 +70,8 @@ extern void dect_transaction_get_ulei(struct sockaddr_dect_lu *addr,
 
 extern int dect_lce_send(const struct dect_handle *dh,
 			 const struct dect_transaction *ta,
-	  		 const struct dect_sfmt_ie_desc *desc,
-			 const struct dect_msg_common *msg, uint8_t type,
-			 const char *prefix);
+			 const struct dect_sfmt_msg_desc *desc,
+			 const struct dect_msg_common *msg, uint8_t type);
 
 /**
  * struct dect_nwk_protocol - NWK layer protocol

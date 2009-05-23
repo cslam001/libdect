@@ -22,7 +22,7 @@
 #include <lce.h>
 #include <mm.h>
 
-static const struct dect_sfmt_ie_desc mm_access_rights_request_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(mm_access_rights_request,
 	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_NONE,      IE_MANDATORY, 0),
 	DECT_SFMT_IE(S_VL_IE_AUTH_TYPE,			IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_CIPHER_INFO,		IE_NONE,      IE_OPTIONAL,  0),
@@ -33,17 +33,17 @@ static const struct dect_sfmt_ie_desc mm_access_rights_request_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc mm_access_rights_reject_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(mm_access_rights_reject,
 	DECT_SFMT_IE(S_VL_IE_REJECT_REASON,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_DURATION,			IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc mm_locate_accept_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(mm_locate_accept,
 	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_MANDATORY, IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_LOCATION_AREA,		IE_MANDATORY, IE_NONE,      0),
 	DECT_SFMT_IE(S_SE_IE_USE_TPUI,			IE_OPTIONAL,  IE_NONE,      0),
@@ -58,9 +58,9 @@ static const struct dect_sfmt_ie_desc mm_locate_accept_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc mm_locate_reject_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(mm_locate_reject,
 	DECT_SFMT_IE(S_VL_IE_REJECT_REASON,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_DURATION,			IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
@@ -68,9 +68,9 @@ static const struct dect_sfmt_ie_desc mm_locate_reject_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc mm_locate_request_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(mm_locate_request,
 	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_NONE,      IE_MANDATORY, 0),
 	DECT_SFMT_IE(S_VL_IE_FIXED_IDENTITY,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_LOCATION_AREA,		IE_NONE,      IE_OPTIONAL,  0),
@@ -86,9 +86,9 @@ static const struct dect_sfmt_ie_desc mm_locate_request_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc mm_temporary_identity_assign_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(mm_temporary_identity_assign,
 	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_LOCATION_AREA,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_NWK_ASSIGNED_IDENTITY,	IE_OPTIONAL,  IE_NONE,      0),
@@ -98,21 +98,20 @@ static const struct dect_sfmt_ie_desc mm_temporary_identity_assign_msg_desc[] = 
 	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_NONE,      DECT_SFMT_IE_REPEAT),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc mm_temporary_identity_assign_ack_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(mm_temporary_identity_assign_ack,
 	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc mm_temporary_identity_assign_rej_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(mm_temporary_identity_assign_rej,
 	DECT_SFMT_IE(S_VL_IE_REJECT_REASON,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
-};
-
+);
 
 #define mm_debug(fmt, args...) \
 	dect_debug("MM: " fmt "\n", ## args)
@@ -132,11 +131,11 @@ err1:
 
 static int dect_mm_send_msg(struct dect_handle *dh,
 			    const struct dect_mm_transaction *mmta,
-			    const struct dect_sfmt_ie_desc *desc,
+			    const struct dect_sfmt_msg_desc *desc,
 			    const struct dect_msg_common *msg,
-			    enum dect_mm_msg_types type, const char *prefix)
+			    enum dect_mm_msg_types type)
 {
-	return dect_lce_send(dh, &mmta->transaction, desc, msg, type, prefix);
+	return dect_lce_send(dh, &mmta->transaction, desc, msg, type);
 }
 
 int dect_mm_access_rights_req(struct dect_handle *dh,
@@ -161,9 +160,8 @@ int dect_mm_access_rights_req(struct dect_handle *dh,
 	if (dect_open_transaction(dh, &transaction, &ipui) < 0)
 		goto err1;
 
-	if (dect_lce_send(dh, &transaction, mm_access_rights_request_msg_desc,
-			  &msg.common, DECT_MM_ACCESS_RIGHTS_REQUEST,
-			  "MM-ACCESS_RIGHTS_REQUEST") < 0)
+	if (dect_lce_send(dh, &transaction, &mm_access_rights_request_msg_desc,
+			  &msg.common, DECT_MM_ACCESS_RIGHTS_REQUEST) < 0)
 		goto err2;
 	return 0;
 
@@ -178,7 +176,7 @@ static void dect_mm_rcv_access_rights_reject(struct dect_handle *dh,
 {
 	struct dect_mm_access_rights_reject_msg msg;
 
-	if (dect_parse_sfmt_msg(dh, mm_access_rights_reject_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &mm_access_rights_reject_msg_desc, &msg.common, mb) < 0)
 		return;
 }
 
@@ -195,8 +193,8 @@ static int dect_mm_send_locate_accept(struct dect_handle *dh,
 		.model_identifier	= param->model_identifier,
 	};
 
-	return dect_mm_send_msg(dh, mmta, mm_locate_accept_msg_desc, &msg.common,
-				DECT_MM_LOCATE_ACCEPT, "MM-LOCATE-ACCEPT");
+	return dect_mm_send_msg(dh, mmta, &mm_locate_accept_msg_desc,
+				&msg.common, DECT_MM_LOCATE_ACCEPT);
 }
 
 static int dect_mm_send_locate_reject(struct dect_handle *dh,
@@ -211,8 +209,8 @@ static int dect_mm_send_locate_reject(struct dect_handle *dh,
 		.escape_to_proprietary	= NULL,
 	};
 
-	return dect_mm_send_msg(dh, mmta, mm_locate_reject_msg_desc, &msg.common,
-				DECT_MM_LOCATE_REJECT, "MM-LOCATE-REJECT");
+	return dect_mm_send_msg(dh, mmta, &mm_locate_reject_msg_desc,
+				&msg.common, DECT_MM_LOCATE_REJECT);
 }
 
 int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_transaction *mmta,
@@ -251,7 +249,7 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 	struct dect_mm_transaction *mmta;
 
 	mm_debug("LOCATE-REQUEST");
-	if (dect_parse_sfmt_msg(dh, mm_locate_request_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &mm_locate_request_msg_desc, &msg.common, mb) < 0)
 		goto err1;
 
 	mmta = dect_mm_transaction_alloc(dh);
@@ -261,7 +259,7 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 
 	dect_mm_locate_ind(dh, mmta, &msg);
 err2:
-	dect_msg_free(dh, mm_locate_request_msg_desc, &msg.common);
+	dect_msg_free(dh, &mm_locate_request_msg_desc, &msg.common);
 err1:
 	return;
 }
@@ -272,7 +270,7 @@ static void dect_mm_rcv_locate_accept(struct dect_handle *dh,
 	struct dect_mm_locate_accept_msg msg;
 
 	mm_debug("LOCATE-ACCEPT");
-	if (dect_parse_sfmt_msg(dh, mm_locate_accept_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &mm_locate_accept_msg_desc, &msg.common, mb) < 0)
 		return;
 }
 
@@ -282,7 +280,7 @@ static void dect_mm_rcv_locate_reject(struct dect_handle *dh,
 	struct dect_mm_locate_reject_msg msg;
 
 	mm_debug("LOCATE-REJECT");
-	if (dect_parse_sfmt_msg(dh, mm_locate_reject_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &mm_locate_reject_msg_desc, &msg.common, mb) < 0)
 		return;
 }
 
@@ -294,7 +292,7 @@ static void dect_mm_rcv_temporary_identity_assign_ack(struct dect_handle *dh,
 	struct dect_mm_identity_assign_param param;
 
 	mm_debug("TEMPORARY-IDENTITY-ASSIGN-ACK");
-	if (dect_parse_sfmt_msg(dh, mm_temporary_identity_assign_ack_msg_desc,
+	if (dect_parse_sfmt_msg(dh, &mm_temporary_identity_assign_ack_msg_desc,
 				&msg.common, mb) < 0)
 		return;
 
@@ -310,7 +308,7 @@ static void dect_mm_rcv_temporary_identity_assign_rej(struct dect_handle *dh,
 	struct dect_mm_identity_assign_param param;
 
 	mm_debug("TEMPORARY-IDENTITY-ASSIGN-REJ");
-	if (dect_parse_sfmt_msg(dh, mm_temporary_identity_assign_rej_msg_desc,
+	if (dect_parse_sfmt_msg(dh, &mm_temporary_identity_assign_rej_msg_desc,
 				&msg.common, mb) < 0)
 		return;
 

@@ -23,7 +23,7 @@
 #include <ss.h>
 
 
-static const struct dect_sfmt_ie_desc ciss_facility_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(ciss_facility,
 	DECT_SFMT_IE(S_VL_IE_FACILITY,			IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
 	DECT_SFMT_IE(S_DO_IE_SINGLE_DISPLAY,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_DO_IE_SINGLE_KEYPAD,		IE_NONE,      IE_OPTIONAL,  0),
@@ -35,7 +35,7 @@ static const struct dect_sfmt_ie_desc ciss_facility_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_EVENTS_NOTIFICATION,	IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_CALL_INFORMATION,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
 void dect_clss_rcv(struct dect_handle *dh, struct dect_msg_buf *mb)
 {
@@ -44,6 +44,6 @@ void dect_clss_rcv(struct dect_handle *dh, struct dect_msg_buf *mb)
 	if (mb->type != CISS_FACILITY)
 		return;
 
-	if (dect_parse_sfmt_msg(dh, ciss_facility_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &ciss_facility_msg_desc, &msg.common, mb) < 0)
 		return;
 }

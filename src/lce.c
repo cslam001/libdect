@@ -26,22 +26,22 @@
 #include <lce.h>
 #include <ss.h>
 
-static const struct dect_sfmt_ie_desc lce_page_response_msg[] = {
+static DECT_SFMT_MSG_DESC(lce_page_response,
 	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_NONE,      IE_MANDATORY, 0),
 	DECT_SFMT_IE(S_VL_IE_FIXED_IDENTITY,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_NWK_ASSIGNED_IDENTITY,	IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_CIPHER_INFO,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc lce_page_reject_msg[] = {
+static DECT_SFMT_MSG_DESC(lce_page_reject,
 	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_MANDATORY, IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_FIXED_IDENTITY,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_REJECT_REASON,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
 static const struct dect_nwk_protocol *protocols[DECT_S_PD_MAX + 1];
 
@@ -386,9 +386,8 @@ static int dect_send(const struct dect_handle *dh,
  */
 int dect_lce_send(const struct dect_handle *dh,
 		  const struct dect_transaction *ta,
-		  const struct dect_sfmt_ie_desc *desc,
-		  const struct dect_msg_common *msg, uint8_t type,
-		  const char *prefix)
+		  const struct dect_sfmt_msg_desc *desc,
+		  const struct dect_msg_common *msg, uint8_t type)
 {
 	struct dect_data_link *ddl = ta->link;
 	struct dect_msg_buf *mb;
@@ -549,8 +548,8 @@ static int dect_send_reject(const struct dect_handle *dh,
 	dect_ie_init(&reject_reason);
 	reject_reason.reason = reason;
 
-	return dect_lce_send(dh, ta, lce_page_reject_msg, &msg.common,
-			     DECT_LCE_PAGE_REJECT, "LCE-PAGE-REJECT");
+	return dect_lce_send(dh, ta, &lce_page_reject_msg_desc,
+			     &msg.common, DECT_LCE_PAGE_REJECT);
 }
 
 static void dect_lce_rcv_page_response(struct dect_handle *dh,
@@ -561,7 +560,8 @@ static void dect_lce_rcv_page_response(struct dect_handle *dh,
 	struct dect_data_link *i, *req = NULL;
 
 	ddl_debug(ta->link, "LCE-PAGE-RESPONSE");
-	if (dect_parse_sfmt_msg(dh, lce_page_response_msg, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &lce_page_response_msg_desc,
+				&msg.common, mb) < 0)
 		return;
 
 	dect_debug("portable_identity: %p\n", msg.portable_identity);
@@ -586,7 +586,7 @@ static void dect_lce_rcv_page_response(struct dect_handle *dh,
 		dect_ddl_release(dh, ta->link);
 	}
 
-	dect_msg_free(dh, lce_page_response_msg, &msg.common);
+	dect_msg_free(dh, &lce_page_response_msg_desc, &msg.common);
 }
 
 static void dect_lce_rcv_page_reject(struct dect_handle *dh,
@@ -596,9 +596,10 @@ static void dect_lce_rcv_page_reject(struct dect_handle *dh,
 	struct dect_lce_page_reject msg;
 
 	ddl_debug(ta->link, "LCE-PAGE-REJECT");
-	if (dect_parse_sfmt_msg(dh, lce_page_reject_msg, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &lce_page_reject_msg_desc,
+				&msg.common, mb) < 0)
 		return;
-	dect_msg_free(dh, lce_page_reject_msg, &msg.common);
+	dect_msg_free(dh, &lce_page_reject_msg_desc, &msg.common);
 }
 
 static void dect_lce_rcv(struct dect_handle *dh, struct dect_transaction *ta,

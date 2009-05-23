@@ -22,7 +22,7 @@
 #include <lce.h>
 #include <cc.h>
 
-static const struct dect_sfmt_ie_desc cc_setup_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(cc_setup,
 	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_MANDATORY, IE_MANDATORY, 0),
 	DECT_SFMT_IE(S_VL_IE_FIXED_IDENTITY,		IE_MANDATORY, IE_MANDATORY, 0),
 	DECT_SFMT_IE(S_VL_IE_NWK_ASSIGNED_IDENTITY,	IE_NONE,      IE_OPTIONAL,  0),
@@ -64,9 +64,9 @@ static const struct dect_sfmt_ie_desc cc_setup_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_CALL_INFORMATION,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc cc_info_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(cc_info,
 	DECT_SFMT_IE(S_VL_IE_LOCATION_AREA,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_NWK_ASSIGNED_IDENTITY,	IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
@@ -93,9 +93,9 @@ static const struct dect_sfmt_ie_desc cc_info_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_CALL_INFORMATION,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc cc_setup_ack_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(cc_setup_ack,
 	DECT_SFMT_IE(S_VL_IE_INFO_TYPE,			IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_FIXED_IDENTITY,		IE_OPTIONAL,  IE_NONE,      0),
@@ -122,9 +122,9 @@ static const struct dect_sfmt_ie_desc cc_setup_ack_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc cc_call_proc_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(cc_call_proc,
 	DECT_SFMT_IE(S_VL_IE_IWU_ATTRIBUTES,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_CALL_ATTRIBUTES,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_CONNECTION_ATTRIBUTES,	IE_OPTIONAL,  IE_NONE,      0),
@@ -144,9 +144,9 @@ static const struct dect_sfmt_ie_desc cc_call_proc_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc cc_alerting_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(cc_alerting,
 	DECT_SFMT_IE(S_VL_IE_IWU_ATTRIBUTES,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_CALL_ATTRIBUTES,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_CONNECTION_ATTRIBUTES,	IE_OPTIONAL,  IE_OPTIONAL,  0),
@@ -167,9 +167,9 @@ static const struct dect_sfmt_ie_desc cc_alerting_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc cc_connect_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(cc_connect,
 	DECT_SFMT_IE(S_VL_IE_IWU_ATTRIBUTES,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_CALL_ATTRIBUTES,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_CONNECTION_ATTRIBUTES,	IE_OPTIONAL,  IE_OPTIONAL,  0),
@@ -193,9 +193,9 @@ static const struct dect_sfmt_ie_desc cc_connect_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc cc_connect_ack_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(cc_connect_ack,
 	DECT_SFMT_IE(S_DO_IE_SINGLE_DISPLAY,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_FEATURE_INDICATE,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
@@ -203,9 +203,9 @@ static const struct dect_sfmt_ie_desc cc_connect_ack_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_IWU_PACKET,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc cc_release_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(cc_release,
 	DECT_SFMT_IE(S_DO_IE_RELEASE_REASON,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_FACILITY,			IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
@@ -218,9 +218,9 @@ static const struct dect_sfmt_ie_desc cc_release_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_IWU_PACKET,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc cc_release_com_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(cc_release_com,
 	DECT_SFMT_IE(S_DO_IE_RELEASE_REASON,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_IDENTITY_TYPE,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_LOCATION_AREA,		IE_OPTIONAL,  IE_NONE,      0),
@@ -237,27 +237,27 @@ static const struct dect_sfmt_ie_desc cc_release_com_msg_desc[] = {
 	DECT_SFMT_IE(S_VL_IE_IWU_PACKET,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc cc_service_change_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(cc_service_change,
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc cc_service_accept_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(cc_service_accept,
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc cc_service_reject_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(cc_service_reject,
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc cc_notify_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(cc_notify,
 	DECT_SFMT_IE_END_MSG
-};
+);
 
-static const struct dect_sfmt_ie_desc cc_iwu_info_msg_desc[] = {
+static DECT_SFMT_MSG_DESC(cc_iwu_info,
 	DECT_SFMT_IE_END_MSG
-};
+);
 
 #define cc_debug(call, fmt, args...) \
 	dect_debug("CC: call %p (%s): " fmt "\n", \
@@ -394,11 +394,11 @@ static void dect_call_destroy(const struct dect_handle *dh,
 }
 
 static int dect_cc_send_msg(struct dect_handle *dh, struct dect_call *call,
-			    const struct dect_sfmt_ie_desc *desc,
+			    const struct dect_sfmt_msg_desc *desc,
 			    const struct dect_msg_common *msg,
-			    enum dect_cc_msg_types type, const char *prefix)
+			    enum dect_cc_msg_types type)
 {
-	return dect_lce_send(dh, &call->transaction, desc, msg, type, prefix);
+	return dect_lce_send(dh, &call->transaction, desc, msg, type);
 }
 
 static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer)
@@ -465,8 +465,8 @@ int dect_mncc_setup_req(struct dect_handle *dh, struct dect_call *call,
 	portable_identity.type = DECT_PORTABLE_ID_TYPE_IPUI;
 	portable_identity.ipui = *ipui;
 
-	if (dect_cc_send_msg(dh, call, cc_setup_msg_desc, &msg.common,
-			     CC_SETUP, "CC-SETUP") < 0)
+	if (dect_cc_send_msg(dh, call, &cc_setup_msg_desc, &msg.common,
+			     CC_SETUP) < 0)
 		goto err2;
 	call->state = DECT_CC_CALL_PRESENT;
 
@@ -498,9 +498,8 @@ int dect_mncc_setup_ack_req(struct dect_handle *dh, struct dect_call *call,
 		.iwu_packet		= param->iwu_packet,
 	};
 
-	dect_cc_send_msg(dh, call, cc_setup_ack_msg_desc, &msg.common,
-			 CC_SETUP_ACK,  "CC-SETUP_ACK");
-	return 0;
+	return dect_cc_send_msg(dh, call, &cc_setup_ack_msg_desc,
+				&msg.common, CC_SETUP_ACK);
 }
 
 int dect_mncc_reject_req(struct dect_handle *dh, struct dect_call *call,
@@ -519,8 +518,8 @@ int dect_mncc_reject_req(struct dect_handle *dh, struct dect_call *call,
 		.iwu_packet			= param->iwu_packet,
 	};
 
-	dect_cc_send_msg(dh, call, cc_release_com_msg_desc, &msg.common,
-			 CC_RELEASE_COM, "CC-RELEASE_COM");
+	dect_cc_send_msg(dh, call, &cc_release_com_msg_desc,
+			 &msg.common, CC_RELEASE_COM);
 
 	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
@@ -542,10 +541,10 @@ int dect_mncc_call_proc_req(struct dect_handle *dh, struct dect_call *call,
 		.iwu_packet		= param->iwu_packet,
 	};
 
-	dect_cc_send_msg(dh, call, cc_call_proc_msg_desc, &msg.common,
-			 CC_CALL_PROC, "CC-CALL_PROC");
-	return 0;
+	return dect_cc_send_msg(dh, call, &cc_call_proc_msg_desc,
+				&msg.common, CC_CALL_PROC);
 }
+
 int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 			const struct dect_mncc_alert_param *param)
 {
@@ -569,9 +568,8 @@ int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 				  (struct dect_ie_repeat_indicator *)&param->progress_indicator);
 	}
 
-	dect_cc_send_msg(dh, call, cc_alerting_msg_desc, &msg.common,
-			 CC_ALERTING, "CC-ALERTING");
-	return 0;
+	return dect_cc_send_msg(dh, call, &cc_alerting_msg_desc,
+				&msg.common, CC_ALERTING);
 }
 
 int dect_mncc_connect_req(struct dect_handle *dh, struct dect_call *call,
@@ -590,9 +588,8 @@ int dect_mncc_connect_req(struct dect_handle *dh, struct dect_call *call,
 		.iwu_packet		= param->iwu_packet,
 	};
 
-	dect_cc_send_msg(dh, call, cc_connect_msg_desc, &msg.common,
-			 CC_CONNECT,  "CC-CONNECT");
-
+	dect_cc_send_msg(dh, call, &cc_connect_msg_desc,
+			 &msg.common, CC_CONNECT);
 	dect_call_connect_uplane(dh, call);
 	return 0;
 }
@@ -608,8 +605,8 @@ int dect_mncc_connect_res(struct dect_handle *dh, struct dect_call *call,
 	};
 
 	dect_call_connect_uplane(dh, call);
-	if (dect_cc_send_msg(dh, call, cc_connect_ack_msg_desc, &msg.common,
-			     CC_CONNECT_ACK, "CC-CONNECT_ACK") < 0)
+	if (dect_cc_send_msg(dh, call, &cc_connect_ack_msg_desc,
+			     &msg.common, CC_CONNECT_ACK) < 0)
 		goto err1;
 
 	call->state = DECT_CC_ACTIVE;
@@ -632,8 +629,8 @@ int dect_mncc_release_req(struct dect_handle *dh, struct dect_call *call,
 		.iwu_packet			= param->iwu_packet,
 	};
 
-	dect_cc_send_msg(dh, call, cc_release_msg_desc, &msg.common,
-			 CC_RELEASE, "CC-RELEASE");
+	dect_cc_send_msg(dh, call, &cc_release_msg_desc,
+			 &msg.common, CC_RELEASE);
 	call->state = DECT_CC_RELEASE_PENDING;
 	return 0;
 }
@@ -654,8 +651,8 @@ int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
 		.iwu_packet			= param->iwu_packet,
 	};
 
-	dect_cc_send_msg(dh, call, cc_release_com_msg_desc, &msg.common,
-			 CC_RELEASE_COM,  "CC-RELEASE_COM");
+	dect_cc_send_msg(dh, call, &cc_release_com_msg_desc,
+			 &msg.common, CC_RELEASE_COM);
 
 	dect_call_disconnect_uplane(dh, call);
 	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
@@ -699,8 +696,7 @@ int dect_mncc_info_req(struct dect_handle *dh, struct dect_call *call,
 				  (struct dect_ie_repeat_indicator *)&param->progress_indicator);
 	}
 
-	dect_cc_send_msg(dh, call, cc_info_msg_desc, &msg.common,
-			 CC_INFO,  "CC-INFO");
+	dect_cc_send_msg(dh, call, &cc_info_msg_desc, &msg.common, CC_INFO);
 	return 0;
 }
 
@@ -774,11 +770,11 @@ static void dect_cc_rcv_alerting(struct dect_handle *dh, struct dect_call *call,
 	if (call->state != DECT_CC_CALL_PRESENT)
 		;
 
-	if (dect_parse_sfmt_msg(dh, cc_alerting_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &cc_alerting_msg_desc, &msg.common, mb) < 0)
 		return;
 
 	dect_mncc_alert_ind(dh, call, &msg);
-	dect_msg_free(dh, cc_alerting_msg_desc, &msg.common);
+	dect_msg_free(dh, &cc_alerting_msg_desc, &msg.common);
 	call->state = DECT_CC_CALL_RECEIVED;
 }
 
@@ -788,7 +784,7 @@ static void dect_cc_rcv_call_proc(struct dect_handle *dh, struct dect_call *call
 	struct dect_cc_call_proc_msg msg;
 
 	dect_mbuf_dump(mb, "CC-CALL_PROC");
-	if (dect_parse_sfmt_msg(dh, cc_call_proc_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &cc_call_proc_msg_desc, &msg.common, mb) < 0)
 		return;
 }
 
@@ -821,7 +817,7 @@ static void dect_cc_rcv_connect(struct dect_handle *dh, struct dect_call *call,
 		;
 
 	dect_mbuf_dump(mb, "CC-CONNECT");
-	if (dect_parse_sfmt_msg(dh, cc_connect_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &cc_connect_msg_desc, &msg.common, mb) < 0)
 		return;
 
 	if (call->setup_timer != NULL) {
@@ -831,7 +827,7 @@ static void dect_cc_rcv_connect(struct dect_handle *dh, struct dect_call *call,
 	}
 
 	dect_mncc_connect_ind(dh, call, &msg);
-	dect_msg_free(dh, cc_connect_msg_desc, &msg.common);
+	dect_msg_free(dh, &cc_connect_msg_desc, &msg.common);
 }
 
 static void dect_cc_rcv_setup_ack(struct dect_handle *dh, struct dect_call *call,
@@ -840,10 +836,10 @@ static void dect_cc_rcv_setup_ack(struct dect_handle *dh, struct dect_call *call
 	struct dect_cc_setup_ack_msg msg;
 
 	dect_mbuf_dump(mb, "CC-SETUP_ACK");
-	if (dect_parse_sfmt_msg(dh, cc_setup_ack_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &cc_setup_ack_msg_desc, &msg.common, mb) < 0)
 		return;
 
-	dect_msg_free(dh, cc_setup_ack_msg_desc, &msg.common);
+	dect_msg_free(dh, &cc_setup_ack_msg_desc, &msg.common);
 }
 
 static void dect_cc_rcv_connect_ack(struct dect_handle *dh, struct dect_call *call,
@@ -852,10 +848,10 @@ static void dect_cc_rcv_connect_ack(struct dect_handle *dh, struct dect_call *ca
 	struct dect_cc_connect_ack_msg msg;
 
 	dect_mbuf_dump(mb, "CC-CONNECT_ACK");
-	if (dect_parse_sfmt_msg(dh, cc_connect_ack_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &cc_connect_ack_msg_desc, &msg.common, mb) < 0)
 		return;
 
-	dect_msg_free(dh, cc_connect_ack_msg_desc, &msg.common);
+	dect_msg_free(dh, &cc_connect_ack_msg_desc, &msg.common);
 }
 
 static void dect_mncc_release_ind(struct dect_handle *dh, struct dect_call *call,
@@ -879,11 +875,11 @@ static void dect_cc_rcv_release(struct dect_handle *dh, struct dect_call *call,
 	struct dect_cc_release_msg msg;
 
 	dect_mbuf_dump(mb, "CC-RELEASE");
-	if (dect_parse_sfmt_msg(dh, cc_release_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &cc_release_msg_desc, &msg.common, mb) < 0)
 		return;
 
 	dect_mncc_release_ind(dh, call, &msg);
-	dect_msg_free(dh, cc_release_msg_desc, &msg.common);
+	dect_msg_free(dh, &cc_release_msg_desc, &msg.common);
 }
 
 static void dect_mncc_release_cfm(struct dect_handle *dh, struct dect_call *call,
@@ -912,7 +908,7 @@ static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *ca
 	struct dect_cc_release_com_msg msg;
 
 	dect_mbuf_dump(mb, "CC-RELEASE_COM");
-	if (dect_parse_sfmt_msg(dh, cc_release_com_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &cc_release_com_msg_desc, &msg.common, mb) < 0)
 		return;
 
 	if (call->state == DECT_CC_RELEASE_PENDING)
@@ -927,7 +923,7 @@ static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *ca
 		dh->ops->cc_ops->mncc_release_ind(dh, call, &param);
 	}
 
-	dect_msg_free(dh, cc_release_com_msg_desc, &msg.common);
+	dect_msg_free(dh, &cc_release_com_msg_desc, &msg.common);
 
 	if (call->lu_sap != NULL)
 		dect_call_disconnect_uplane(dh, call);
@@ -941,10 +937,10 @@ static void dect_cc_rcv_iwu_info(struct dect_handle *dh, struct dect_call *call,
 	struct dect_cc_iwu_info_msg msg;
 
 	dect_mbuf_dump(mb, "CC-IWU_INFO");
-	if (dect_parse_sfmt_msg(dh, cc_iwu_info_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &cc_iwu_info_msg_desc, &msg.common, mb) < 0)
 		return;
 
-	dect_msg_free(dh, cc_iwu_info_msg_desc, &msg.common);
+	dect_msg_free(dh, &cc_iwu_info_msg_desc, &msg.common);
 }
 
 static void dect_cc_rcv_notify(struct dect_handle *dh, struct dect_call *call,
@@ -953,10 +949,10 @@ static void dect_cc_rcv_notify(struct dect_handle *dh, struct dect_call *call,
 	struct dect_cc_notify_msg msg;
 
 	dect_mbuf_dump(mb, "CC-NOTIFY");
-	if (dect_parse_sfmt_msg(dh, cc_notify_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &cc_notify_msg_desc, &msg.common, mb) < 0)
 		return;
 
-	dect_msg_free(dh, cc_notify_msg_desc, &msg.common);
+	dect_msg_free(dh, &cc_notify_msg_desc, &msg.common);
 }
 
 static void dect_mncc_info_ind(struct dect_handle *dh, struct dect_call *call,
@@ -995,11 +991,11 @@ static void dect_cc_rcv_info(struct dect_handle *dh, struct dect_call *call,
 	    call->state == DECT_CC_CALL_PRESENT)
 		;
 
-	if (dect_parse_sfmt_msg(dh, cc_info_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &cc_info_msg_desc, &msg.common, mb) < 0)
 		return;
 
 	dect_mncc_info_ind(dh, call, &msg);
-	dect_msg_free(dh, cc_info_msg_desc, &msg.common);
+	dect_msg_free(dh, &cc_info_msg_desc, &msg.common);
 }
 
 static void dect_cc_rcv(struct dect_handle *dh, struct dect_transaction *ta,
@@ -1079,7 +1075,7 @@ static void dect_cc_rcv_setup(struct dect_handle *dh,
 	struct dect_call *call;
 
 	dect_mbuf_dump(mb, "CC-SETUP");
-	if (dect_parse_sfmt_msg(dh, cc_setup_msg_desc, &msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &cc_setup_msg_desc, &msg.common, mb) < 0)
 		return;
 
 	dect_foreach_ie(call_attributes, msg.call_attributes)
@@ -1099,7 +1095,7 @@ static void dect_cc_rcv_setup(struct dect_handle *dh,
 
 	dect_mncc_setup_ind(dh, call, &msg);
 out:
-	dect_msg_free(dh, cc_setup_msg_desc, &msg.common);
+	dect_msg_free(dh, &cc_setup_msg_desc, &msg.common);
 }
 
 static void dect_cc_open(struct dect_handle *dh,
