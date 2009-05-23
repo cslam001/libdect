@@ -358,6 +358,53 @@ static int dect_sfmt_build_location_area(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static const char *dect_auth_algs[] = {
+	[DECT_AUTH_DSAA]	= "DSAA",
+	[DECT_AUTH_GSM]		= "GSM",
+	[DECT_AUTH_UMTS]	= "UMTS",
+	[DECT_AUTH_PROPRIETARY]	= "proprietary",
+};
+
+static const char *dect_auth_key_types[] = {
+	[DECT_KEY_USER_AUTHENTICATION_KEY]	= "User authentication key",
+	[DECT_KEY_USER_PERSONAL_IDENTITY]	= "User personal identity",
+	[DECT_KEY_AUTHENTICATION_CODE]		= "Authentication code",
+};
+
+static void dect_sfmt_dump_auth_type(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_auth_type *ie = dect_ie_container(ie, _ie);
+
+	dect_debug("\tauthentication algorithm: %s\n", dect_auth_algs[ie->auth_id]);
+	dect_debug("\tauthentication key type: %s\n", dect_auth_key_types[ie->auth_key_type]);
+	dect_debug("\tINC: %u TXC: %u UPC: %u\n",
+		   ie->flags & DECT_AUTH_FLAG_INC ? 1 : 0,
+		   ie->flags & DECT_AUTH_FLAG_TXC ? 1 : 0,
+		   ie->flags & DECT_AUTH_FLAG_UPC ? 1 : 0);
+}
+
+static int dect_sfmt_parse_auth_type(const struct dect_handle *dh,
+				     struct dect_ie_common **ie,
+				     const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_auth_type *dst = dect_ie_container(dst, *ie);
+	uint8_t n = 2;
+
+	dst->auth_id = src->data[n++];
+	if (dst->auth_id == DECT_AUTH_PROPRIETARY)
+		dst->proprietary_auth_id = src->data[n]++;
+
+	dst->auth_key_type  = (src->data[n] & 0xf0) >> 4;
+	dst->auth_key_num   = (src->data[n] & 0x0f);
+	n++;
+
+	dst->flags	    = src->data[n] & 0xf0;
+	dst->cipher_key_num = src->data[n] & 0x0f;
+
+	dect_sfmt_dump_auth_type(*ie);
+	return 0;
+}
+
 static int dect_sfmt_parse_progress_indicator(const struct dect_handle *dh,
 					      struct dect_ie_common **ie,
 					      const struct dect_sfmt_ie *src)
@@ -710,6 +757,7 @@ static const struct dect_ie_handler {
 	[S_VL_IE_AUTH_TYPE]			= {
 		.name	= "auth type",
 		.size	= sizeof(struct dect_ie_auth_type),
+		.parse	= dect_sfmt_parse_auth_type,
 	},
 	[S_VL_IE_ALLOCATION_TYPE]		= {
 		.name	= "allocation type",

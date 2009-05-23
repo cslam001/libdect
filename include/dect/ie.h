@@ -295,17 +295,23 @@ struct dect_ie_alphanumeric {
 
 /* Auth type IE */
 
-enum dect_ie_auth_type_identifiers {
-	AUTH_DSAA			= 0x1,
-	AUTH_GSM			= 0x40,
-	AUTH_UMTS			= 0x20,
-	AUTH_PROPRIETARY		= 0x7f,
+enum dect_auth_type_identifiers {
+	DECT_AUTH_DSAA				= 0x1,
+	DECT_AUTH_GSM				= 0x40,
+	DECT_AUTH_UMTS				= 0x20,
+	DECT_AUTH_PROPRIETARY			= 0x7f,
 };
 
-enum dect_ie_auth_key_types {
-	KEY_USER_AUTHENTICATION_KEY	= 0x1,
-	KEY_USER_PERSONAL_IDENTITY	= 0x3,
-	KEY_AUTHENTICATION_CODE		= 0x4,
+enum dect_auth_key_types {
+	DECT_KEY_USER_AUTHENTICATION_KEY	= 0x1,
+	DECT_KEY_USER_PERSONAL_IDENTITY		= 0x3,
+	DECT_KEY_AUTHENTICATION_CODE		= 0x4,
+};
+
+enum dect_auth_flags {
+	DECT_AUTH_FLAG_INC			= 0x80,
+	DECT_AUTH_FLAG_TXC			= 0x20,
+	DECT_AUTH_FLAG_UPC			= 0x10,
 };
 
 struct dect_ie_auth_type {
