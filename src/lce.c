@@ -219,12 +219,13 @@ static struct dect_data_link *dect_ddl_get_by_ipui(const struct dect_handle *dh,
 }
 
 static struct dect_transaction *
-dect_ddl_transaction_lookup(const struct dect_data_link *ddl, uint8_t pd, uint8_t tv)
+dect_ddl_transaction_lookup(const struct dect_data_link *ddl, uint8_t pd,
+			    uint8_t tv, enum dect_transaction_role role)
 {
 	struct dect_transaction *ta;
 
 	list_for_each_entry(ta, &ddl->transactions, list) {
-		if (ta->pd == pd && ta->tv == tv)
+		if (ta->pd == pd && ta->tv == tv && ta->role == role)
 			return ta;
 	}
 	return NULL;
@@ -683,7 +684,7 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 	if (tv == DECT_TV_CONNECTIONLESS)
 		return dect_clss_rcv(dh, mb);
 
-	ta = dect_ddl_transaction_lookup(ddl, pd, tv);
+	ta = dect_ddl_transaction_lookup(ddl, pd, tv, !f);
 	if (ta == NULL) {
 		struct dect_transaction req = {
 			.link	= ddl,
@@ -724,7 +725,8 @@ static int dect_transaction_alloc_tv(const struct dect_data_link *ddl,
 	uint16_t tv;
 
 	for (tv = 0; tv < protocol->max_transactions; tv++) {
-		if (dect_ddl_transaction_lookup(ddl, protocol->pd, tv))
+		if (dect_ddl_transaction_lookup(ddl, protocol->pd, tv,
+						DECT_TRANSACTION_INITIATOR))
 			continue;
 		return tv;
 	}
