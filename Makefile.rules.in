@@ -38,18 +38,18 @@ configure:		configure.ac
 
 define generic_template
 $(1)-obj		:= $$(patsubst %,$(SUBDIR)%,$$($(1)-obj))
-depfiles		:= $$(patsubst $(SUBDIR)%.o,$(SUBDIR).%.d,$$($(1)-obj))
+$(1)-depfiles		:= $$(patsubst $(SUBDIR)%.o,$(SUBDIR).%.d,$$($(1)-obj))
 
 .PHONY:	$(1)-clean
 $(1)-clean:
 			@echo -e "  CLEAN\t\t$(1)"
-			$$(RM) $$($(1)-obj) $$(depfiles) $$($(1)-extra-clean-files) $(1)
+			$$(RM) $$($(1)-obj) $$($(1)-depfiles) $$($(1)-extra-clean-files) $(1)
 clean_targets		+= $(1)-clean
 
 .PHONY:			$(1)-install
 
 ifneq ($(MAKECMDGOALS),clean)
--include $$(depfiles)
+-include $$((1)-depfiles)
 endif
 endef
 
