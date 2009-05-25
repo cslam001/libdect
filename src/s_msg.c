@@ -448,6 +448,40 @@ static int dect_sfmt_parse_multi_keypad(const struct dect_handle *dh,
 	return 0;
 }
 
+static const char *reject_reasons[256] = {
+	[DECT_REJECT_TPUI_UNKNOWN]				= "TPUI unknown",
+	[DECT_REJECT_IPUI_UNKNOWN]				= "IPUI unknown",
+	[DECT_REJECT_NETWORK_ASSIGNED_IDENTITY_UNKNOWN]		= "network assign identity unknown",
+	[DECT_REJECT_IPEI_NOT_ACCEPTED]				= "IPEI not accepted",
+	[DECT_REJECT_IPUI_NOT_ACCEPTED]				= "IPUI not accepted",
+	[DECT_REJECT_AUTHENTICATION_FAILED]			= "authentication failed",
+	[DECT_REJECT_NO_AUTHENTICATION_ALGORITHM]		= "no authentication algorithm",
+	[DECT_REJECT_AUTHENTICATION_ALGORITHM_NOT_SUPPORTED]	= "authentication algorithm not supported",
+	[DECT_REJECT_AUTHENTICATION_KEY_NOT_SUPPORTED]		= "authentication key not supported",
+	[DECT_REJECT_UPI_NOT_ENTERED]			 	= "UPI not entered",
+	[DECT_REJECT_NO_CIPHER_ALGORITHM]			= "no cipher algorithm",
+	[DECT_REJECT_CIPHER_ALGORITHM_NOT_SUPPORTED]		= "cipher algorithm not supported",
+	[DECT_REJECT_CIPHER_KEY_NOT_SUPPORTED]			= "cipher key not supported",
+	[DECT_REJECT_INCOMPATIBLE_SERVICE]			= "incompatible service",
+	[DECT_REJECT_FALSE_LCE_REPLY]				= "false LCE reply",
+	[DECT_REJECT_LATE_LCE_REPLY]				= "late LCE reply",
+	[DECT_REJECT_INVALID_TPUI]				= "invalid TPUI",
+	[DECT_REJECT_TPUI_ASSIGNMENT_LIMITS_UNACCEPTABLE]	= "TPUI assignment limits unacceptable",
+	[DECT_REJECT_INSUFFICIENT_MEMORY]			= "insufficient memory",
+	[DECT_REJECT_OVERLOAD]					= "overload",
+	[DECT_REJECT_TEST_CALL_BACK_NORMAL_EN_BLOC]		= "test callback - en-bloc dialing",
+	[DECT_REJECT_TEST_CALL_BACK_NORMAL_PIECEWISE]		= "test callback - piecewise dialing",
+	[DECT_REJECT_TEST_CALL_BACK_EMERGENCY_EN_BLOC]		= "emergency test callback - en-bloc dialing",
+	[DECT_REJECT_TEST_CALL_BACK_EMERGENCY_PIECEWISE]	= "emergency test callback - piecewise dialing",
+	[DECT_REJECT_INVALID_MESSAGE]				= "invalid message",
+	[DECT_REJECT_INFORMATION_ELEMENT_ERROR]			= "information element error",
+	[DECT_REJECT_INVALID_INFORMATION_ELEMENT_CONTENTS]	= "invalid information element contents",
+	[DECT_REJECT_TIMER_EXPIRY]				= "timer expiry",
+	[DECT_REJECT_PLMN_NOT_ALLOWED]				= "plmn not allowed",
+	[DECT_REJECT_LOCATION_AREA_NOT_ALLOWED]			= "location area not allowed",
+	[DECT_REJECT_LOCATION_NATIONAL_ROAMING_NOT_ALLOWED]	= "national roaming not allowed",
+};
+
 static int dect_sfmt_parse_reject_reason(const struct dect_handle *dh,
 					 struct dect_ie_common **ie,
 					 const struct dect_sfmt_ie *src)
@@ -455,7 +489,7 @@ static int dect_sfmt_parse_reject_reason(const struct dect_handle *dh,
 	struct dect_ie_reject_reason *dst = dect_ie_container(dst, *ie);
 
 	dst->reason = src->data[2];
-	dect_debug("reject reason: %x\n", dst->reason);
+	dect_debug("\treject reason: %s\n", reject_reasons[dst->reason]);
 	return 0;
 }
 
