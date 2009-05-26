@@ -172,16 +172,16 @@ void dect_auth_a22(const uint8_t *ks, uint64_t rand_p, uint32_t *res2)
  * DSAA/DSC key allocation test from ETS EN 300 175-7 Annex K
  */
 #define DECT_AUTH_TEST_RS1		__cpu_to_be64(0)
-#define DECT_AUTH_TEST_RAND1		__cpu_to_be64(0xd01ff9e211680421)
+#define DECT_AUTH_TEST_RAND1		__cpu_to_be64(0xd01ff9e211680421ULL)
 #define DECT_AUTH_TEST_RES1		0xf28cf911
 
-#define DECT_AUTH_TEST_RAND2		__cpu_to_be64(0xa03ff2c523d00842)
+#define DECT_AUTH_TEST_RAND2		__cpu_to_be64(0xa03ff2c523d00842ULL)
 #define DECT_AUTH_TEST_RES2		0xeeba4db9
 
 #define DECT_AUTH_TEST_RS2		__cpu_to_be64(0)
-#define DECT_AUTH_TEST_RAND3		__cpu_to_be64(0x9b114f2554518859)
+#define DECT_AUTH_TEST_RAND3		__cpu_to_be64(0x9b114f2554518859ULL)
 #define DECT_AUTH_TEST_RES3		0x961b3a9f
-#define DECT_AUTH_TEST_DCK		0x8560dc324ea49f37
+#define DECT_AUTH_TEST_DCK		0x8560dc324ea49f37ULL
 
 static void __init dect_auth_test(void)
 {
