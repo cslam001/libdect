@@ -208,9 +208,10 @@ void dsaa_main(uint8_t * rand, uint8_t * key, uint8_t * out)
 	step2(b, key);
 
 	rev(a, 8);
-	rev(key, 8);
+	rev(key, 4);
+	rev(key + 4, 4);
 
-	memcpy(out, key, 4);
+	memcpy(out, key + 4, 4);
 	memcpy(out + 4, a, 8);
-	memcpy(out + 12, key + 4, 4);
+	memcpy(out + 12, key, 4);
 }
