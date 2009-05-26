@@ -9,48 +9,53 @@
  *
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdint.h>
+
+#include <dect/auth.h>
 #include <libdect.h>
+#include <utils.h>
 
 static const uint8_t sbox[256] = {
-	176, 104, 111, 246, 125, 232,  22, 133,
-	57,  124, 127, 222,  67, 240,  89, 169,
-	251, 128,  50, 174,  95,  37, 140, 245,
-	148, 107, 216, 234, 136, 152, 194,  41,
-	207,  58,  80, 150,  28,   8, 149, 244,
-	130,  55,  10,  86,  44, 255,  79, 196,
-	96,  165, 131,  33,  48, 248, 243,  40,
-	250, 147,  73,  52,  66, 120, 191, 252,
-	97,  198, 241, 167,  26,  83,   3,  77,
-	134, 211,   4, 135, 126, 143, 160, 183,
-	49,  179, 231,  14,  47, 204, 105, 195,
-	192, 217, 200,  19, 220, 139,   1,  82,
-	193,  72, 239, 175, 115, 221,  92,  46,
-	25,  145, 223,  34, 213,  61,  13, 163,
-	88,  129,  62, 253,  98,  68,  36,  45,
-	182, 141,  90,   5,  23, 190,  39,  84,
-	93,  157, 214, 173, 108, 237, 100, 206,
-	242, 114,  63, 212,  70, 164,  16, 162,
-	59,  137, 151,  76, 110, 116, 153, 228,
-	227, 187, 238, 112,   0, 189, 101,  32,
-	15,  122, 233, 158, 155, 199, 181,  99,
-	230, 170, 225, 138, 197,   7,   6,  30,
-	94,   29,  53,  56, 119,  20,  17, 226,
-	185, 132,  24, 159,  42, 203, 218, 247,
-	166, 178, 102, 123, 177, 156, 109, 106,
-	249, 254, 202, 201, 168,  65, 188, 121,
-	219, 184, 103, 186, 172,  54, 171, 146,
-	75,  215, 229, 154, 118, 205,  21,  31,
-	78,   74,  87, 113,  27,  85,   9,  81,
-	51,   12, 180, 142,  43, 224, 208,  91,
-	71,  117,  69,  64,   2, 209,  60, 236,
-	35,  235,  11, 210, 161, 144,  38,  18,
+	0xb0, 0x68, 0x6f, 0xf6, 0x7d, 0xe8, 0x16, 0x85,
+	0x39, 0x7c, 0x7f, 0xde, 0x43, 0xf0, 0x59, 0xa9,
+	0xfb, 0x80, 0x32, 0xae, 0x5f, 0x25, 0x8c, 0xf5,
+	0x94, 0x6b, 0xd8, 0xea, 0x88, 0x98, 0xc2, 0x29,
+	0xcf, 0x3a, 0x50, 0x96, 0x1c, 0x08, 0x95, 0xf4,
+	0x82, 0x37, 0x0a, 0x56, 0x2c, 0xff, 0x4f, 0xc4,
+	0x60, 0xa5, 0x83, 0x21, 0x30, 0xf8, 0xf3, 0x28,
+	0xfa, 0x93, 0x49, 0x34, 0x42, 0x78, 0xbf, 0xfc,
+	0x61, 0xc6, 0xf1, 0xa7, 0x1a, 0x53, 0x03, 0x4d,
+	0x86, 0xd3, 0x04, 0x87, 0x7e, 0x8f, 0xa0, 0xb7,
+	0x31, 0xb3, 0xe7, 0x0e, 0x2f, 0xcc, 0x69, 0xc3,
+	0xc0, 0xd9, 0xc8, 0x13, 0xdc, 0x8b, 0x01, 0x52,
+	0xc1, 0x48, 0xef, 0xaf, 0x73, 0xdd, 0x5c, 0x2e,
+	0x19, 0x91, 0xdf, 0x22, 0xd5, 0x3d, 0x0d, 0xa3,
+	0x58, 0x81, 0x3e, 0xfd, 0x62, 0x44, 0x24, 0x2d,
+	0xb6, 0x8d, 0x5a, 0x05, 0x17, 0xbe, 0x27, 0x54,
+	0x5d, 0x9d, 0xd6, 0xad, 0x6c, 0xed, 0x64, 0xce,
+	0xf2, 0x72, 0x3f, 0xd4, 0x46, 0xa4, 0x10, 0xa2,
+	0x3b, 0x89, 0x97, 0x4c, 0x6e, 0x74, 0x99, 0xe4,
+	0xe3, 0xbb, 0xee, 0x70, 0x00, 0xbd, 0x65, 0x20,
+	0x0f, 0x7a, 0xe9, 0x9e, 0x9b, 0xc7, 0xb5, 0x63,
+	0xe6, 0xaa, 0xe1, 0x8a, 0xc5, 0x07, 0x06, 0x1e,
+	0x5e, 0x1d, 0x35, 0x38, 0x77, 0x14, 0x11, 0xe2,
+	0xb9, 0x84, 0x18, 0x9f, 0x2a, 0xcb, 0xda, 0xf7,
+	0xa6, 0xb2, 0x66, 0x7b, 0xb1, 0x9c, 0x6d, 0x6a,
+	0xf9, 0xfe, 0xca, 0xc9, 0xa8, 0x41, 0xbc, 0x79,
+	0xdb, 0xb8, 0x67, 0xba, 0xac, 0x36, 0xab, 0x92,
+	0x4b, 0xd7, 0xe5, 0x9a, 0x76, 0xcd, 0x15, 0x1f,
+	0x4e, 0x4a, 0x57, 0x71, 0x1b, 0x55, 0x09, 0x51,
+	0x33, 0x0c, 0xb4, 0x8e, 0x2b, 0xe0, 0xd0, 0x5b,
+	0x47, 0x75, 0x45, 0x40, 0x02, 0xd1, 0x3c, 0xec,
+	0x23, 0xeb, 0x0b, 0xd2, 0xa1, 0x90, 0x26, 0x12,
 };
 
-static void bitperm(uint8_t start, uint8_t step, uint8_t * key)
+static void bitperm(uint8_t start, uint8_t step, uint8_t *key)
 {
-	static uint8_t copy[8];
+	uint8_t copy[8];
 	unsigned int i;
 
 	memcpy(copy, key, 8);
@@ -64,66 +69,44 @@ static void bitperm(uint8_t start, uint8_t step, uint8_t * key)
 	}
 }
 
-#if 0
-static void bitperm1(uint8_t * key)
-{
-	bitperm(46, 35, key);
-}
-
-static void bitperm2(uint8_t * key)
-{
-	bitperm(25, 47, key);
-}
-
-static void bitperm3(uint8_t * key)
-{
-	bitperm(60, 27, key);
-}
-
-static void bitperm4(uint8_t * key)
-{
-	bitperm(55, 39, key);
-}
-#endif
-
 static const uint8_t mix_factor[3][8] = {
-	{2, 2, 2, 2, 3, 3, 3, 3},
-	{2, 2, 3, 3, 2, 2, 3, 3},
-	{2, 3, 2, 3, 2, 3, 2, 3},
+	{ 2, 2, 2, 2, 3, 3, 3, 3},
+	{ 2, 2, 3, 3, 2, 2, 3, 3},
+	{ 2, 3, 2, 3, 2, 3, 2, 3},
 };
 
 static const uint8_t mix_index[3][8] = {
-	{4, 5, 6, 7, 0, 1, 2, 3},
-	{2, 3, 0, 1, 6, 7, 4, 5},
-	{1, 0, 3, 2, 5, 4, 7, 6},
+	{ 4, 5, 6, 7, 0, 1, 2, 3},
+	{ 2, 3, 0, 1, 6, 7, 4, 5},
+	{ 1, 0, 3, 2, 5, 4, 7, 6},
 };
 
-static void mix(uint8_t start, uint8_t alg, uint8_t * key)
+static void mix(uint8_t start, uint8_t alg, uint8_t *key)
 {
-	unsigned int i;
 	uint8_t copy[8];
+	unsigned int i;
 
 	memcpy(copy, key, 8);
-	for (i=0; i<8; i++)
+	for (i = 0; i < 8; i++)
 		key[i] = copy[mix_index[alg][i]] + mix_factor[alg][i] * copy[i];
 }
 
-static void mix1(uint8_t * key)
+static void mix1(uint8_t *key)
 {
 	mix(4, 0, key);
 }
 
-static void mix2(uint8_t * key)
+static void mix2(uint8_t *key)
 {
 	mix(2, 1, key);
 }
 
-static void mix3(uint8_t * key)
+static void mix3(uint8_t *key)
 {
 	mix(1, 2, key);
 }
 
-static void sub(uint8_t * s, uint8_t * t)
+static void sub(uint8_t *s, uint8_t *t)
 {
 	unsigned int i;
 
@@ -132,11 +115,11 @@ static void sub(uint8_t * s, uint8_t * t)
 }
 
 /* return in s */
-static void cassable(uint8_t start, uint8_t step, uint8_t * t, uint8_t * s)
+static void cassable(uint8_t start, uint8_t step, uint8_t *t, uint8_t *s)
 {
 	unsigned int i;
 
-	for(i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++) {
 		bitperm(start, step, t);
 		sub(s, t);
 		mix1(s);
@@ -152,9 +135,8 @@ static void cassable(uint8_t start, uint8_t step, uint8_t * t, uint8_t * s)
 }
 
 /* return in rand, modifies key */
-static void step1(uint8_t * rand, uint8_t * key)
+static void step1(uint8_t *rand, uint8_t *key)
 {
-
 	uint8_t tmp[8];
 
 	memcpy(tmp, rand, 8);
@@ -165,9 +147,8 @@ static void step1(uint8_t * rand, uint8_t * key)
 	memcpy(key, rand, 8);
 }
 
-static void step2(uint8_t * rand, uint8_t * key)
+static void step2(uint8_t *rand, uint8_t *key)
 {
-
 	uint8_t tmp[8];
 
 	memcpy(tmp, rand, 8);
@@ -178,7 +159,7 @@ static void step2(uint8_t * rand, uint8_t * key)
 	memcpy(key, rand, 8);
 }
 
-static void rev(uint8_t * v, uint8_t n)
+static void rev(uint8_t *v, uint8_t n)
 {
 	unsigned int i;
 	uint8_t tmp;
@@ -190,17 +171,20 @@ static void rev(uint8_t * v, uint8_t n)
 	}
 }
 
-void dsaa_main(uint8_t * rand, uint8_t * key, uint8_t * out);
-void dsaa_main(uint8_t * rand, uint8_t * key, uint8_t * out)
+static void dsaa_main(const uint8_t *k, const uint8_t *r, uint8_t *e)
 {
+	uint8_t key[16];
+	uint8_t rand[8];
 	uint8_t a[8];
 	uint8_t b[8];
 
-	rev(rand, 8);
+	memcpy(key, k, sizeof(key));
 	rev(key, 16);
 
-	step1(rand, key + 4);
+	memcpy(&rand, r, sizeof(rand));
+	rev(rand, 8);
 
+	step1(rand, key + 4);
 	memcpy(a, key + 4, 8);
 
 	memcpy(key + 4, key + 12, 4);
@@ -211,7 +195,14 @@ void dsaa_main(uint8_t * rand, uint8_t * key, uint8_t * out)
 	rev(key, 4);
 	rev(key + 4, 4);
 
-	memcpy(out, key + 4, 4);
-	memcpy(out + 4, a, 8);
-	memcpy(out + 12, key, 4);
+	memcpy(e, key + 4, 4);
+	memcpy(e + 4, a, 8);
+	memcpy(e + 12, key, 4);
 }
+
+const struct dect_aalg dect_dsaa_aalg = {
+	.type		= DECT_AUTH_DSAA,
+	.d1_len		= 16,
+	.d2_len		= 8,
+	.calc		= dsaa_main,
+};
