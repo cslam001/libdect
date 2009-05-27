@@ -67,7 +67,7 @@ struct dect_mm_ops {
 					  struct dect_mm_transaction *mmta,
 					  const struct dect_mm_identity_assign_param *param);
 	void	(*mm_identity_assign_cfm)(struct dect_handle *dh,
-					  struct dect_mm_transaction *mmta,
+					  struct dect_mm_transaction *mmta, bool accept,
 					  const struct dect_mm_identity_assign_param *param);
 };
 
@@ -81,9 +81,9 @@ extern int dect_mm_locate_req(struct dect_handle *dh, struct dect_mm_transaction
 extern int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_transaction *mmta,
 			      const struct dect_mm_locate_param *param);
 
-extern int mm_identity_assign_req(struct dect_handle *dh, struct dect_mm_transaction *mmta,
-				  const struct dect_mm_identity_assign_param *param);
-extern int mm_identity_assign_cfm(struct dect_handle *dh, struct dect_mm_transaction *mmta,
-				  const struct dect_mm_identity_assign_param *param);
+extern int dect_mm_identity_assign_req(struct dect_handle *dh, struct dect_mm_transaction *mmta,
+				       const struct dect_mm_identity_assign_param *param);
+extern int dect_mm_identity_assign_cfm(struct dect_handle *dh, struct dect_mm_transaction *mmta,
+				       bool accept, const struct dect_mm_identity_assign_param *param);
 
 #endif /* _LIBDECT_DECT_MM_H */

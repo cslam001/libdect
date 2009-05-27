@@ -7,17 +7,17 @@
 static uint8_t prefix[3] = { 1, 0, 0};
 static uint16_t num;
 
-static void dect_mm_access_rights_ind(struct dect_handle *dh,
-				      struct dect_mm_transaction *mmta,
-				      const struct dect_mm_access_rights_param *param)
+static void mm_access_rights_ind(struct dect_handle *dh,
+				 struct dect_mm_transaction *mmta,
+				 const struct dect_mm_access_rights_param *param)
 {
 	printf("MM_ACCESS_RIGHTS-ind\n");
 	dect_mm_access_rights_res(dh, mmta, true, param);
 }
 
-static void dect_mm_locate_ind(struct dect_handle *dh,
-			       struct dect_mm_transaction *mmta,
-			       const struct dect_mm_locate_param *param)
+static void mm_locate_ind(struct dect_handle *dh,
+			  struct dect_mm_transaction *mmta,
+			  const struct dect_mm_locate_param *param)
 {
 	struct dect_ie_portable_identity portable_identity;
 	struct dect_ie_duration duration;
@@ -45,17 +45,17 @@ static void dect_mm_locate_ind(struct dect_handle *dh,
 	dect_mm_locate_res(dh, mmta, &reply);
 }
 
-static void dect_mm_identity_assign_cfm(struct dect_handle *dh,
-					struct dect_mm_transaction *mmta,
-					const struct dect_mm_identity_assign_param *param)
+static void mm_identity_assign_cfm(struct dect_handle *dh,
+				   struct dect_mm_transaction *mmta, bool accept,
+				   const struct dect_mm_identity_assign_param *param)
 {
 	printf("MM_IDENTITY_ASSIGN-cfm\n");
 }
 
 static const struct dect_mm_ops mm_ops = {
-	.mm_access_rights_ind	= dect_mm_access_rights_ind,
-	.mm_locate_ind		= dect_mm_locate_ind,
-	.mm_identity_assign_cfm	= dect_mm_identity_assign_cfm,
+	.mm_access_rights_ind	= mm_access_rights_ind,
+	.mm_locate_ind		= mm_locate_ind,
+	.mm_identity_assign_cfm	= mm_identity_assign_cfm,
 };
 
 static struct dect_ops ops = {

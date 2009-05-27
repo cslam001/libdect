@@ -386,7 +386,7 @@ static void dect_mm_rcv_temporary_identity_assign_ack(struct dect_handle *dh,
 		return;
 
 	memset(&param, 0, sizeof(param));
-	dh->ops->mm_ops->mm_identity_assign_cfm(dh, mmta, &param);
+	dh->ops->mm_ops->mm_identity_assign_cfm(dh, mmta, true, &param);
 }
 
 static void dect_mm_rcv_temporary_identity_assign_rej(struct dect_handle *dh,
@@ -403,7 +403,7 @@ static void dect_mm_rcv_temporary_identity_assign_rej(struct dect_handle *dh,
 
 	memset(&param, 0, sizeof(param));
 	param.reject_reason = msg.reject_reason;
-	dh->ops->mm_ops->mm_identity_assign_cfm(dh, mmta, &param);
+	dh->ops->mm_ops->mm_identity_assign_cfm(dh, mmta, false, &param);
 }
 
 static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
