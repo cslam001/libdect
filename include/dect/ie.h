@@ -296,6 +296,9 @@ struct dect_ie_test_hook_control {
 
 struct dect_ie_allocation_type {
 	struct dect_ie_common		common;
+	uint8_t				auth_id;
+	uint8_t				auth_key_num;
+	uint8_t				auth_code_num;
 };
 
 /* Alphanumeric IE */
@@ -317,6 +320,11 @@ enum dect_auth_key_types {
 	DECT_KEY_USER_AUTHENTICATION_KEY	= 0x1,
 	DECT_KEY_USER_PERSONAL_IDENTITY		= 0x3,
 	DECT_KEY_AUTHENTICATION_CODE		= 0x4,
+};
+
+enum dect_auth_key_flags {
+	DECT_AUTH_KEY_IPUI			= 0x0,
+	DECT_AUTH_KEY_IPUI_PARK			= 0x8,
 };
 
 enum dect_auth_flags {
@@ -595,10 +603,18 @@ struct dect_ie_progress_indicator {
 	enum dect_progress_description	progress;
 };
 
-/* RAND IE */
+/* RAND/RS IE */
 
-struct dect_ie_rand {
+struct dect_ie_auth_value {
 	struct dect_ie_common		common;
+	uint64_t			value;
+};
+
+/* RES IE */
+
+struct dect_ie_auth_res {
+	struct dect_ie_common		common;
+	uint32_t			value;
 };
 
 /* Rate parameters IE */
@@ -648,18 +664,6 @@ struct dect_ie_reject_reason {
 	enum dect_reject_reasons	reason;
 };
 
-/* RES IE */
-
-struct dect_ie_res {
-	struct dect_ie_common		common;
-};
-
-/* RS IE */
-
-struct dect_ie_rs {
-	struct dect_ie_common		common;
-};
-
 /* Segmented info IE */
 
 struct dect_ie_segmented_info {
@@ -680,8 +684,22 @@ struct dect_ie_service_class {
 
 /* Setup capability IE */
 
+enum dect_page_capabilities {
+	DECT_PAGE_CAPABILITY_NORMAL_PAGING			= 0x1,
+	DECT_PAGE_CAPABILITY_FAST_AND_NORMAL_PAGING		= 0x2,
+};
+
+enum dect_setup_capabilities {
+	DECT_SETUP_SELECTIVE_FAST_SETUP				= 0x0,
+	DECT_SETUP_NO_FAST_SETUP				= 0x1,
+	DECT_SETUP_COMPLETE_FAST_SETUP				= 0x2,
+	DECT_SETUP_COMPLETE_AND_SELECTIVE_FAST_SETUP		= 0x3,
+};
+
 struct dect_ie_setup_capability {
 	struct dect_ie_common		common;
+	enum dect_page_capabilities	page_capability;
+	enum dect_setup_capabilities	setup_capability;
 };
 
 /* Terminal capability IE */

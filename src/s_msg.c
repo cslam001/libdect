@@ -357,6 +357,30 @@ static int dect_sfmt_build_location_area(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static int dect_sfmt_parse_allocation_type(const struct dect_handle *dh,
+					   struct dect_ie_common **ie,
+					   const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_allocation_type *dst = dect_ie_container(dst, *ie);
+
+	dst->auth_id = src->data[2];
+	dst->auth_key_num  = (src->data[3] & 0xf0) >> 4;
+	dst->auth_code_num = (src->data[3] & 0x0f);
+	return 0;
+}
+
+static int dect_sfmt_build_allocation_type(struct dect_sfmt_ie *dst,
+					   const struct dect_ie_common *ie)
+{
+	struct dect_ie_allocation_type *src = dect_ie_container(src, ie);
+
+	dst->data[2]  = src->auth_id;
+	dst->data[3]  = src->auth_key_num << 4;
+	dst->data[3] |= src->auth_code_num;
+	dst->len = 4;
+	return 0;
+}
+
 static const char *dect_auth_algs[] = {
 	[DECT_AUTH_DSAA]	= "DSAA",
 	[DECT_AUTH_GSM]		= "GSM",
@@ -376,6 +400,8 @@ static void dect_sfmt_dump_auth_type(const struct dect_ie_common *_ie)
 
 	dect_debug("\tauthentication algorithm: %s\n", dect_auth_algs[ie->auth_id]);
 	dect_debug("\tauthentication key type: %s\n", dect_auth_key_types[ie->auth_key_type]);
+	dect_debug("\tauthentication key number: %u\n", ie->auth_key_num);
+	dect_debug("\tcipher key number: %u\n", ie->cipher_key_num);
 	dect_debug("\tINC: %u TXC: %u UPC: %u\n",
 		   ie->flags & DECT_AUTH_FLAG_INC ? 1 : 0,
 		   ie->flags & DECT_AUTH_FLAG_TXC ? 1 : 0,
@@ -401,6 +427,76 @@ static int dect_sfmt_parse_auth_type(const struct dect_handle *dh,
 	dst->cipher_key_num = src->data[n] & 0x0f;
 
 	dect_sfmt_dump_auth_type(*ie);
+	return 0;
+}
+
+static int dect_sfmt_build_auth_type(struct dect_sfmt_ie *dst,
+				     const struct dect_ie_common *ie)
+{
+	struct dect_ie_auth_type *src = dect_ie_container(src, ie);
+	uint8_t n = 2;
+
+	dect_sfmt_dump_auth_type(ie);
+
+	dst->data[n++] = src->auth_id;
+	if (src->auth_id == DECT_AUTH_PROPRIETARY)
+		dst->data[n++] = 0;
+
+	dst->data[n]  = src->auth_key_type << 4;
+	dst->data[n] |= src->auth_key_num;
+	n++;
+
+	dst->data[n]  = src->flags;
+	dst->data[n] |= src->cipher_key_num;
+	n++;
+
+	dst->len = n;
+	return 0;
+}
+
+static int dect_sfmt_parse_auth_value(const struct dect_handle *dh,
+				      struct dect_ie_common **ie,
+				      const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_auth_value *dst = dect_ie_container(dst, *ie);
+
+	if (src->len != sizeof(dst->value) + 2)
+		return -1;
+	dst->value = *(uint64_t *)&src->data[2];
+	dect_debug("\t%.16" PRIx64 "\n", dst->value);
+	return 0;
+}
+
+static int dect_sfmt_build_auth_value(struct dect_sfmt_ie *dst,
+				      const struct dect_ie_common *ie)
+{
+	struct dect_ie_auth_value *src = dect_ie_container(src, ie);
+
+	*(uint64_t *)&dst->data[2] = src->value;
+	dst->len = sizeof(src->value) + 2;
+	return 0;
+}
+
+static int dect_sfmt_parse_auth_res(const struct dect_handle *dh,
+				    struct dect_ie_common **ie,
+				    const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_auth_res *dst = dect_ie_container(dst, *ie);
+
+	if (src->len != sizeof(dst->value) + 2)
+		return -1;
+	dst->value = *(uint32_t *)&src->data[2];
+	dect_debug("\t%.8x\n", dst->value);
+	return 0;
+}
+
+static int dect_sfmt_build_auth_res(struct dect_sfmt_ie *dst,
+				    const struct dect_ie_common *ie)
+{
+	struct dect_ie_auth_res *src = dect_ie_container(src, ie);
+
+	*(uint32_t *)&dst->data[2] = src->value;
+	dst->len = sizeof(src->value) + 2;
 	return 0;
 }
 
@@ -499,6 +595,29 @@ static int dect_sfmt_build_reject_reason(struct dect_sfmt_ie *dst,
 	struct dect_ie_reject_reason *src = dect_ie_container(src, ie);
 
 	dst->data[2] = src->reason;
+	dst->len = 3;
+	return 0;
+}
+
+static int dect_sfmt_parse_setup_capability(const struct dect_handle *dh,
+					    struct dect_ie_common **ie,
+					    const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_setup_capability *dst = dect_ie_container(dst, *ie);
+
+	dst->page_capability  = (src->data[2] & 0x3);
+	dst->setup_capability = (src->data[2] & 0xc) >> 2;
+	return 0;
+}
+
+static int dect_sfmt_build_setup_capability(struct dect_sfmt_ie *dst,
+					    const struct dect_ie_common *ie)
+{
+	struct dect_ie_setup_capability *src = dect_ie_container(src, ie);
+
+	dst->data[2]  = src->page_capability;
+	dst->data[2] |= src->setup_capability << 2;
+	dst->data[2] |= DECT_OCTET_GROUP_END;
 	dst->len = 3;
 	return 0;
 }
@@ -787,26 +906,35 @@ static const struct dect_ie_handler {
 		.name	= "NWK assigned identity",
 		.size	= sizeof(struct dect_ie_nwk_assigned_identity),
 	},
+	[S_VL_IE_ALLOCATION_TYPE]		= {
+		.name	= "allocation type",
+		.size	= sizeof(struct dect_ie_allocation_type),
+		.parse	= dect_sfmt_parse_allocation_type,
+		.build	= dect_sfmt_build_allocation_type,
+	},
 	[S_VL_IE_AUTH_TYPE]			= {
 		.name	= "auth type",
 		.size	= sizeof(struct dect_ie_auth_type),
 		.parse	= dect_sfmt_parse_auth_type,
-	},
-	[S_VL_IE_ALLOCATION_TYPE]		= {
-		.name	= "allocation type",
-		.size	= sizeof(struct dect_ie_allocation_type),
+		.build	= dect_sfmt_build_auth_type,
 	},
 	[S_VL_IE_RAND]				= {
 		.name	= "RAND",
-		.size	= sizeof(struct dect_ie_rand),
+		.size	= sizeof(struct dect_ie_auth_value),
+		.parse	= dect_sfmt_parse_auth_value,
+		.build	= dect_sfmt_build_auth_value,
 	},
 	[S_VL_IE_RES]				= {
 		.name	= "RES",
-		.size	= sizeof(struct dect_ie_res),
+		.size	= sizeof(struct dect_ie_auth_res),
+		.parse	= dect_sfmt_parse_auth_res,
+		.build	= dect_sfmt_build_auth_res,
 	},
 	[S_VL_IE_RS]				= {
 		.name	= "RS",
-		.size	= sizeof(struct dect_ie_rs),
+		.size	= sizeof(struct dect_ie_auth_value),
+		.parse	= dect_sfmt_parse_auth_value,
+		.build	= dect_sfmt_build_auth_value,
 	},
 	[S_VL_IE_IWU_ATTRIBUTES]		= {
 		.name	= "IWU attributes",
@@ -909,6 +1037,8 @@ static const struct dect_ie_handler {
 	[S_VL_IE_SETUP_CAPABILITY]		= {
 		.name	= "setup capability",
 		.size	= sizeof(struct dect_ie_setup_capability),
+		.parse	= dect_sfmt_parse_setup_capability,
+		.build	= dect_sfmt_build_setup_capability,
 	},
 	[S_VL_IE_TERMINAL_CAPABILITY]		= {
 		.name	= "terminal capability",
@@ -1237,7 +1367,7 @@ dect_build_sfmt_ie(const struct dect_handle *dh,
 	if (ieh->build == NULL)
 		goto err1;
 
-	dect_debug("build IE: %s %p\n", ieh->name, ie);
+	dect_debug("build IE: <%s> (%x) %p\n", ieh->name, type, ie);
 	dst.data = mb->data + mb->len;
 	dst.len = 0;
 	err = ieh->build(&dst, ie);
