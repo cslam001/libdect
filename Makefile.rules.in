@@ -49,7 +49,7 @@ clean_targets		+= $(1)-clean
 .PHONY:			$(1)-install
 
 ifneq ($(MAKECMDGOALS),clean)
--include $$((1)-depfiles)
+-include $$($(1)-depfiles)
 endif
 endef
 
