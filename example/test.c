@@ -87,13 +87,13 @@ static void dect_keypad_complete(struct dect_handle *dh, void *call,
 }
 
 static void dect_mncc_connect_ind(struct dect_handle *dh, struct dect_call *call,
-				  const struct dect_mncc_connect_param *param)
+				  struct dect_mncc_connect_param *param)
 {
 	printf("MNCC_CONNECT-ind\n");
 }
 
 static void dect_mncc_setup_ind(struct dect_handle *dh, struct dect_call *call,
-				const struct dect_mncc_setup_param *setup)
+				struct dect_mncc_setup_param *setup)
 {
 	struct call *priv = dect_call_priv(call);
 	struct dect_ie_signal signal;
@@ -112,13 +112,13 @@ static void dect_mncc_setup_ind(struct dect_handle *dh, struct dect_call *call,
 }
 
 static void dect_mncc_setup_ack_ind(struct dect_handle *dh, struct dect_call *call,
-				    const struct dect_mncc_setup_ack_param *param)
+				    struct dect_mncc_setup_ack_param *param)
 {
 	printf("MNCC_SETUP_ACK-ind\n");
 }
 
 static void dect_mncc_info_ind(struct dect_handle *dh, struct dect_call *call,
-			       const struct dect_mncc_info_param *param)
+			       struct dect_mncc_info_param *param)
 {
 	struct call *priv = dect_call_priv(call);
 	struct dect_ie_progress_indicator progress_indicator;
@@ -199,14 +199,14 @@ static void dect_mncc_info_timer(int fd, short even, void *data)
 }
 
 static void dect_mncc_alert_ind(struct dect_handle *dh, struct dect_call *call,
-				const struct dect_mncc_alert_param *param)
+				struct dect_mncc_alert_param *param)
 {
 	printf("MNCC_ALERT-ind\n");
 	dect_mncc_info_timer(0, 0, call);
 }
 
 static void dect_mncc_reject_ind(struct dect_handle *dh, struct dect_call *call,
-				 const struct dect_mncc_release_param *param)
+				 struct dect_mncc_release_param *param)
 {
 	struct call *priv = dect_call_priv(call);
 

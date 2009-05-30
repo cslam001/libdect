@@ -172,7 +172,7 @@ int dect_mm_access_rights_req(struct dect_handle *dh,
 		.auth_type		= param->auth_type,
 		.cipher_info		= param->cipher_info,
 		.setup_capability	= NULL,
-		//.terminal_capability	= param->terminal_capability,
+		.terminal_capability	= param->terminal_capability,
 		.model_identifier	= param->model_identifier,
 		.codec_list		= NULL,
 		.escape_to_proprietary	= NULL,
@@ -218,7 +218,7 @@ int dect_mm_access_rights_res(struct dect_handle *dh,
 		fixed_identity.type = DECT_FIXED_ID_TYPE_PARK;
 		fixed_identity.ari = dh->pari;
 		fixed_identity.rpn = 0;
-		dect_repeat_indicator_add(&fixed_identity, &msg.fixed_identity);
+		dect_ie_list_add(&fixed_identity, &msg.fixed_identity);
 	}
 
 	mm_debug("ACCESS_RIGHTS-res");
@@ -315,19 +315,24 @@ static void dect_mm_locate_ind(struct dect_handle *dh,
 			       struct dect_mm_transaction *mmta,
 			       const struct dect_mm_locate_request_msg *msg)
 {
-	struct dect_mm_locate_param param = {
-		.portable_identity	= msg->portable_identity,
-		.fixed_identity		= msg->fixed_identity,
-		.location_area		= msg->location_area,
-		.nwk_assigned_identity	= msg->nwk_assigned_identity,
-		.cipher_info		= msg->cipher_info,
-		.setup_capability	= msg->setup_capability,
-		.terminal_capability	= msg->terminal_capability,
-		.iwu_to_iwu		= msg->iwu_to_iwu,
-		.model_identifier	= msg->model_identifier,
-	};
+	struct dect_mm_locate_param *param;
 
-	dh->ops->mm_ops->mm_locate_ind(dh, mmta, &param);
+	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		return;
+
+	param->portable_identity	= dect_ie_hold(msg->portable_identity),
+	param->fixed_identity		= dect_ie_hold(msg->fixed_identity),
+	param->location_area		= dect_ie_hold(msg->location_area),
+	param->nwk_assigned_identity	= dect_ie_hold(msg->nwk_assigned_identity),
+	param->cipher_info		= dect_ie_hold(msg->cipher_info),
+	param->setup_capability		= dect_ie_hold(msg->setup_capability),
+	param->terminal_capability	= dect_ie_hold(msg->terminal_capability),
+	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu),
+	param->model_identifier		= dect_ie_hold(msg->model_identifier),
+
+	dh->ops->mm_ops->mm_locate_ind(dh, mmta, param);
+	dect_ie_collection_put(dh, param);
 }
 
 static void dect_mm_rcv_locate_request(struct dect_handle *dh,

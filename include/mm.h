@@ -42,7 +42,7 @@ enum dect_mm_msg_types {
 struct dect_mm_access_rights_accept_msg {
 	struct dect_msg_common			common;
 	struct dect_ie_portable_identity	*portable_identity;
-	struct dect_ie_repeat_indicator		fixed_identity;
+	struct dect_ie_list			fixed_identity;
 	struct dect_ie_location_area		*location_area;
 	struct dect_ie_auth_type		*auth_type;
 	struct dect_ie_cipher_info		*cipher_info;
@@ -136,7 +136,7 @@ struct dect_mm_locate_accept_msg {
 	struct dect_ie_ext_ho_indicator		*ext_ho_indicator;
 	struct dect_ie_setup_capability		*setup_capability;
 	struct dect_ie_duration			*duration;
-	struct dect_ie_repeat_indicator		segmented_info;
+	struct dect_ie_list			segmented_info;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_model_identifier		*model_identifier;
 	struct dect_ie_codec_list		*codec_list;
@@ -147,7 +147,7 @@ struct dect_mm_locate_reject_msg {
 	struct dect_msg_common			common;
 	struct dect_ie_reject_reason		*reject_reason;
 	struct dect_ie_duration			*duration;
-	struct dect_ie_repeat_indicator		segmented_info;
+	struct dect_ie_list			segmented_info;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
@@ -162,7 +162,7 @@ struct dect_mm_locate_request_msg {
 	struct dect_ie_setup_capability		*setup_capability;
 	struct dect_ie_terminal_capability	*terminal_capability;
 	struct dect_ie_network_parameter	*network_parameter;
-	struct dect_ie_repeat_indicator		segmented_info;
+	struct dect_ie_list			segmented_info;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_model_identifier		*model_identifier;
 	struct dect_ie_codec_list		*codec_list;
@@ -192,7 +192,7 @@ struct dect_mm_temporary_identity_assign_msg {
 	struct dect_ie_nwk_assigned_identity	*nwk_assigned_identity;
 	struct dect_ie_duration			*duration;
 	struct dect_ie_network_parameter	*network_parameter;
-	struct dect_ie_repeat_indicator		iwu_to_iwu;
+	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 

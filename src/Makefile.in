@@ -6,6 +6,7 @@ dect-destdir	:= usr/lib
 dect-obj	+= libdect.o
 dect-obj	+= identities.o
 dect-obj	+= s_msg.o
+dect-obj	+= ie.o
 dect-obj	+= lce.o
 dect-obj	+= cc.o
 dect-obj	+= ss.o

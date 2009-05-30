@@ -10,10 +10,33 @@
 #include <string.h>
 #include <dect/utils.h>
 
+struct dect_handle;
+
+/**
+ * struct dect_ie_collection - common representation of a DECT IE collection
+ *
+ * @refcnt:		reference count
+ * @size:		size of entire collection
+ * @ie:			dynamic amount of IEs/IE lists
+ */
+struct dect_ie_collection {
+	unsigned int			refcnt;
+	unsigned int			size;
+	struct dect_ie_common		*ie[];
+};
+
+extern struct dect_ie_collection *__dect_ie_collection_hold(struct dect_ie_collection *iec);
+
+#define dect_ie_collection_hold(iec)	__dect_ie_collection_hold(&(iec)->common)
+
+extern void __dect_ie_collection_put(const struct dect_handle *dh, struct dect_ie_collection *iec);
+
+#define dect_ie_collection_put(dh, iec)	__dect_ie_collection_put(dh, &(iec)->common)
+
 /**
  * struct dect_ie_common - common representation of a DECT IE
  *
- * @next:		repeat indicator list node
+ * @next:		IE list list node
  * @refcnt:		reference count
  */
 struct dect_ie_common {
@@ -32,59 +55,45 @@ static inline struct dect_ie_common *__dect_ie_init(struct dect_ie_common *ie)
 
 #define dect_ie_init(ie)		dect_ie_container(ie, __dect_ie_init(&(ie)->common))
 
-static inline struct dect_ie_common *__dect_ie_hold(struct dect_ie_common *ie)
-{
-	if (ie != NULL)
-		ie->refcnt++;
-	return ie;
-}
+extern struct dect_ie_common *__dect_ie_hold(struct dect_ie_common *ie);
 
 #define dect_ie_hold(ie)		dect_ie_container(ie, __dect_ie_hold(&(ie)->common))
+
+extern void __dect_ie_put(const struct dect_handle *dh, struct dect_ie_common *ie);
+
+#define dect_ie_put(ie)			dect_ie_put(&(ie)->common)
+
 
 /* Repeat indicator */
 
 /**
  * enum dect_ie_list_types - Repeat indicator list types
  *
- * @DECT_SFMT_IE_LIST_NORMAL:	Non priorized list
- * @DECT_SFMT_IE_PRIORITIZED:	Priorized list
+ * @DECT_IE_LIST_NORMAL:	Non priorized list
+ * @DECT_IE_PRIORITIZED:	Priorized list
  */
 enum dect_ie_list_types {
-	DECT_SFMT_IE_LIST_NORMAL	= 0x1,
-	DECT_SFMT_IE_LIST_PRIORITIZED	= 0x2,
+	DECT_IE_LIST_NORMAL		= 0x1,
+	DECT_IE_LIST_PRIORITIZED	= 0x2,
 };
 
-struct dect_ie_repeat_indicator {
+struct dect_ie_list {
 	struct dect_ie_common		common;
 	enum dect_ie_list_types		type;
 	struct dect_ie_common		*list;
 };
 
-static inline void dect_repeat_indicator_init(struct dect_ie_repeat_indicator *ie)
-{
-	dect_ie_init(ie);
-	ie->list = NULL;
-}
+extern void dect_ie_list_init(struct dect_ie_list *iel);
+extern struct dect_ie_list *dect_ie_list_hold(struct dect_ie_list *iel);
+extern void dect_ie_list_put(const struct dect_handle *dh, struct dect_ie_list *iel);
 
-static inline void __dect_repeat_indicator_add(struct dect_ie_common *ie,
-					       struct dect_ie_repeat_indicator *repeat)
-{
-	struct dect_ie_common **pprev;
+extern void __dect_ie_list_add(struct dect_ie_common *ie, struct dect_ie_list *iel);
 
-	pprev = &repeat->list;
-	while (*pprev != NULL && (*pprev)->next != NULL)
-		pprev = &(*pprev)->next;
+#define dect_ie_list_add(ie, iel)	__dect_ie_list_add(&(ie)->common, iel)
 
-	ie->next = NULL;
-	*pprev = ie;
-}
-
-#define dect_repeat_indicator_add(ie, repeat) \
-	__dect_repeat_indicator_add(&(ie)->common, repeat)
-
-#define dect_foreach_ie(ptr, repeat) \
-	for (ptr = (void *)(repeat)->list; ptr != NULL; \
-	     ptr = (void *)((struct dect_ie_common *)ptr)->next)
+#define dect_foreach_ie(ie, iel) \
+	for (ie = (void *)(iel)->list; ie != NULL; \
+	     ie = (void *)((struct dect_ie_common *)ie)->next)
 
 /* Sending complete */
 

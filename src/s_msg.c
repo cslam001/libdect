@@ -20,28 +20,16 @@
 #include <s_fmt.h>
 #include <lce.h>
 
-static struct dect_ie_common *dect_ie_alloc(const struct dect_handle *dh,
-					    unsigned int size)
-{
-	struct dect_ie_common *ie;
-
-	ie = dect_zalloc(dh, size);
-	if (ie == NULL)
-		return NULL;
-	__dect_ie_init(ie);
-	return ie;
-}
-
 static int dect_sfmt_parse_repeat_indicator(const struct dect_handle *dh,
 					    struct dect_ie_common **ie,
 					    const struct dect_sfmt_ie *src)
 {
-	struct dect_ie_repeat_indicator *dst = dect_ie_container(dst, *ie);
+	struct dect_ie_list *dst = dect_ie_container(dst, *ie);
 
 	dst->type = src->data[0] & DECT_SFMT_IE_FIXED_VAL_MASK;
 	switch (dst->type) {
-	case DECT_SFMT_IE_LIST_NORMAL:
-	case DECT_SFMT_IE_LIST_PRIORITIZED:
+	case DECT_IE_LIST_NORMAL:
+	case DECT_IE_LIST_PRIORITIZED:
 		return 0;
 	default:
 		dect_debug("invalid list type\n");
@@ -52,7 +40,7 @@ static int dect_sfmt_parse_repeat_indicator(const struct dect_handle *dh,
 static int dect_sfmt_build_repeat_indicator(struct dect_sfmt_ie *dst,
 					    const struct dect_ie_common *ie)
 {
-	struct dect_ie_repeat_indicator *src = dect_ie_container(src, ie);
+	struct dect_ie_list *src = dect_ie_container(src, ie);
 
 	dect_debug("build repeat indicator list %p\n", src->list);
 	dst->data[0] = src->type;
@@ -1147,7 +1135,7 @@ static struct dect_ie_common **
 dect_next_ie(const struct dect_sfmt_ie_desc *desc, struct dect_ie_common **ie)
 {
 	if (desc->type == S_SO_IE_REPEAT_INDICATOR)
-		return ((void *)ie) + sizeof(struct dect_ie_repeat_indicator);
+		return ((void *)ie) + sizeof(struct dect_ie_list);
 	else if (!(desc->flags & DECT_SFMT_IE_REPEAT))
 		return ie + 1;
 	else
@@ -1157,7 +1145,7 @@ dect_next_ie(const struct dect_sfmt_ie_desc *desc, struct dect_ie_common **ie)
 static void dect_msg_ie_init(const struct dect_sfmt_ie_desc *desc,
 			     struct dect_ie_common **ie)
 {
-	struct dect_ie_repeat_indicator *repeat_indicator;
+	struct dect_ie_list *iel;
 
 	if (desc->flags & DECT_SFMT_IE_END)
 		return;
@@ -1166,8 +1154,8 @@ static void dect_msg_ie_init(const struct dect_sfmt_ie_desc *desc,
 	//	 ie, dect_ie_handlers[desc->type].name);
 
 	if (desc->type == S_SO_IE_REPEAT_INDICATOR) {
-		repeat_indicator = dect_ie_container(repeat_indicator, (struct dect_ie_common *)ie);
-		repeat_indicator->list = NULL;
+		iel = dect_ie_container(iel, (struct dect_ie_common *)ie);
+		dect_ie_list_init(iel);
 	} else if (!(desc->flags & DECT_SFMT_IE_REPEAT))
 		*ie = NULL;
 }
@@ -1389,26 +1377,26 @@ enum dect_sfmt_error dect_build_sfmt_msg(const struct dect_handle *dh,
 {
 	const struct dect_sfmt_ie_desc *desc = mdesc->ie;
 	struct dect_ie_common * const *src = &_src->ie[0], **next, *rsrc;
-	struct dect_ie_repeat_indicator *repeat_indicator;
+	struct dect_ie_list *iel;
 	enum dect_sfmt_error err;
 
 	while (!(desc->flags & DECT_SFMT_IE_END)) {
 		next = dect_next_ie(desc, (struct dect_ie_common **)src);
 
 		if (desc->type == S_SO_IE_REPEAT_INDICATOR) {
-			repeat_indicator = (struct dect_ie_repeat_indicator *)src;
-			if (repeat_indicator->list == NULL) {
+			iel = (struct dect_ie_list *)src;
+			if (iel->list == NULL) {
 				desc++;
 				goto next;
 			}
 
 			/* Add repeat indicator if more than one element on the list */
-			if (repeat_indicator->list->next != NULL)
-				err = dect_build_sfmt_ie(dh, desc, mb, &repeat_indicator->common);
+			if (iel->list->next != NULL)
+				err = dect_build_sfmt_ie(dh, desc, mb, &iel->common);
 			desc++;
 
 			assert(desc->flags & DECT_SFMT_IE_REPEAT);
-			dect_foreach_ie(rsrc, repeat_indicator) {
+			dect_foreach_ie(rsrc, iel) {
 				dect_debug("list elem %p\n", rsrc);
 				err = dect_build_sfmt_ie(dh, desc, mb, rsrc);
 			}
@@ -1434,12 +1422,10 @@ void dect_msg_free(const struct dect_handle *dh,
 
 	while (!(desc->flags & DECT_SFMT_IE_END)) {
 		next = dect_next_ie(desc, ie);
-
-		//dect_debug("free %s %p\n", dect_ie_handlers[desc->type].name, ie);
 		if (desc->type == S_SO_IE_REPEAT_INDICATOR)
 			desc++;
-		else if (*ie != NULL && --(*ie)->refcnt == 0)
-			dect_free(dh, *ie);
+		else if (*ie != NULL)
+			__dect_ie_put(dh, *ie);
 
 		ie = next;
 		desc++;

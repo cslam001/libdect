@@ -404,18 +404,17 @@ static int dect_cc_send_msg(struct dect_handle *dh, struct dect_call *call,
 static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer)
 {
 	struct dect_call *call = timer->data;
-	struct dect_ie_release_reason release_reason;
-	struct dect_mncc_release_param param = {
-		.release_reason		= &release_reason,
-	};
+	struct dect_mncc_release_param *param;
 
 	cc_debug(call, "setup timer");
+	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto out;
 	// release-com
 
-	dect_ie_init(&release_reason);
-	release_reason.reason = DECT_RELEASE_TIMER_EXPIRY;
-	dh->ops->cc_ops->mncc_reject_ind(dh, call, &param);
-
+	dh->ops->cc_ops->mncc_reject_ind(dh, call, param);
+	dect_ie_collection_put(dh, param);
+out:
 	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
 }
@@ -510,7 +509,7 @@ int dect_mncc_reject_req(struct dect_handle *dh, struct dect_call *call,
 		.identity_type			= param->identity_type,
 		.location_area			= param->location_area,
 		.iwu_attributes			= param->iwu_attributes,
-		//.facility			= param->facility,
+		.facility			= param->facility,
 		.display			= param->display,
 		.feature_indicate		= param->feature_indicate,
 		.network_parameter		= param->network_parameter,
@@ -636,7 +635,7 @@ int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
 		.identity_type			= param->identity_type,
 		.location_area			= param->location_area,
 		.iwu_attributes			= param->iwu_attributes,
-		//.facility			= param->facility,
+		.facility			= param->facility,
 		.display			= param->display,
 		.feature_indicate		= param->feature_indicate,
 		.network_parameter		= param->network_parameter,
@@ -729,22 +728,27 @@ int dect_mncc_iwu_info_req(struct dect_handle *dh, struct dect_call *call,
 }
 
 static void dect_mncc_alert_ind(struct dect_handle *dh, struct dect_call *call,
-				const struct dect_cc_alerting_msg *msg)
+				struct dect_cc_alerting_msg *msg)
 {
-	struct dect_mncc_alert_param param = {
-		.facility			= msg->facility,
-		.progress_indicator		= msg->progress_indicator,
-		.display			= msg->display,
-		.signal				= msg->signal,
-		.feature_indicate		= msg->feature_indicate,
-		.terminal_capability		= msg->terminal_capability,
-		.transit_delay			= msg->transit_delay,
-		.window_size			= msg->window_size,
-		.iwu_to_iwu			= msg->iwu_to_iwu,
-		.iwu_packet			= msg->iwu_packet,
-	};
+	struct dect_mncc_alert_param *param;
 
-	dh->ops->cc_ops->mncc_alert_ind(dh, call, &param);
+	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		return;
+
+	param->facility			= *dect_ie_list_hold(&msg->facility),
+	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator),
+	param->display			= dect_ie_hold(msg->display),
+	param->signal			= dect_ie_hold(msg->signal),
+	param->feature_indicate		= dect_ie_hold(msg->feature_indicate),
+	param->terminal_capability	= dect_ie_hold(msg->terminal_capability),
+	param->transit_delay		= dect_ie_hold(msg->transit_delay),
+	param->window_size		= dect_ie_hold(msg->window_size),
+	param->iwu_to_iwu		= *dect_ie_list_hold(&msg->iwu_to_iwu),
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet),
+
+	dh->ops->cc_ops->mncc_alert_ind(dh, call, param);
+	dect_ie_collection_put(dh, param);
 }
 
 static void dect_cc_rcv_alerting(struct dect_handle *dh, struct dect_call *call,
@@ -777,20 +781,25 @@ static void dect_cc_rcv_call_proc(struct dect_handle *dh, struct dect_call *call
 static void dect_mncc_connect_ind(struct dect_handle *dh, struct dect_call *call,
 				  struct dect_cc_connect_msg *msg)
 {
-	struct dect_mncc_connect_param param = {
-		.facility		= msg->facility,
-		.progress_indicator	= msg->progress_indicator,
-		.display		= msg->display,
-		.signal			= msg->signal,
-		.feature_indicate	= msg->feature_indicate,
-		.terminal_capability	= msg->terminal_capability,
-		.transit_delay		= msg->transit_delay,
-		.window_size		= msg->window_size,
-		.iwu_to_iwu		= msg->iwu_to_iwu,
-		.iwu_packet		= msg->iwu_packet,
-	};
+	struct dect_mncc_connect_param *param;
 
-	dh->ops->cc_ops->mncc_connect_ind(dh, call, &param);
+	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		return;
+
+	param->facility			= *dect_ie_list_hold(&msg->facility),
+	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator),
+	param->display			= dect_ie_hold(msg->display),
+	param->signal			= dect_ie_hold(msg->signal),
+	param->feature_indicate		= dect_ie_hold(msg->feature_indicate),
+	param->terminal_capability	= dect_ie_hold(msg->terminal_capability),
+	param->transit_delay		= dect_ie_hold(msg->transit_delay),
+	param->window_size		= dect_ie_hold(msg->window_size),
+	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu),
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet),
+
+	dh->ops->cc_ops->mncc_connect_ind(dh, call, param);
+	dect_ie_collection_put(dh, param);
 }
 
 static void dect_cc_rcv_connect(struct dect_handle *dh, struct dect_call *call,
@@ -841,18 +850,23 @@ static void dect_cc_rcv_connect_ack(struct dect_handle *dh, struct dect_call *ca
 }
 
 static void dect_mncc_release_ind(struct dect_handle *dh, struct dect_call *call,
-				  const struct dect_cc_release_msg *msg)
+				  struct dect_cc_release_msg *msg)
 {
-	struct dect_mncc_release_param param = {
-		.release_reason			= msg->release_reason,
-		.facility			= msg->facility,
-		.display			= msg->display,
-		.feature_indicate		= msg->feature_indicate,
-		.iwu_to_iwu			= msg->iwu_to_iwu,
-		.iwu_packet			= msg->iwu_packet,
-	};
+	struct dect_mncc_release_param *param;
 
-	dh->ops->cc_ops->mncc_release_ind(dh, call, &param);
+	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		return;
+
+	param->release_reason		= dect_ie_hold(msg->release_reason),
+	param->facility			= *dect_ie_list_hold(&msg->facility),
+	param->display			= dect_ie_hold(msg->display),
+	param->feature_indicate		= dect_ie_hold(msg->feature_indicate),
+	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu),
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet),
+
+	dh->ops->cc_ops->mncc_release_ind(dh, call, param);
+	dect_ie_collection_put(dh, param);
 }
 
 static void dect_cc_rcv_release(struct dect_handle *dh, struct dect_call *call,
@@ -869,23 +883,27 @@ static void dect_cc_rcv_release(struct dect_handle *dh, struct dect_call *call,
 }
 
 static void dect_mncc_release_cfm(struct dect_handle *dh, struct dect_call *call,
-				  const struct dect_cc_release_com_msg *msg)
+				  struct dect_cc_release_com_msg *msg)
 {
-	struct dect_mncc_release_param param = {
-		.release_reason			= msg->release_reason,
-		.identity_type			= msg->identity_type,
-		.location_area			= msg->location_area,
-		.iwu_attributes			= msg->iwu_attributes,
-		.facility			= msg->facility,
-		.display			= msg->display,
-		.feature_indicate		= msg->feature_indicate,
-		.network_parameter		= msg->network_parameter,
-		.iwu_to_iwu			= msg->iwu_to_iwu,
-		.iwu_packet			= msg->iwu_packet,
+	struct dect_mncc_release_param *param;
 
-	};
+	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		return;
 
-	dh->ops->cc_ops->mncc_release_cfm(dh, call, &param);
+	param->release_reason		= dect_ie_hold(msg->release_reason),
+	param->identity_type		= dect_ie_hold(msg->identity_type),
+	param->location_area		= dect_ie_hold(msg->location_area),
+	param->iwu_attributes		= dect_ie_hold(msg->iwu_attributes),
+	param->facility			= *dect_ie_list_hold(&msg->facility),
+	param->display			= dect_ie_hold(msg->display),
+	param->feature_indicate		= dect_ie_hold(msg->feature_indicate),
+	param->network_parameter	= dect_ie_hold(msg->network_parameter),
+	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu),
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet),
+
+	dh->ops->cc_ops->mncc_release_cfm(dh, call, param);
+	dect_ie_collection_put(dh, param);
 }
 
 static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *call,
@@ -900,15 +918,21 @@ static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *ca
 	if (call->state == DECT_CC_RELEASE_PENDING)
 		dect_mncc_release_cfm(dh, call, &msg);
 	else {
-		struct dect_mncc_release_param param = {
-			.release_reason		= msg.release_reason,
-			.facility		= msg.facility,
-			.iwu_to_iwu		= msg.iwu_to_iwu,
-			.iwu_packet		= msg.iwu_packet,
-		};
-		dh->ops->cc_ops->mncc_release_ind(dh, call, &param);
-	}
+		struct dect_mncc_release_param *param;
 
+		param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+		if (param == NULL)
+			goto out;
+
+		param->release_reason	= dect_ie_hold(msg.release_reason),
+		param->facility		= *dect_ie_list_hold(&msg.facility),
+		param->iwu_to_iwu	= dect_ie_hold(msg.iwu_to_iwu),
+		param->iwu_packet	= dect_ie_hold(msg.iwu_packet),
+
+		dh->ops->cc_ops->mncc_release_ind(dh, call, param);
+		dect_ie_collection_put(dh, param);
+	}
+out:
 	dect_msg_free(dh, &cc_release_com_msg_desc, &msg.common);
 
 	if (call->lu_sap != NULL)
@@ -944,27 +968,32 @@ static void dect_cc_rcv_notify(struct dect_handle *dh, struct dect_call *call,
 static void dect_mncc_info_ind(struct dect_handle *dh, struct dect_call *call,
 			       struct dect_cc_info_msg *msg)
 {
-	struct dect_mncc_info_param param = {
-		.location_area			= msg->location_area,
-		.nwk_assigned_identity		= msg->nwk_assigned_identity,
-		.facility			= msg->facility,
-		.progress_indicator		= msg->progress_indicator,
-		.display			= msg->display,
-		.keypad				= msg->keypad,
-		.signal				= msg->signal,
-		.feature_activate		= msg->feature_activate,
-		.feature_indicate		= msg->feature_indicate,
-		.network_parameter		= msg->network_parameter,
-		.called_party_number		= msg->called_party_number,
-		.called_party_subaddress	= msg->called_party_subaddress,
-		.calling_party_number		= msg->calling_party_number,
-		.calling_party_name		= msg->calling_party_name,
-		.sending_complete		= msg->sending_complete,
-		.iwu_to_iwu			= msg->iwu_to_iwu,
-		.iwu_packet			= msg->iwu_packet,
-	};
+	struct dect_mncc_info_param *param;
 
-	dh->ops->cc_ops->mncc_info_ind(dh, call, &param);
+	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		return;
+
+	param->location_area		= dect_ie_hold(msg->location_area),
+	param->nwk_assigned_identity	= dect_ie_hold(msg->nwk_assigned_identity),
+	param->facility			= *dect_ie_list_hold(&msg->facility),
+	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator),
+	param->display			= dect_ie_hold(msg->display),
+	param->keypad			= dect_ie_hold(msg->keypad),
+	param->signal			= dect_ie_hold(msg->signal),
+	param->feature_activate		= dect_ie_hold(msg->feature_activate),
+	param->feature_indicate		= dect_ie_hold(msg->feature_indicate),
+	param->network_parameter	= dect_ie_hold(msg->network_parameter),
+	param->called_party_number	= dect_ie_hold(msg->called_party_number),
+	param->called_party_subaddress	= dect_ie_hold(msg->called_party_subaddress),
+	param->calling_party_number	= dect_ie_hold(msg->calling_party_number),
+	param->calling_party_name	= dect_ie_hold(msg->calling_party_name),
+	param->sending_complete		= dect_ie_hold(msg->sending_complete),
+	param->iwu_to_iwu		= *dect_ie_list_hold(&msg->iwu_to_iwu),
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet),
+
+	dh->ops->cc_ops->mncc_info_ind(dh, call, param);
+	dect_ie_collection_put(dh, param);
 }
 
 static void dect_cc_rcv_info(struct dect_handle *dh, struct dect_call *call,
@@ -1021,33 +1050,38 @@ static void dect_mncc_setup_ind(struct dect_handle *dh,
 				struct dect_call *call,
 				struct dect_cc_setup_msg *msg)
 {
-	struct dect_mncc_setup_param param = {
-		.basic_service			= msg->basic_service,
-		.iwu_attributes			= msg->iwu_attributes,
-		.cipher_info			= msg->cipher_info,
-		.facility			= msg->facility,
-		.progress_indicator		= msg->progress_indicator,
-		.display			= msg->display,
-		.keypad				= msg->keypad,
-		.signal				= msg->signal,
-		.feature_activate       	= msg->feature_activate,
-		.feature_indicate       	= msg->feature_indicate,
-		.network_parameter		= msg->network_parameter,
-		.terminal_capability		= msg->terminal_capability,
-		.end_to_end_compatibility	= msg->end_to_end_compatibility,
-		.rate_parameters		= msg->rate_parameters,
-		.transit_delay			= msg->transit_delay,
-		.window_size			= msg->window_size,
-		.called_party_number		= msg->called_party_number,
-		.called_party_subaddress	= msg->called_party_subaddress,
-		.calling_party_number		= msg->calling_party_number,
-		.calling_party_name		= msg->calling_party_name,
-		.sending_complete		= msg->sending_complete,
-		.iwu_to_iwu			= msg->iwu_to_iwu,
-		.iwu_packet			= msg->iwu_packet,
-	};
+	struct dect_mncc_setup_param *param;
 
-	dh->ops->cc_ops->mncc_setup_ind(dh, call, &param);
+	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		return;
+
+	param->basic_service		= dect_ie_hold(msg->basic_service),
+	param->iwu_attributes		= *dect_ie_list_hold(&msg->iwu_attributes),
+	param->cipher_info		= dect_ie_hold(msg->cipher_info),
+	param->facility			= *dect_ie_list_hold(&msg->facility),
+	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator),
+	param->display			= dect_ie_hold(msg->display),
+	param->keypad			= dect_ie_hold(msg->keypad),
+	param->signal			= dect_ie_hold(msg->signal),
+	param->feature_activate       	= dect_ie_hold(msg->feature_activate),
+	param->feature_indicate       	= dect_ie_hold(msg->feature_indicate),
+	param->network_parameter	= dect_ie_hold(msg->network_parameter),
+	param->terminal_capability	= dect_ie_hold(msg->terminal_capability),
+	param->end_to_end_compatibility	= dect_ie_hold(msg->end_to_end_compatibility),
+	param->rate_parameters		= dect_ie_hold(msg->rate_parameters),
+	param->transit_delay		= dect_ie_hold(msg->transit_delay),
+	param->window_size		= dect_ie_hold(msg->window_size),
+	param->called_party_number	= dect_ie_hold(msg->called_party_number),
+	param->called_party_subaddress	= dect_ie_hold(msg->called_party_subaddress),
+	param->calling_party_number	= dect_ie_hold(msg->calling_party_number),
+	param->calling_party_name	= dect_ie_hold(msg->calling_party_name),
+	param->sending_complete		= dect_ie_hold(msg->sending_complete),
+	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu),
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet),
+
+	dh->ops->cc_ops->mncc_setup_ind(dh, call, param);
+	dect_ie_collection_put(dh, param);
 }
 
 static void dect_cc_rcv_setup(struct dect_handle *dh,

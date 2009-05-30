@@ -13,11 +13,12 @@
  * struct dect_mncc_setup_param - MNCC_SETUP primitive parameters
  */
 struct dect_mncc_setup_param {
+	struct dect_ie_collection		common;
 	struct dect_ie_basic_service		*basic_service;
-	struct dect_ie_repeat_indicator		iwu_attributes;
+	struct dect_ie_list			iwu_attributes;
 	struct dect_ie_cipher_info		*cipher_info;
-	struct dect_ie_repeat_indicator		facility;
-	struct dect_ie_repeat_indicator		progress_indicator;
+	struct dect_ie_list			facility;
+	struct dect_ie_list			progress_indicator;
 	struct dect_ie_display			*display;
 	struct dect_ie_keypad			*keypad;
 	struct dect_ie_signal			*signal;
@@ -39,26 +40,28 @@ struct dect_mncc_setup_param {
 };
 
 struct dect_mncc_setup_ack_param {
+	struct dect_ie_collection		common;
 	struct dect_ie_info_type		*info_type;
 	struct dect_ie_location_area		*location_area;
-	struct dect_ie_repeat_indicator		facility;
-	struct dect_ie_repeat_indicator		progress_indicator;
+	struct dect_ie_list			facility;
+	struct dect_ie_list			progress_indicator;
 	struct dect_ie_display			*display;
 	struct dect_ie_signal			*signal;
 	struct dect_ie_feature_indicate		*feature_indicate;
 	struct dect_ie_transit_delay		*transit_delay;
 	struct dect_ie_window_size		*window_size;
 	struct dect_ie_delimiter_request	*delimiter_request;
-	struct dect_ie_repeat_indicator		iwu_to_iwu;
+	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
 };
 
 struct dect_mncc_release_param {
+	struct dect_ie_collection		common;
 	struct dect_ie_release_reason		*release_reason;
 	struct dect_ie_identity_type		*identity_type;
 	struct dect_ie_location_area		*location_area;
 	struct dect_ie_iwu_attributes		*iwu_attributes;
-	struct dect_ie_repeat_indicator		facility;
+	struct dect_ie_list			facility;
 	struct dect_ie_display			*display;
 	struct dect_ie_feature_indicate		*feature_indicate;
 	struct dect_ie_network_parameter	*network_parameter;
@@ -67,33 +70,36 @@ struct dect_mncc_release_param {
 };
 
 struct dect_mncc_call_proc_param {
-	struct dect_ie_repeat_indicator		facility;
-	struct dect_ie_repeat_indicator		progress_indicator;
+	struct dect_ie_collection		common;
+	struct dect_ie_list			facility;
+	struct dect_ie_list			progress_indicator;
 	struct dect_ie_display			*display;
 	struct dect_ie_signal			*signal;
 	struct dect_ie_feature_indicate		*feature_indicate;
 	struct dect_ie_transit_delay		*transit_delay;
 	struct dect_ie_window_size		*window_size;
-	struct dect_ie_repeat_indicator		iwu_to_iwu;
+	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
 };
 
 struct dect_mncc_alert_param {
-	struct dect_ie_repeat_indicator		facility;
-	struct dect_ie_repeat_indicator		progress_indicator;
+	struct dect_ie_collection		common;
+	struct dect_ie_list			facility;
+	struct dect_ie_list			progress_indicator;
 	struct dect_ie_display			*display;
 	struct dect_ie_signal			*signal;
 	struct dect_ie_feature_indicate		*feature_indicate;
 	struct dect_ie_terminal_capability	*terminal_capability;
 	struct dect_ie_transit_delay		*transit_delay;
 	struct dect_ie_window_size		*window_size;
-	struct dect_ie_repeat_indicator		iwu_to_iwu;
+	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
 };
 
 struct dect_mncc_connect_param {
-	struct dect_ie_repeat_indicator		facility;
-	struct dect_ie_repeat_indicator		progress_indicator;
+	struct dect_ie_collection		common;
+	struct dect_ie_list			facility;
+	struct dect_ie_list			progress_indicator;
 	struct dect_ie_display			*display;
 	struct dect_ie_signal			*signal;
 	struct dect_ie_feature_indicate		*feature_indicate;
@@ -105,8 +111,9 @@ struct dect_mncc_connect_param {
 };
 
 struct dect_mncc_facility_param {
-	struct dect_ie_repeat_indicator		facility;
-	struct dect_ie_repeat_indicator		progress_indicator;
+	struct dect_ie_collection		common;
+	struct dect_ie_list			facility;
+	struct dect_ie_list			progress_indicator;
 	struct dect_ie_display			*display;
 	struct dect_ie_keypad			*keypad;
 	struct dect_ie_feature_activate		*feature_activate;
@@ -114,10 +121,11 @@ struct dect_mncc_facility_param {
 };
 
 struct dect_mncc_info_param {
+	struct dect_ie_collection		common;
 	struct dect_ie_location_area		*location_area;
 	struct dect_ie_nwk_assigned_identity	*nwk_assigned_identity;
-	struct dect_ie_repeat_indicator		facility;
-	struct dect_ie_repeat_indicator		progress_indicator;
+	struct dect_ie_list			facility;
+	struct dect_ie_list			progress_indicator;
 	struct dect_ie_display			*display;
 	struct dect_ie_keypad			*keypad;
 	struct dect_ie_signal			*signal;
@@ -129,22 +137,25 @@ struct dect_mncc_info_param {
 	struct dect_ie_calling_party_number	*calling_party_number;
 	struct dect_ie_calling_party_name	*calling_party_name;
 	struct dect_ie_sending_complete		*sending_complete;
-	struct dect_ie_repeat_indicator		iwu_to_iwu;
+	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
 };
 
 struct dect_mncc_modify_param {
+	struct dect_ie_collection		common;
 	struct dect_ie_service_change_info	*service_change_info;
-	struct dect_ie_repeat_indicator		iwu_attributes;
-	struct dect_ie_repeat_indicator		iwu_to_iwu;
+	struct dect_ie_list			iwu_attributes;
+	struct dect_ie_list			iwu_to_iwu;
 };
 
 struct dect_mncc_hold_param {
+	struct dect_ie_collection		common;
 	struct dect_ie_display			*display;
 	struct dect_ie_release_reason		*release_reason;
 };
 
 struct dect_mncc_iwu_info_param {
+	struct dect_ie_collection		common;
 	struct dect_ie_alphanumeric		*alphanumeric;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
@@ -162,41 +173,41 @@ extern const struct dect_ipui *dect_call_portable_identity(const struct dect_cal
 struct dect_cc_ops {
 	size_t	priv_size;
 	void	(*mncc_setup_ind)(struct dect_handle *dh, struct dect_call *call,
-				  const struct dect_mncc_setup_param *param);
+				  struct dect_mncc_setup_param *param);
 	void	(*mncc_setup_ack_ind)(struct dect_handle *dh, struct dect_call *call,
-				      const struct dect_mncc_setup_ack_param *param);
+				      struct dect_mncc_setup_ack_param *param);
 	void	(*mncc_reject_ind)(struct dect_handle *dh, struct dect_call *call,
-				   const struct dect_mncc_release_param *param);
+				   struct dect_mncc_release_param *param);
 	void	(*mncc_call_proc_ind)(struct dect_handle *dh, struct dect_call *call,
-				      const struct dect_mncc_call_proc_param *param);
+				      struct dect_mncc_call_proc_param *param);
 	void	(*mncc_alert_ind)(struct dect_handle *dh, struct dect_call *call,
-				  const struct dect_mncc_alert_param *param);
+				  struct dect_mncc_alert_param *param);
 	void	(*mncc_connect_ind)(struct dect_handle *dh, struct dect_call *call,
-				    const struct dect_mncc_connect_param *param);
+				    struct dect_mncc_connect_param *param);
 	void	(*mncc_connect_cfm)(struct dect_handle *dh, struct dect_call *call,
-				    const struct dect_mncc_connect_param *param);
+				    struct dect_mncc_connect_param *param);
 	void	(*mncc_release_ind)(struct dect_handle *dh, struct dect_call *call,
-				    const struct dect_mncc_release_param *param);
+				    struct dect_mncc_release_param *param);
 	void	(*mncc_release_cfm)(struct dect_handle *dh, struct dect_call *call,
-				    const struct dect_mncc_release_param *param);
+				    struct dect_mncc_release_param *param);
 	void	(*mncc_facility_ind)(struct dect_handle *dh, struct dect_call *call,
-				     const struct dect_mncc_facility_param *param);
+				     struct dect_mncc_facility_param *param);
 	void	(*mncc_info_ind)(struct dect_handle *dh, struct dect_call *call,
-				 const struct dect_mncc_info_param *param);
+				 struct dect_mncc_info_param *param);
 	void	(*mncc_modify_ind)(struct dect_handle *dh, struct dect_call *call,
-				   const struct dect_mncc_modify_param *param);
+				   struct dect_mncc_modify_param *param);
 	void	(*mncc_modify_cfm)(struct dect_handle *dh, struct dect_call *call,
-				   const struct dect_mncc_modify_param *param);
+				   struct dect_mncc_modify_param *param);
 	void	(*mncc_hold_ind)(struct dect_handle *dh, struct dect_call *call,
-				 const struct dect_mncc_hold_param *param);
+				 struct dect_mncc_hold_param *param);
 	void	(*mncc_hold_cfm)(struct dect_handle *dh, struct dect_call *call,
-				 const struct dect_mncc_hold_param *param);
+				 struct dect_mncc_hold_param *param);
 	void	(*mncc_retrieve_ind)(struct dect_handle *dh, struct dect_call *call,
-				     const struct dect_mncc_hold_param *param);
+				     struct dect_mncc_hold_param *param);
 	void	(*mncc_retrieve_cfm)(struct dect_handle *dh, struct dect_call *call,
-				     const struct dect_mncc_hold_param *param);
+				     struct dect_mncc_hold_param *param);
 	void	(*mncc_iwu_info_ind)(struct dect_handle *dh, struct dect_call *call,
-				     const struct dect_mncc_iwu_info_param *param);
+				     struct dect_mncc_iwu_info_param *param);
 
 	void	(*dl_u_data_ind)(struct dect_handle *dh, struct dect_call *call,
 				 struct dect_msg_buf *mb);

@@ -10,8 +10,9 @@
 #include <dect/ie.h>
 
 struct dect_mm_access_rights_param {
+	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
-	struct dect_ie_repeat_indicator		fixed_identity;
+	struct dect_ie_list			fixed_identity;
 	struct dect_ie_location_area		*location_area;
 	struct dect_ie_auth_type		*auth_type;
 	struct dect_ie_cipher_info		*cipher_info;
@@ -25,6 +26,7 @@ struct dect_mm_access_rights_param {
 };
 
 struct dect_mm_locate_param {
+	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
 	struct dect_ie_fixed_identity		*fixed_identity;
 	struct dect_ie_location_area		*location_area;
@@ -39,6 +41,7 @@ struct dect_mm_locate_param {
 };
 
 struct dect_mm_identity_assign_param {
+	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
 	struct dect_ie_nwk_assigned_identity	*nwk_assigned_identity;
 	struct dect_ie_duration			*duration;
@@ -51,24 +54,24 @@ struct dect_mm_transaction;
 struct dect_mm_ops {
 	void	(*mm_access_rights_ind)(struct dect_handle *dh,
 					struct dect_mm_transaction *mmta,
-					const struct dect_mm_access_rights_param *param);
+					struct dect_mm_access_rights_param *param);
 	void	(*mm_access_rights_cfm)(struct dect_handle *dh,
 					struct dect_mm_transaction *mmta, bool accept,
-					const struct dect_mm_access_rights_param *param);
+					struct dect_mm_access_rights_param *param);
 
 	void	(*mm_locate_ind)(struct dect_handle *dh,
 				 struct dect_mm_transaction *mmta,
-				 const struct dect_mm_locate_param *param);
+				 struct dect_mm_locate_param *param);
 	void	(*mm_locate_res)(struct dect_handle *dh,
 				 struct dect_mm_transaction *mmta,
-				 const struct dect_mm_locate_param *param);
+				 struct dect_mm_locate_param *param);
 
 	void	(*mm_identity_assign_ind)(struct dect_handle *dh,
 					  struct dect_mm_transaction *mmta,
-					  const struct dect_mm_identity_assign_param *param);
+					  struct dect_mm_identity_assign_param *param);
 	void	(*mm_identity_assign_cfm)(struct dect_handle *dh,
 					  struct dect_mm_transaction *mmta, bool accept,
-					  const struct dect_mm_identity_assign_param *param);
+					  struct dect_mm_identity_assign_param *param);
 };
 
 extern int dect_mm_access_rights_req(struct dect_handle *dh, struct dect_mm_transaction *mmta,

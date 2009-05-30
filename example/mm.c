@@ -9,7 +9,7 @@ static uint16_t num;
 
 static void mm_access_rights_ind(struct dect_handle *dh,
 				 struct dect_mm_transaction *mmta,
-				 const struct dect_mm_access_rights_param *param)
+				 struct dect_mm_access_rights_param *param)
 {
 	printf("MM_ACCESS_RIGHTS-ind\n");
 	dect_mm_access_rights_res(dh, mmta, true, param);
@@ -17,7 +17,7 @@ static void mm_access_rights_ind(struct dect_handle *dh,
 
 static void mm_locate_ind(struct dect_handle *dh,
 			  struct dect_mm_transaction *mmta,
-			  const struct dect_mm_locate_param *param)
+			  struct dect_mm_locate_param *param)
 {
 	struct dect_ie_portable_identity portable_identity;
 	struct dect_ie_duration duration;
@@ -47,7 +47,7 @@ static void mm_locate_ind(struct dect_handle *dh,
 
 static void mm_identity_assign_cfm(struct dect_handle *dh,
 				   struct dect_mm_transaction *mmta, bool accept,
-				   const struct dect_mm_identity_assign_param *param)
+				   struct dect_mm_identity_assign_param *param)
 {
 	printf("MM_IDENTITY_ASSIGN-cfm\n");
 }

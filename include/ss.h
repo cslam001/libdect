@@ -19,7 +19,7 @@ enum dect_ciss_msg_types {
 struct dect_ciss_release_com_msg {
 	struct dect_msg_common			common;
 	struct dect_ie_release_reason		*release_reason;
-	struct dect_ie_repeat_indicator		facility;
+	struct dect_ie_list			facility;
 	struct dect_ie_display			*display;
 	struct dect_ie_keypad			*keypad;
 	struct dect_ie_feature_activate		*feature_activate;
@@ -29,12 +29,12 @@ struct dect_ciss_release_com_msg {
 
 struct dect_ciss_facility_msg {
 	struct dect_msg_common			common;
-	struct dect_ie_repeat_indicator		facility;
+	struct dect_ie_list			facility;
 	struct dect_ie_display			*display;
 	struct dect_ie_keypad			*keypad;
 	struct dect_ie_feature_activate		*feature_activate;
 	struct dect_ie_feature_indicate		*feature_indicate;
-	struct dect_ie_repeat_indicator		iwu_to_iwu;
+	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 	struct dect_ie_time_date		*time_date;
 	struct dect_ie_events_notification	*events_notification;
@@ -44,7 +44,7 @@ struct dect_ciss_facility_msg {
 struct dect_ciss_register_msg {
 	struct dect_msg_common			common;
 	struct dect_ie_portable_identity	*portable_identity;
-	struct dect_ie_repeat_indicator		facility;
+	struct dect_ie_list			facility;
 	struct dect_ie_display			*display;
 	struct dect_ie_keypad			*keypad;
 	struct dect_ie_feature_activate		*feature_activate;
