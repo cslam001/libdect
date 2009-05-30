@@ -656,10 +656,12 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 				else
 					return dect_ddl_shutdown(dh, ddl);
 			}
+		case ETIMEDOUT:
 		case ECONNRESET:
 			ddl->state = DECT_DATA_LINK_RELEASED;
 			return dect_ddl_shutdown(dh, ddl);
 		default:
+			perror("unknown receive error");
 			BUG();
 		}
 	}
