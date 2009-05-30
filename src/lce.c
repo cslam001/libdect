@@ -854,6 +854,7 @@ int dect_lce_init(struct dect_handle *dh)
 	if (dh->b_sap == NULL)
 		goto err1;
 
+	memset(&b_addr, 0, sizeof(b_addr));
 	b_addr.dect_family = AF_DECT;
 	b_addr.dect_index = dh->index;
 	if (bind(dh->b_sap->fd, (struct sockaddr *)&b_addr, sizeof(b_addr)) < 0)
