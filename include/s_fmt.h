@@ -22,25 +22,27 @@
 #define DECT_S_PD_MASK				0x0f
 
 /**
- * @DECT_S_PD_LCE:	Link Control Entity (LCE) messages
- * @DECT_S_PD_CC:	Call Control (CC) messages
- * @DECT_S_PD_CISS:	Call Independant Supplementary Services (CISS) messages
- * @DECT_S_PD_MM:	Mobility Management (MM) messages
- * @DECT_S_PD_CLMS:	ConnectionLess Message Service (CLMS) messages
- * @DECT_S_PD_COMS:	Connection Orentied Message Service (COMS) messages
- * @DECT_S_PD_UNKNOWN:	Unknown protocol entity (bit 8)
+ * enum dect_pds - S-Fmt protocol discriminators
+ *
+ * @DECT_PD_LCE:	Link Control Entity (LCE) messages
+ * @DECT_PD_CC:		Call Control (CC) messages
+ * @DECT_PD_CISS:	Call Independant Supplementary Services (CISS) messages
+ * @DECT_PD_MM:		Mobility Management (MM) messages
+ * @DECT_PD_CLMS:	ConnectionLess Message Service (CLMS) messages
+ * @DECT_PD_COMS:	Connection Orentied Message Service (COMS) messages
+ * @DECT_PD_UNKNOWN:	Unknown protocol entity (bit 8)
  */
-enum dect_s_pd_values {
-	DECT_S_PD_LCE				= 0x0,
-	DECT_S_PD_CC				= 0x3,
-	DECT_S_PD_CISS				= 0x4,
-	DECT_S_PD_MM				= 0x5,
-	DECT_S_PD_CLMS				= 0x6,
-	DECT_S_PD_COMS				= 0x7,
-	DECT_S_PD_UNKNOWN			= 0x8,
-	__DECT_S_PD_MAX
+enum dect_pds {
+	DECT_PD_LCE				= 0x0,
+	DECT_PD_CC				= 0x3,
+	DECT_PD_CISS				= 0x4,
+	DECT_PD_MM				= 0x5,
+	DECT_PD_CLMS				= 0x6,
+	DECT_PD_COMS				= 0x7,
+	DECT_PD_UNKNOWN				= 0x8,
+	__DECT_PD_MAX
 };
-#define DECT_S_PD_MAX				(__DECT_S_PD_MAX - 1)
+#define DECT_PD_MAX				(__DECT_PD_MAX - 1)
 
 /* Message type element */
 #define DECT_S_PD_MSG_TYPE_MASK			0x7f

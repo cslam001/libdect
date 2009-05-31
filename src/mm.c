@@ -222,9 +222,7 @@ int dect_mm_access_rights_req(struct dect_handle *dh,
 	};
 
 	mm_debug("ACCESS_RIGHTS-req");
-	transaction.pd = DECT_S_PD_MM;
-
-	if (dect_open_transaction(dh, &transaction, &ipui) < 0)
+	if (dect_open_transaction(dh, &transaction, &ipui, DECT_PD_MM) < 0)
 		goto err1;
 
 	if (dect_lce_send(dh, &transaction, &mm_access_rights_request_msg_desc,
@@ -528,7 +526,7 @@ static void dect_mm_shutdown(struct dect_handle *dh,
 
 static const struct dect_nwk_protocol mm_protocol = {
 	.name			= "Mobility Management",
-	.pd			= DECT_S_PD_MM,
+	.pd			= DECT_PD_MM,
 	.max_transactions	= 1,
 	.open			= dect_mm_open,
 	.shutdown		= dect_mm_shutdown,

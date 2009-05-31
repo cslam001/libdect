@@ -51,14 +51,15 @@ enum dect_s_pd_values;
 struct dect_transaction {
 	struct list_head		list;
 	struct dect_data_link		*link;
-	enum dect_s_pd_values		pd;
+	enum dect_pds			pd;
 	enum dect_transaction_role	role;
 	uint16_t			tv;
 };
 
 extern int dect_open_transaction(struct dect_handle *dh,
 				 struct dect_transaction *ta,
-				 const struct dect_ipui *ipui);
+				 const struct dect_ipui *ipui,
+				 enum dect_pds pd);
 extern void dect_confirm_transaction(struct dect_handle *dh,
 				     struct dect_transaction *ta,
 				     const struct dect_transaction *req);
@@ -84,7 +85,7 @@ extern int dect_lce_send(const struct dect_handle *dh,
  */
 struct dect_nwk_protocol {
 	const char		*name;
-	enum dect_s_pd_values	pd;
+	enum dect_pds		pd;
 	uint16_t		max_transactions;
 	void			(*open)(struct dect_handle *dh,
 				        const struct dect_transaction *req,

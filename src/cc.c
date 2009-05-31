@@ -455,8 +455,7 @@ int dect_mncc_setup_req(struct dect_handle *dh, struct dect_call *call,
 
 	cc_debug(call, "setup request");
 
-	call->transaction.pd = DECT_S_PD_CC;
-	if (dect_open_transaction(dh, &call->transaction, ipui) < 0)
+	if (dect_open_transaction(dh, &call->transaction, ipui, DECT_PD_CC) < 0)
 		goto err1;
 
 	fixed_identity.type = DECT_FIXED_ID_TYPE_PARK;
@@ -1148,7 +1147,7 @@ static void dect_cc_shutdown(struct dect_handle *dh,
 
 static const struct dect_nwk_protocol cc_protocol = {
 	.name			= "Call Control",
-	.pd			= DECT_S_PD_CC,
+	.pd			= DECT_PD_CC,
 	.max_transactions	= 7,
 	.open			= dect_cc_open,
 	.shutdown		= dect_cc_shutdown,

@@ -43,7 +43,7 @@ static DECT_SFMT_MSG_DESC(lce_page_reject,
 	DECT_SFMT_IE_END_MSG
 );
 
-static const struct dect_nwk_protocol *protocols[DECT_S_PD_MAX + 1];
+static const struct dect_nwk_protocol *protocols[DECT_PD_MAX + 1];
 
 void dect_lce_register_protocol(const struct dect_nwk_protocol *protocol)
 {
@@ -628,7 +628,7 @@ static void dect_lce_open(struct dect_handle *dh,
 
 static const struct dect_nwk_protocol lce_protocol = {
 	.name			= "Link Control",
-	.pd			= DECT_S_PD_LCE,
+	.pd			= DECT_PD_LCE,
 	.max_transactions	= 1,
 	.open			= dect_lce_open,
 	.rcv			= dect_lce_rcv,
@@ -734,7 +734,7 @@ static int dect_transaction_alloc_tv(const struct dect_data_link *ddl,
 }
 
 int dect_open_transaction(struct dect_handle *dh, struct dect_transaction *ta,
-			  const struct dect_ipui *ipui)
+			  const struct dect_ipui *ipui, enum dect_pds pd)
 {
 	struct dect_data_link *ddl;
 	int tv;
@@ -747,13 +747,14 @@ int dect_open_transaction(struct dect_handle *dh, struct dect_transaction *ta,
 	}
 
 	ddl_debug(ddl, "open transaction");
-	tv = dect_transaction_alloc_tv(ddl, protocols[ta->pd]);
+	tv = dect_transaction_alloc_tv(ddl, protocols[pd]);
 	if (tv < 0)
 		return -1;
 
 	ta->link = ddl;
+	ta->pd	 = pd;
 	ta->role = DECT_TRANSACTION_INITIATOR;
-	ta->tv = tv;
+	ta->tv	 = tv;
 
 	list_add_tail(&ta->list, &ddl->transactions);
 	return 0;
@@ -885,7 +886,7 @@ int dect_lce_init(struct dect_handle *dh)
 	if (dect_register_fd(dh, dh->s_sap, DECT_FD_READ) < 0)
 		goto err4;
 
-	protocols[DECT_S_PD_LCE] = &lce_protocol;
+	protocols[DECT_PD_LCE] = &lce_protocol;
 	return 0;
 
 err4:
