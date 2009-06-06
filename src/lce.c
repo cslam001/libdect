@@ -733,18 +733,10 @@ static int dect_transaction_alloc_tv(const struct dect_data_link *ddl,
 	return -1;
 }
 
-int dect_open_transaction(struct dect_handle *dh, struct dect_transaction *ta,
-			  const struct dect_ipui *ipui, enum dect_pds pd)
+int dect_ddl_open_transaction(struct dect_handle *dh, struct dect_transaction *ta,
+			      struct dect_data_link *ddl, enum dect_pds pd)
 {
-	struct dect_data_link *ddl;
 	int tv;
-
-	ddl = dect_ddl_get_by_ipui(dh, ipui);
-	if (ddl == NULL) {
-		ddl = dect_ddl_establish(dh, ipui);
-		if (ddl == NULL)
-			return -1;
-	}
 
 	ddl_debug(ddl, "open transaction");
 	tv = dect_transaction_alloc_tv(ddl, protocols[pd]);
@@ -758,6 +750,21 @@ int dect_open_transaction(struct dect_handle *dh, struct dect_transaction *ta,
 
 	list_add_tail(&ta->list, &ddl->transactions);
 	return 0;
+}
+
+int dect_open_transaction(struct dect_handle *dh, struct dect_transaction *ta,
+			  const struct dect_ipui *ipui, enum dect_pds pd)
+{
+	struct dect_data_link *ddl;
+
+	ddl = dect_ddl_get_by_ipui(dh, ipui);
+	if (ddl == NULL) {
+		ddl = dect_ddl_establish(dh, ipui);
+		if (ddl == NULL)
+			return -1;
+	}
+
+	return dect_ddl_open_transaction(dh, ta, ddl, pd);
 }
 
 void dect_confirm_transaction(struct dect_handle *dh, struct dect_transaction *ta,

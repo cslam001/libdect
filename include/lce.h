@@ -56,6 +56,10 @@ struct dect_transaction {
 	uint16_t			tv;
 };
 
+extern int dect_ddl_open_transaction(struct dect_handle *dh,
+				     struct dect_transaction *ta,
+				     struct dect_data_link *ddl,
+				     enum dect_pds pd);
 extern int dect_open_transaction(struct dect_handle *dh,
 				 struct dect_transaction *ta,
 				 const struct dect_ipui *ipui,
