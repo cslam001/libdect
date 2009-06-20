@@ -4,7 +4,7 @@
 #include <assert.h>
 
 #ifndef AF_DECT
-#define AF_DECT 36
+#define AF_DECT 37
 #endif
 
 #define __init			__attribute__((constructor))
