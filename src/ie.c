@@ -20,6 +20,12 @@
 #include <s_fmt.h>
 #include <lce.h>
 
+#if 0
+#define refcnt_debug(fmt, ...)	dect_debug(fmt, ## __VA_ARGS__)
+#else
+#define refcnt_debug(fmt, ...)
+#endif
+
 /*
  * Information Elements
  */
@@ -45,7 +51,7 @@ struct dect_ie_common *__dect_ie_hold(struct dect_ie_common *ie)
 {
 	if (ie == NULL)
 		return NULL;
-	dect_debug("IE %p: hold refcnt=%u\n", ie, ie->refcnt);
+	refcnt_debug("IE %p: hold refcnt=%u\n", ie, ie->refcnt);
 	assert(ie->refcnt != 0);
 	ie->refcnt++;
 	return ie;
@@ -55,7 +61,7 @@ void __dect_ie_put(const struct dect_handle *dh, struct dect_ie_common *ie)
 {
 	if (ie == NULL)
 		return;
-	dect_debug("IE %p: release refcnt=%u\n", ie, ie->refcnt);
+	refcnt_debug("IE %p: release refcnt=%u\n", ie, ie->refcnt);
 	assert(ie->refcnt != 0);
 	if (--ie->refcnt == 0)
 		dect_ie_destroy(dh, ie);
@@ -89,7 +95,7 @@ struct dect_ie_list *dect_ie_list_hold(struct dect_ie_list *iel)
 {
 	struct dect_ie_common *ie;
 
-	dect_debug("IEL %p: hold\n", iel);
+	refcnt_debug("IEL %p: hold\n", iel);
 	dect_foreach_ie(ie, iel)
 		__dect_ie_hold(ie);
 	return iel;
@@ -99,7 +105,7 @@ void dect_ie_list_put(const struct dect_handle *dh, struct dect_ie_list *iel)
 {
 	struct dect_ie_common *ie;
 
-	dect_debug("IEL %p: release\n", iel);
+	refcnt_debug("IEL %p: release\n", iel);
 	dect_foreach_ie(ie, iel)
 		__dect_ie_put(dh, ie);
 }
