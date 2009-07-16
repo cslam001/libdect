@@ -240,8 +240,32 @@ struct dect_mm_notify_msg {
 	struct dect_msg_common			common;
 };
 
-struct dect_mm_transaction {
+enum dect_mm_procedures {
+	DECT_MMP_NONE,
+	DECT_MMP_ACCESS_RIGHTS,
+	DECT_MMP_AUTHENTICATE,
+	DECT_MMP_KEY_ALLOCATION,
+};
+
+struct dect_mm_procedure {
 	struct dect_transaction			transaction;
+	struct dect_timer			*timer;
+	enum dect_mm_procedures			type;
+};
+
+/**
+ * struct dect_mm_endpoint - Mobility Management Endpoint
+ *
+ * @list:		MM endpoint list node
+ * @link:		data link
+ * @procedure:		Originator/Responder procedures
+ * @priv:		libdect user private storage
+ */
+struct dect_mm_endpoint {
+	struct list_head			list;
+	struct dect_data_link			*link;
+	struct dect_mm_procedure		procedure[DECT_TRANSACTION_MAX + 1];
+	uint8_t					priv[];
 };
 
 #endif /* _LIBDECT_MM_H */

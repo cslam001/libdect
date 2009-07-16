@@ -17,6 +17,7 @@
  * @b_sap:	B-SAP socket
  * @s_sap:	S-SAP listener socket
  * @links:	list of data links
+ * @mme_list:	MM endpoint list
  */
 struct dect_handle {
 	const struct dect_ops	*ops;
@@ -30,6 +31,8 @@ struct dect_handle {
 	struct dect_fd		*b_sap;
 	struct dect_fd		*s_sap;
 	struct list_head	links;
+
+	struct list_head	mme_list;
 };
 
 #endif /* _LIBDECT_H */

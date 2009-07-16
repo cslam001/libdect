@@ -28,7 +28,9 @@ static inline void dect_mbuf_dump(const struct dect_msg_buf *mb,
 enum dect_transaction_role {
 	DECT_TRANSACTION_INITIATOR,
 	DECT_TRANSACTION_RESPONDER,
+	__DECT_TRANSACTION_MAX
 };
+#define DECT_TRANSACTION_MAX		(__DECT_TRANSACTION_MAX - 1)
 
 /* Connectionless NWK layer transaction value */
 #define DECT_TV_CONNECTIONLESS		6
