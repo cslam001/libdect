@@ -335,9 +335,11 @@ static void dect_ddl_shutdown(struct dect_handle *dh,
 			      struct dect_data_link *ddl)
 {
 	struct dect_transaction *ta, *next;
+	LIST_HEAD(transactions);
 
 	ddl_debug(ddl, "shutdown");
-	list_for_each_entry_safe(ta, next, &ddl->transactions, list)
+	list_splice_init(&ddl->transactions, &transactions);
+	list_for_each_entry_safe(ta, next, &transactions, list)
 		protocols[ta->pd]->shutdown(dh, ta);
 }
 
