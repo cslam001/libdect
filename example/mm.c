@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <string.h>
 
 #include <dect/libdect.h>
@@ -8,9 +10,11 @@
 
 static uint8_t prefix[3] = { 1, 0, 0};
 static uint16_t num;
+static int rand_fd;
 
 struct mm_priv {
 	struct dect_mm_locate_param	*locate;
+	uint64_t			rand;
 };
 
 static void mm_authenticate_ind(struct dect_handle *dh,
@@ -23,6 +27,7 @@ static void mm_authenticate_ind(struct dect_handle *dh,
 static void mm_authenticate_req(struct dect_handle *dh,
 				struct dect_mm_endpoint *mme)
 {
+	struct mm_priv *priv = dect_mm_priv(mme);
 	struct dect_ie_auth_type auth_type;
 	struct dect_ie_auth_value rand, rs;
 	struct dect_mm_authenticate_param param = {
@@ -36,7 +41,8 @@ static void mm_authenticate_req(struct dect_handle *dh,
 	auth_type.auth_key_num   = 0 | DECT_AUTH_KEY_IPUI_PARK;
 	auth_type.cipher_key_num = 0;
 	auth_type.flags		 = 0;
-	rand.value = 1;
+	read(rand_fd, &rand.value, sizeof(rand.value));
+	priv->rand = rand.value;
 	rs.value = 0;
 
 	dect_mm_authenticate_req(dh, mme, &param);
@@ -89,7 +95,7 @@ static void mm_authenticate_cfm(struct dect_handle *dh,
 	dect_auth_b1(ac, sizeof(ac), k);
 
 	dect_auth_a11(k, 0, ks);
-	dect_auth_a12(ks, 1, dck, &res1);
+	dect_auth_a12(ks, priv->rand, dck, &res1);
 
 	if (res1 == param->res->value) {
 		printf("authentication success\n");
@@ -142,6 +148,10 @@ static struct dect_ops ops = {
 
 int main(int argc, char **argv)
 {
+	rand_fd = open("/dev/urandom", O_RDONLY);
+	if (rand_fd < 0)
+		exit(1);
+
 	if (dect_event_ops_init(&ops) < 0)
 		exit(1);
 
@@ -155,5 +165,6 @@ int main(int argc, char **argv)
 	dect_event_loop();
 	dect_close_handle(dh);
 	dect_event_ops_cleanup();
+	close(rand_fd);
 	return 0;
 }
