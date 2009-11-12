@@ -146,6 +146,38 @@ static int dect_sfmt_parse_single_keypad(const struct dect_handle *dh,
 	return 0;
 }
 
+static const char * const release_reasons[] = {
+	[DECT_RELEASE_NORMAL]				= "normal",
+	[DECT_RELEASE_UNEXPECTED_MESSAGE]		= "unexpected message",
+	[DECT_RELEASE_UNKNOWN_TRANSACTION_IDENTIFIER]	= "unknown transaction identifier",
+	[DECT_RELEASE_MANDATORY_IE_MISSING]		= "mandatory IE missing",
+	[DECT_RELEASE_INVALID_IE_CONTENTS]		= "invalid IE contents",
+	[DECT_RELEASE_INCOMPATIBLE_SERVICE]		= "incompatible service",
+	[DECT_RELEASE_SERVICE_NOT_IMPLEMENTED]		= "service not implemented",
+	[DECT_RELEASE_NEGOTIATION_NOT_SUPPORTED]	= "negotiation not supported",
+	[DECT_RELEASE_INVALID_IDENTITY]			= "invalid identity",
+	[DECT_RELEASE_AUTHENTICATION_FAILED]		= "authentication failed",
+	[DECT_RELEASE_UNKNOWN_IDENTITY]			= "unknown identity",
+	[DECT_RELEASE_NEGOTIATION_FAILED]		= "negotiation failed",
+	[DECT_RELEASE_TIMER_EXPIRY]			= "timer expiry",
+	[DECT_RELEASE_PARTIAL_RELEASE]			= "partial release",
+	[DECT_RELEASE_UNKNOWN]				= "unknown",
+	[DECT_RELEASE_USER_DETACHED]			= "user detached",
+	[DECT_RELEASE_USER_NOT_IN_RANGE]		= "user not in range",
+	[DECT_RELEASE_USER_UNKNOWN]			= "user unknown",
+	[DECT_RELEASE_USER_ALREADY_ACTIVE]		= "user already active",
+	[DECT_RELEASE_USER_BUSY]			= "user busy",
+	[DECT_RELEASE_USER_REJECTION]			= "user rejection",
+	[DECT_RELEASE_USER_CALL_MODIFY]			= "user call modify",
+	[DECT_RELEASE_EXTERNAL_HANDOVER_NOT_SUPPORTED]	= "external HO not supported",
+	[DECT_RELEASE_NETWORK_PARAMETERS_MISSING]	= "network parameters missing",
+	[DECT_RELEASE_EXTERNAL_HANDOVER_RELEASE]	= "external HO release",
+	[DECT_RELEASE_OVERLOAD]				= "overload",
+	[DECT_RELEASE_INSUFFICIENT_RESOURCES]		= "insufficient resources",
+	[DECT_RELEASE_INSUFFICIENT_BEARERS_AVAILABLE]	= "insufficient bearers available",
+	[DECT_RELEASE_IWU_CONGESTION]			= "IWU congestion",
+};
+
 static int dect_sfmt_parse_release_reason(const struct dect_handle *dh,
 					  struct dect_ie_common **ie,
 					  const struct dect_sfmt_ie *src)
@@ -153,7 +185,8 @@ static int dect_sfmt_parse_release_reason(const struct dect_handle *dh,
 	struct dect_ie_release_reason *dst = dect_ie_container(dst, *ie);
 
 	dst->reason = src->data[1];
-	dect_debug("release reason: %x\n", dst->reason);
+	dect_debug("release reason: %x (%s)\n", dst->reason,
+		   release_reasons[dst->reason]);
 	return 0;
 }
 
@@ -1315,7 +1348,7 @@ next:
 	}
 out:
 	while (!(desc->flags & DECT_SFMT_IE_END)) {
-		dect_debug("clear missing IE: <%s>\n", dect_ie_handlers[desc->type].name);
+		//dect_debug("clear missing IE: <%s>\n", dect_ie_handlers[desc->type].name);
 		if (dect_rx_status(dh, desc) == DECT_SFMT_IE_MANDATORY)
 			return DECT_SFMT_MANDATORY_IE_MISSING;
 		dst = dect_next_ie(desc, dst);

@@ -42,8 +42,6 @@ static void dect_netlink_parse_ari(struct dect_ari *ari, const struct nl_dect_ar
 	case DECT_ARC_A:
 		ari->emc = nl_dect_ari_get_emc(nlari);
 		ari->fpn = nl_dect_ari_get_fpn(nlari);
-		dect_debug("ARI class A: EMC: %.4x FPN: %.5x\n",
-			   ari->emc, ari->fpn);
 		break;
 	case DECT_ARC_B:
 		ari->eic = nl_dect_ari_get_eic(nlari);
@@ -74,6 +72,10 @@ static void get_cluster_cb(struct nl_object *obj, void *arg)
 	dh->index = nl_dect_cluster_get_index(cl);
 	dh->mode  = nl_dect_cluster_get_mode(cl);
 	dect_netlink_parse_ari(&dh->pari, nl_dect_cluster_get_pari(cl));
+	dect_debug("netlink: %s: mode %s ARI: class A: EMC: %.4x FPN: %.5x\n",
+		   nl_dect_cluster_get_name(cl),
+		   dh->mode == DECT_MODE_FP ? "FP" : "PP",
+		   dh->pari.emc, dh->pari.fpn);
 }
 
 static int dect_netlink_get_cluster_cb(struct nl_msg *msg, void *arg)

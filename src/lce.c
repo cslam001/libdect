@@ -48,6 +48,8 @@ static const struct dect_nwk_protocol *protocols[DECT_PD_MAX + 1];
 void dect_lce_register_protocol(const struct dect_nwk_protocol *protocol)
 {
 	protocols[protocol->pd] = protocol;
+	dect_debug("LCE: registered protocol %u (%s)\n",
+		   protocol->pd, protocol->name);
 }
 
 struct dect_msg_buf *dect_mbuf_alloc(const struct dect_handle *dh)
@@ -477,15 +479,18 @@ static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
 
 		if (connect(ddl->dfd->fd, (struct sockaddr *)&ddl->dlei,
 			    sizeof(ddl->dlei)) < 0 && errno != EAGAIN)
-			perror("connect\n");
+			goto err3;
 	}
 
 	list_add_tail(&ddl->list, &dh->links);
 	return ddl;
 
+err3:
+	dect_unregister_fd(dh, ddl->dfd);
 err2:
 	dect_free(dh, ddl);
 err1:
+	dect_debug("LCE: dect_ddl_establish: %s\n", strerror(errno));
 	return NULL;
 }
 
@@ -564,12 +569,6 @@ static void dect_lce_rcv_page_response(struct dect_handle *dh,
 	if (dect_parse_sfmt_msg(dh, &lce_page_response_msg_desc,
 				&msg.common, mb) < 0)
 		return;
-
-	dect_debug("portable_identity: %p\n", msg.portable_identity);
-	dect_debug("fixed identity: %p\n", msg.fixed_identity);
-	dect_debug("nwk assigned identity: %p\n", msg.nwk_assigned_identity);
-	dect_debug("cipher info: %p\n", msg.cipher_info);
-	dect_debug("escape: %p\n", msg.escape_to_proprietary);
 
 	list_for_each_entry(i, &dh->links, list) {
 		if (dect_ipui_cmp(&i->ipui, &msg.portable_identity->ipui))
@@ -663,11 +662,13 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 			ddl->state = DECT_DATA_LINK_RELEASED;
 			return dect_ddl_shutdown(dh, ddl);
 		default:
-			perror("unknown receive error");
+			ddl_debug(ddl, "unhandled receive error: %s",
+				  strerror(errno));
 			BUG();
 		}
 	}
 
+	dect_debug("\n");
 	dect_mbuf_dump(mb, "RX");
 
 	if (mb->len < DECT_S_HDR_SIZE)
@@ -853,6 +854,7 @@ err3:
 err2:
 	dect_free(dh, ddl);
 err1:
+	dect_debug("LCE: dect_lce_ssap_listener_event: %s\n", strerror(errno));
 	return;
 }
 
@@ -895,7 +897,7 @@ int dect_lce_init(struct dect_handle *dh)
 	if (dect_register_fd(dh, dh->s_sap, DECT_FD_READ) < 0)
 		goto err4;
 
-	protocols[DECT_PD_LCE] = &lce_protocol;
+	dect_lce_register_protocol(&lce_protocol);
 	return 0;
 
 err4:
@@ -905,6 +907,7 @@ err3:
 err2:
 	dect_close(dh, dh->b_sap);
 err1:
+	dect_debug("LCE: dect_lce_init: %s\n", strerror(errno));
 	return -1;
 }
 
