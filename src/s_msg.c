@@ -61,7 +61,7 @@ static int dect_sfmt_build_empty_single_octet(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
-static const char *call_classes[DECT_CALL_CLASS_MAX + 1] = {
+static const char * const call_classes[DECT_CALL_CLASS_MAX + 1] = {
 	[DECT_CALL_CLASS_MESSAGE]		= "message call",
 	[DECT_CALL_CLASS_DECT_ISDN]		= "DECT/ISDN IIP",
 	[DECT_CALL_CLASS_NORMAL]		= "normal call",
@@ -73,7 +73,7 @@ static const char *call_classes[DECT_CALL_CLASS_MAX + 1] = {
 	[DECT_CALL_CLASS_QA_M]			= "QA&M call",
 };
 
-static const char *basic_services[DECT_SERVICE_MAX + 1] = {
+static const char * const basic_services[DECT_SERVICE_MAX + 1] = {
 	[DECT_SERVICE_BASIC_SPEECH_DEFAULT]	= "basic speech default attributes",
 	[DECT_SERVICE_DECT_GSM_IWP]		= "DECT GSM IWP profile",
 	[DECT_SERVICE_UMTS_IWP]			= "DECT UMTS IWP",
@@ -369,14 +369,14 @@ static int dect_sfmt_build_allocation_type(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
-static const char *dect_auth_algs[] = {
+static const char * const dect_auth_algs[] = {
 	[DECT_AUTH_DSAA]	= "DSAA",
 	[DECT_AUTH_GSM]		= "GSM",
 	[DECT_AUTH_UMTS]	= "UMTS",
 	[DECT_AUTH_PROPRIETARY]	= "proprietary",
 };
 
-static const char *dect_auth_key_types[] = {
+static const char * const dect_auth_key_types[] = {
 	[DECT_KEY_USER_AUTHENTICATION_KEY]	= "User authentication key",
 	[DECT_KEY_USER_PERSONAL_IDENTITY]	= "User personal identity",
 	[DECT_KEY_AUTHENTICATION_CODE]		= "Authentication code",
@@ -532,7 +532,7 @@ static int dect_sfmt_parse_multi_keypad(const struct dect_handle *dh,
 	return 0;
 }
 
-static const char *reject_reasons[256] = {
+static const char * const reject_reasons[256] = {
 	[DECT_REJECT_TPUI_UNKNOWN]				= "TPUI unknown",
 	[DECT_REJECT_IPUI_UNKNOWN]				= "IPUI unknown",
 	[DECT_REJECT_NETWORK_ASSIGNED_IDENTITY_UNKNOWN]		= "network assign identity unknown",
@@ -610,7 +610,7 @@ static int dect_sfmt_build_setup_capability(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
-static const char *display_capabilities[] = {
+static const char * const display_capabilities[] = {
 	[DECT_DISPLAY_CAPABILITY_NOT_APPLICABLE]	= "not applicable",
 	[DECT_DISPLAY_CAPABILITY_NO_DISPLAY]		= "no display",
 	[DECT_DISPLAY_CAPABILITY_NUMERIC]		= "numeric",
@@ -619,7 +619,7 @@ static const char *display_capabilities[] = {
 	[DECT_DISPLAY_CAPABILITY_FULL_DISPLAY]		= "full display",
 };
 
-static const char *tone_capabilities[] = {
+static const char * const tone_capabilities[] = {
 	[DECT_TONE_CAPABILITY_NOT_APPLICABLE]		= "not applicable",
 	[DECT_TONE_CAPABILITY_NO_TONE]			= "no tone",
 	[DECT_TONE_CAPABILITY_DIAL_TONE_ONLY]		= "dial tone only",
@@ -627,27 +627,27 @@ static const char *tone_capabilities[] = {
 	[DECT_TONE_CAPABILITY_COMPLETE_DECT_TONES]	= "complete DECT tones",
 };
 
-static const char *echo_parameters[] = {
+static const char * const echo_parameters[] = {
 	[DECT_ECHO_PARAMETER_NOT_APPLICABLE]		= "not applicable",
 	[DECT_ECHO_PARAMETER_MINIMUM_TCLW]		= "TCL > 34 dB",
 	[DECT_ECHO_PARAMETER_FULL_TCLW]			= "TCL > 46 dB",
 	[DECT_ECHO_PARAMETER_VOIP_COMPATIBLE_TLCW]	= "TCL > 55 dB",
 };
 
-static const char *noise_rejection_capabilities[] = {
+static const char * const noise_rejection_capabilities[] = {
 	[DECT_NOISE_REJECTION_NOT_APPLICABLE]		= "not applicable",
 	[DECT_NOISE_REJECTION_NONE]			= "none",
 	[DECT_NOISE_REJECTION_PROVIDED]			= "provided",
 };
 
-static const char *volume_ctrl_provisions[] = {
+static const char * const volume_ctrl_provisions[] = {
 	[DECT_ADAPTIVE_VOLUME_NOT_APPLICABLE]		= "not applicable",
 	[DECT_ADAPTIVE_VOLUME_PP_CONTROL_NONE]		= "no PP adaptive volume control",
 	[DECT_ADAPTIVE_VOLUME_PP_CONTROL_USED]		= "PP adaptive volume control",
 	[DECT_ADAPTIVE_VOLUME_FP_CONTROL_DISABLE]	= "disable FP adaptive volume control",
 };
 
-static const char *scrolling_behaviour[] = {
+static const char * const scrolling_behaviour[] = {
 	[DECT_SCROLLING_NOT_SPECIFIED]			= "not specified",
 	[DECT_SCROLLING_TYPE_1]				= "type 1",
 	[DECT_SCROLLING_TYPE_2]				= "type 2",

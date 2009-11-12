@@ -263,7 +263,7 @@ static DECT_SFMT_MSG_DESC(cc_iwu_info,
 	dect_debug("CC: call %p (%s): " fmt "\n", \
 		   (call), call_states[(call)->state], ## args)
 
-static const char *call_states[DECT_CC_STATE_MAX + 1] = {
+static const char * const call_states[DECT_CC_STATE_MAX + 1] = {
 	[DECT_CC_CALL_INITIATED]		= "CALL INITIATED",
 	[DECT_CC_OVERLAP_SENDING]		= "OVERLAP SENDING",
 	[DECT_CC_CALL_PROCEEDING]		= "CALL PROCEEDING",

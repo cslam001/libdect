@@ -196,7 +196,7 @@ static void dect_lce_bsap_event(struct dect_handle *dh, struct dect_fd *dfd,
 		   (ddl)->dfd ? (ddl)->dfd->fd : -1, \
 		   ddl_states[(ddl)->state], ## args)
 
-static const char *ddl_states[DECT_DATA_LINK_STATE_MAX + 1] = {
+static const char * const ddl_states[DECT_DATA_LINK_STATE_MAX + 1] = {
 	[DECT_DATA_LINK_RELEASED]		= "RELEASED",
 	[DECT_DATA_LINK_ESTABLISHED]		= "ESTABLISHED",
 	[DECT_DATA_LINK_ESTABLISH_PENDING]	= "ESTABLISH_PENDING",
