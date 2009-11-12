@@ -388,7 +388,7 @@ static void dect_mm_rcv_authentication_reply(struct dect_handle *dh,
 	param->service_class		= dect_ie_hold(msg.service_class);
 	param->key			= dect_ie_hold(msg.key);
 	param->iwu_to_iwu		= *dect_ie_list_hold(&msg.iwu_to_iwu);
-	param->escape_to_proprietary	= msg.escape_to_proprietary;
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
 	dh->ops->mm_ops->mm_authenticate_cfm(dh, mme, true, param);
 	dect_ie_collection_put(dh, param);
@@ -419,7 +419,7 @@ static void dect_mm_rcv_authentication_reject(struct dect_handle *dh,
 	//param->auth_type	= *dect_ie_list_hold(&msg.auth_type);
 	param->reject_reason		= dect_ie_hold(msg.reject_reason);
 	param->iwu_to_iwu		= *dect_ie_list_hold(&msg.iwu_to_iwu);
-	param->escape_to_proprietary	= msg.escape_to_proprietary;
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
 	dh->ops->mm_ops->mm_authenticate_cfm(dh, mme, false, param);
 err1:
