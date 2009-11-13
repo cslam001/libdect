@@ -58,6 +58,7 @@ void dect_setup_timer(struct dect_timer *timer,
 {
 	timer->callback = cb;
 	timer->data = data;
+	timer->state = DECT_TIMER_STOPPED;
 }
 
 void dect_start_timer(const struct dect_handle *dh,
@@ -75,6 +76,11 @@ void dect_stop_timer(const struct dect_handle *dh, struct dect_timer *timer)
 {
 	dh->ops->event_ops->stop_timer(dh, timer);
 	timer->state = DECT_TIMER_STOPPED;
+}
+
+bool dect_timer_running(const struct dect_timer *timer)
+{
+	return timer->state == DECT_TIMER_RUNNING;
 }
 
 struct dect_fd *dect_alloc_fd(const struct dect_handle *dh)

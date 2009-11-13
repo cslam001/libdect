@@ -34,6 +34,7 @@ extern void dect_setup_timer(struct dect_timer *timer,
 extern void dect_start_timer(const struct dect_handle *dh,
 			     struct dect_timer *timer, unsigned int timeout);
 extern void dect_stop_timer(const struct dect_handle *dh, struct dect_timer *timer);
+extern bool dect_timer_running(const struct dect_timer *timer);
 
 extern struct dect_fd *dect_alloc_fd(const struct dect_handle *dh);
 extern void dect_setup_fd(struct dect_fd *fd,
