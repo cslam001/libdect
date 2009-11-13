@@ -117,18 +117,19 @@ int dect_netlink_init(struct dect_handle *dh)
 	dect_netlink_set_callback(dh, dect_netlink_get_cluster_cb, dh);
 	err = nl_dect_cluster_query(dh->nlsock, cl, 0);
 	dect_netlink_set_callback(dh, NULL, NULL);
+	nl_dect_cluster_put(cl);
+
 	if (err < 0)
-		goto err5;
+		goto err4;
 
 	return 0;
-err5:
-	nl_dect_cluster_put(cl);
 err4:
 	dect_unregister_fd(dh, dh->nlfd);
 err3:
 	dect_free(dh, dh->nlfd);
 err2:
 	nl_close(dh->nlsock);
+	nl_socket_free(dh->nlsock);
 err1:
 	return -1;
 }
@@ -137,5 +138,6 @@ void dect_netlink_exit(struct dect_handle *dh)
 {
 	dect_unregister_fd(dh, dh->nlfd);
 	nl_close(dh->nlsock);
+	nl_socket_free(dh->nlsock);
 	dect_free(dh, dh->nlfd);
 }
