@@ -357,6 +357,9 @@ err1:
 static void dect_call_disconnect_uplane(const struct dect_handle *dh,
 					struct dect_call *call)
 {
+	if (call->lu_sap == NULL)
+		return;
+
 	dect_unregister_fd(dh, call->lu_sap);
 	dect_close(dh, call->lu_sap);
 	call->lu_sap = NULL;
@@ -935,8 +938,7 @@ static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *ca
 out:
 	dect_msg_free(dh, &cc_release_com_msg_desc, &msg.common);
 
-	if (call->lu_sap != NULL)
-		dect_call_disconnect_uplane(dh, call);
+	dect_call_disconnect_uplane(dh, call);
 	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
 }
