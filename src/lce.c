@@ -790,10 +790,17 @@ void dect_close_transaction(struct dect_handle *dh, struct dect_transaction *ta,
 	ddl_debug(ddl, "close transaction");
 	list_del(&ta->list);
 
-	/* If link is already down, destroy immediately */
-	if (ddl->state == DECT_DATA_LINK_RELEASED &&
-	    list_empty(&ddl->transactions))
+	switch (ddl->state) {
+	case DECT_DATA_LINK_RELEASED:
+		/* If link is already down, destroy immediately */
+		if (!list_empty(&ddl->transactions))
+			break;
+	case DECT_DATA_LINK_ESTABLISH_PENDING:
+		/* link establishment was unsucessful */
 		return dect_ddl_destroy(dh, ddl);
+	default:
+		break;
+	}
 
 	switch (mode) {
 	case DECT_DDL_RELEASE_NORMAL:
