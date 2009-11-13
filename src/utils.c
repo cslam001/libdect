@@ -48,7 +48,7 @@ void dect_free(const struct dect_handle *dh, void *ptr)
 
 struct dect_timer *dect_alloc_timer(const struct dect_handle *dh)
 {
-	return dect_malloc(dh, sizeof(struct dect_timer) +
+	return dect_zalloc(dh, sizeof(struct dect_timer) +
 			   dh->ops->event_ops->timer_priv_size);
 }
 
