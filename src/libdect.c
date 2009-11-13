@@ -18,9 +18,9 @@
 #include <utils.h>
 #include <lce.h>
 
-static void __fmtstring(1, 0) (*debug_hook)(const char *fmt, va_list ap);
+static int __fmtstring(1, 0) (*debug_hook)(const char *fmt, va_list ap);
 
-void dect_set_debug_hook(void (*fn)(const char *fmt, va_list ap))
+void dect_set_debug_hook(int (*fn)(const char *fmt, va_list ap))
 {
 	debug_hook = fn;
 }

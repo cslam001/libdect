@@ -132,6 +132,6 @@ extern void dect_close_handle(struct dect_handle *dh);
 
 extern int dect_init(struct dect_handle *dh);
 
-extern void dect_set_debug_hook(void (*fn)(const char *fmt, va_list ap));
+extern void dect_set_debug_hook(int (*fn)(const char *fmt, va_list ap));
 
 #endif /* _LIBDECT_DECT_LIBDECT_H */
