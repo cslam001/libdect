@@ -642,9 +642,6 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 	uint8_t pd, tv;
 	bool f;
 
-	if (dect_timer_running(ddl->sdu_timer))
-		dect_ddl_stop_sdu_timer(dh, ddl);
-
 	if (dect_mbuf_rcv(ddl->dfd, mb) < 0) {
 		switch (errno) {
 		case ENOTCONN:
@@ -683,6 +680,9 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 		ddl_debug(ddl, "unknown protocol %u\n", pd);
 		return;
 	}
+
+	if (dect_timer_running(ddl->sdu_timer))
+		dect_ddl_stop_sdu_timer(dh, ddl);
 
 	if (tv == DECT_TV_CONNECTIONLESS)
 		return dect_clss_rcv(dh, mb);
