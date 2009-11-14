@@ -520,8 +520,8 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 	struct dect_msg_buf *mb, *mb_next;
 
 	/* Stop page timer */
-	dect_stop_timer(dh, ddl->sdu_timer);
-	dect_free(dh, ddl->page_timer);
+	dect_stop_timer(dh, req->page_timer);
+	dect_free(dh, req->page_timer);
 
 	ddl_debug(ddl, "complete indirect link establishment req %p", req);
 	/* Transfer transactions to the new link */
