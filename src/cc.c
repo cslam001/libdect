@@ -377,7 +377,6 @@ struct dect_call *dect_call_alloc(const struct dect_handle *dh)
 	call->setup_timer = dect_alloc_timer(dh);
 	if (call->setup_timer == NULL)
 		goto err2;
-	call->setup_timer->data = call;
 
 	call->state = DECT_CC_NULL;
 	return call;
@@ -472,7 +471,7 @@ int dect_mncc_setup_req(struct dect_handle *dh, struct dect_call *call,
 		goto err2;
 	call->state = DECT_CC_CALL_PRESENT;
 
-	call->setup_timer->callback = dect_cc_setup_timer;
+	dect_setup_timer(call->setup_timer, dect_cc_setup_timer, call);
 	dect_start_timer(dh, call->setup_timer, DECT_CC_SETUP_TIMEOUT);
 	return 0;
 
