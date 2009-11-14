@@ -241,18 +241,45 @@ static DECT_SFMT_MSG_DESC(cc_release_com,
 );
 
 static DECT_SFMT_MSG_DESC(cc_service_change,
+	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_MANDATORY, IE_MANDATORY, 0),
+	DECT_SFMT_IE(S_VL_IE_IWU_ATTRIBUTES,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_SERVICE_CHANGE_INFO,	IE_MANDATORY, IE_MANDATORY, 0),
+	DECT_SFMT_IE(S_VL_IE_CALL_ATTRIBUTES,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_CONNECTION_ATTRIBUTES,	IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
+	DECT_SFMT_IE(S_VL_IE_CONNECTION_IDENTITY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
+	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
 );
 
 static DECT_SFMT_MSG_DESC(cc_service_accept,
+	DECT_SFMT_IE(S_VL_IE_IWU_ATTRIBUTES,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_CONNECTION_IDENTITY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
+	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
 );
 
 static DECT_SFMT_MSG_DESC(cc_service_reject,
+	DECT_SFMT_IE(S_DO_IE_RELEASE_REASON,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_IWU_ATTRIBUTES,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_CONNECTION_ATTRIBUTES,	IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
+	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
 );
 
 static DECT_SFMT_MSG_DESC(cc_notify,
+	DECT_SFMT_IE(S_DO_IE_TIMER_RESTART,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
 );
 
@@ -851,6 +878,45 @@ static void dect_cc_rcv_connect_ack(struct dect_handle *dh, struct dect_call *ca
 	dect_msg_free(dh, &cc_connect_ack_msg_desc, &msg.common);
 }
 
+static void dect_cc_rcv_service_change(struct dect_handle *dh, struct dect_call *call,
+				       struct dect_msg_buf *mb)
+{
+	struct dect_cc_service_change_msg msg;
+
+	dect_mbuf_dump(mb, "CC-SERVICE_CHANGE");
+	if (dect_parse_sfmt_msg(dh, &cc_service_change_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	dect_msg_free(dh, &cc_connect_ack_msg_desc, &msg.common);
+}
+
+static void dect_cc_rcv_service_accept(struct dect_handle *dh, struct dect_call *call,
+				       struct dect_msg_buf *mb)
+{
+	struct dect_cc_service_accept_msg msg;
+
+	dect_mbuf_dump(mb, "CC-SERVICE_ACCEPT");
+	if (dect_parse_sfmt_msg(dh, &cc_service_accept_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	dect_msg_free(dh, &cc_connect_ack_msg_desc, &msg.common);
+}
+
+static void dect_cc_rcv_service_reject(struct dect_handle *dh, struct dect_call *call,
+				       struct dect_msg_buf *mb)
+{
+	struct dect_cc_service_reject_msg msg;
+
+	dect_mbuf_dump(mb, "CC-SERVICE_REJECT");
+	if (dect_parse_sfmt_msg(dh, &cc_service_reject_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	dect_msg_free(dh, &cc_connect_ack_msg_desc, &msg.common);
+}
+
 static void dect_mncc_release_ind(struct dect_handle *dh, struct dect_call *call,
 				  struct dect_cc_release_msg *msg)
 {
@@ -1032,8 +1098,11 @@ static void dect_cc_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 	case CC_CONNECT_ACK:
 		return dect_cc_rcv_connect_ack(dh, call, mb);
 	case CC_SERVICE_CHANGE:
+		return dect_cc_rcv_service_change(dh, call, mb);
 	case CC_SERVICE_ACCEPT:
+		return dect_cc_rcv_service_accept(dh, call, mb);
 	case CC_SERVICE_REJECT:
+		return dect_cc_rcv_service_reject(dh, call, mb);
 	case CC_RELEASE:
 		return dect_cc_rcv_release(dh, call, mb);
 	case CC_RELEASE_COM:
