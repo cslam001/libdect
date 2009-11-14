@@ -1,9 +1,20 @@
+/*
+ * libdect utility functions
+ *
+ * Copyright (c) 2009 Patrick McHardy <kaber@trash.net>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -14,16 +25,24 @@
 #define SOCK_NONBLOCK O_NONBLOCK
 #endif
 
+#define BLOCKSIZE	16
+
 void dect_hexdump(const char *prefix, const uint8_t *buf, size_t size)
 {
-	unsigned int i;
+	unsigned int i, off;
+	char hbuf[3 * BLOCKSIZE + 1], abuf[BLOCKSIZE + 1];
 
 	for (i = 0; i < size; i++) {
-		if (i % 16 == 0)
-			dect_debug("%s%s: ", i ? "\n" : "", prefix);
-		dect_debug("%.2x ", buf[i]);
+		off = i % BLOCKSIZE;
+		if (off == 0)
+			memset(abuf, 0, sizeof(abuf));
+
+		sprintf(hbuf + 3 * off, "%.2x ", buf[i]);
+		abuf[off] = isascii(buf[i]) && isprint(buf[i]) ? buf[i] : '.';
+
+		if (off == BLOCKSIZE - 1 || i == size - 1)
+			dect_debug("%s: %-48s    |%s|\n", prefix, hbuf, abuf);
 	}
-	dect_debug("\n\n");
 }
 
 void *dect_malloc(const struct dect_handle *dh, size_t size)
