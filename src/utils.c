@@ -87,6 +87,10 @@ void dect_start_timer(const struct dect_handle *dh,
 		.tv_sec = timeout,
 	};
 
+	/* Cancel timer if it is already running */
+	if (timer->state == DECT_TIMER_RUNNING)
+		dh->ops->event_ops->stop_timer(dh, timer);
+
 	timer->state = DECT_TIMER_RUNNING;
 	dh->ops->event_ops->start_timer(dh, timer, &tv);
 }
