@@ -402,7 +402,7 @@ int dect_lce_send(const struct dect_handle *dh,
 	dect_mbuf_reserve(mb, DECT_S_HDR_SIZE);
 	dect_build_sfmt_msg(dh, desc, msg, mb);
 
-	if (dect_timer_running(ddl->sdu_timer))
+	if (ddl->sdu_timer && dect_timer_running(ddl->sdu_timer))
 		dect_ddl_stop_sdu_timer(dh, ddl);
 
 	dect_mbuf_push(mb, DECT_S_HDR_SIZE);
