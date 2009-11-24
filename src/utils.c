@@ -34,14 +34,14 @@ void dect_hexdump(const char *prefix, const uint8_t *buf, size_t size)
 
 	for (i = 0; i < size; i++) {
 		off = i % BLOCKSIZE;
-		if (off == 0)
-			memset(abuf, 0, sizeof(abuf));
 
 		sprintf(hbuf + 3 * off, "%.2x ", buf[i]);
 		abuf[off] = isascii(buf[i]) && isprint(buf[i]) ? buf[i] : '.';
 
-		if (off == BLOCKSIZE - 1 || i == size - 1)
+		if (off == BLOCKSIZE - 1 || i == size - 1) {
+			abuf[off + 1] = '\0';
 			dect_debug("%s: %-48s    |%s|\n", prefix, hbuf, abuf);
+		}
 	}
 }
 
