@@ -374,15 +374,15 @@ static void dect_ddl_stop_sdu_timer(const struct dect_handle *dh,
 }
 
 static int dect_send(const struct dect_handle *dh,
-		       const struct dect_data_link *ddl,
-		       struct dect_msg_buf *mb)
+		     const struct dect_data_link *ddl,
+		     struct dect_msg_buf *mb)
 {
 	ssize_t len;
 
 	dect_mbuf_dump(mb, "TX");
 	len = send(ddl->dfd->fd, mb->data, mb->len, 0);
 	if (len < 0)
-		ddl_debug(ddl, "send %Zd: %s\n", len, strerror(errno));
+		ddl_debug(ddl, "send %u bytes: %s", mb->len, strerror(errno));
 	dect_free(dh, mb);
 	return len;
 }
@@ -530,7 +530,7 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 	ddl_debug(ddl, "complete indirect link establishment req %p", req);
 	/* Transfer transactions to the new link */
 	list_for_each_entry_safe(ta, ta_next, &req->transactions, list) {
-		ddl_debug(ta->link, "transfer transaction to link %p\n", ddl);
+		ddl_debug(ta->link, "transfer transaction to link %p", ddl);
 		list_move_tail(&ta->list, &ddl->transactions);
 		ta->link = ddl;
 	}
@@ -681,7 +681,7 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 	dect_mbuf_pull(mb, DECT_S_HDR_SIZE);
 
 	if (pd >= array_size(protocols) || protocols[pd] == NULL) {
-		ddl_debug(ddl, "unknown protocol %u\n", pd);
+		ddl_debug(ddl, "unknown protocol %u", pd);
 		return;
 	}
 
@@ -743,13 +743,14 @@ static int dect_transaction_alloc_tv(const struct dect_data_link *ddl,
 int dect_ddl_open_transaction(struct dect_handle *dh, struct dect_transaction *ta,
 			      struct dect_data_link *ddl, enum dect_pds pd)
 {
+	const struct dect_nwk_protocol *protocol = protocols[pd];
 	int tv;
 
-	ddl_debug(ddl, "open transaction");
-	tv = dect_transaction_alloc_tv(ddl, protocols[pd]);
+	tv = dect_transaction_alloc_tv(ddl, protocol);
 	if (tv < 0)
 		return -1;
 
+	ddl_debug(ddl, "open transaction: %s TV: %u", protocol->name, tv);
 	ta->link = ddl;
 	ta->pd	 = pd;
 	ta->role = DECT_TRANSACTION_INITIATOR;
@@ -782,7 +783,8 @@ void dect_confirm_transaction(struct dect_handle *dh, struct dect_transaction *t
 	ta->role = req->role;
 	ta->pd   = req->pd;
 
-	ddl_debug(req->link, "confirm transaction");
+	ddl_debug(req->link, "confirm transaction: %s TV: %u Role: %u",
+		  protocols[ta->pd]->name, ta->tv, ta->role);
 	list_add_tail(&ta->list, &req->link->transactions);
 }
 
@@ -791,7 +793,8 @@ void dect_close_transaction(struct dect_handle *dh, struct dect_transaction *ta,
 {
 	struct dect_data_link *ddl = ta->link;
 
-	ddl_debug(ddl, "close transaction");
+	ddl_debug(ddl, "close transaction: %s TV: %u Role: %u",
+		  protocols[ta->pd]->name, ta->tv, ta->role);
 	list_del(&ta->list);
 
 	switch (ddl->state) {
