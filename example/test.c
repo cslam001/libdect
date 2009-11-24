@@ -214,6 +214,13 @@ static void dect_mncc_reject_ind(struct dect_handle *dh, struct dect_call *call,
 	event_del(&priv->event);
 }
 
+static void dect_mncc_release_ind(struct dect_handle *dh, struct dect_call *call,
+				  struct dect_mncc_release_param *param)
+{
+	printf("MNCC_RELEASE-ind\n");
+	dect_mncc_release_res(dh, call, param);
+}
+
 static void dect_open_call(struct dect_handle *dh, const struct dect_ipui *ipui)
 {
 	struct dect_ie_basic_service basic_service;
@@ -252,6 +259,7 @@ static const struct dect_cc_ops cc_ops = {
 	.mncc_info_ind		= dect_mncc_info_ind,
 	.mncc_alert_ind		= dect_mncc_alert_ind,
 	.mncc_reject_ind	= dect_mncc_reject_ind,
+	.mncc_release_ind	= dect_mncc_release_ind,
 	.dl_u_data_ind		= dect_dl_u_data_ind,
 };
 
