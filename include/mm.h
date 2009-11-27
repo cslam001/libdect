@@ -120,10 +120,18 @@ struct dect_mm_authentication_request_msg {
 
 struct dect_mm_cipher_reject_msg {
 	struct dect_msg_common			common;
+	struct dect_ie_list			cipher_info;
+	struct dect_ie_reject_reason		*reject_reason;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_cipher_request_msg {
 	struct dect_msg_common			common;
+	struct dect_ie_cipher_info		*cipher_info;
+	struct dect_ie_call_identity		*call_identity;
+	struct dect_ie_connection_identity	*connection_identity;
+	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_cipher_suggest_msg {

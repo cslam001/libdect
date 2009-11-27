@@ -603,6 +603,45 @@ static int dect_sfmt_build_auth_res(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static void dect_sfmt_dump_cipher_info(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_cipher_info *ie = dect_ie_container(ie, _ie);
+
+	dect_debug("\tenable: %u\n", ie->enable);
+	dect_debug("\tcipher algorithm identifier: %u\n", ie->cipher_alg_id);
+	dect_debug("\tcipher key type: %u\n", ie->cipher_key_type);
+	dect_debug("\tcipher key num: %u\n", ie->cipher_key_num);
+}
+
+static int dect_sfmt_parse_cipher_info(const struct dect_handle *dh,
+				       struct dect_ie_common **ie,
+				       const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_cipher_info *dst = dect_ie_container(dst, *ie);
+
+	if (src->len != 4)
+		return -1;
+
+	dst->enable		= src->data[2] & 0x80;
+	dst->cipher_alg_id	= src->data[2] = 0x7f;
+	dst->cipher_key_type	= (src->data[3] & 0xf0) >> 4;
+	dst->cipher_key_num	= src->data[3] & 0x0f;
+	return 0;
+}
+
+static int dect_sfmt_build_cipher_info(struct dect_sfmt_ie *dst,
+				       const struct dect_ie_common *ie)
+{
+	struct dect_ie_cipher_info *src = dect_ie_container(src, ie);
+
+	dst->data[2]  = src->enable ? 0x80 : 0;
+	dst->data[2] |= src->cipher_alg_id;
+	dst->data[3]  = src->cipher_key_type << 4;
+	dst->data[3] |= src->cipher_key_num | 0x8;
+	dst->len = 4;
+	return 0;
+}
+
 static int dect_sfmt_parse_progress_indicator(const struct dect_handle *dh,
 					      struct dect_ie_common **ie,
 					      const struct dect_sfmt_ie *src)
@@ -1115,6 +1154,9 @@ static const struct dect_ie_handler {
 	[S_VL_IE_CIPHER_INFO]			= {
 		.name	= "cipher info",
 		.size	= sizeof(struct dect_ie_cipher_info),
+		.parse	= dect_sfmt_parse_cipher_info,
+		.build	= dect_sfmt_build_cipher_info,
+		.dump	= dect_sfmt_dump_cipher_info,
 	},
 	[S_VL_IE_CALL_IDENTITY]			= {
 		.name	= "call identity",

@@ -48,6 +48,16 @@ struct dect_mm_authenticate_param {
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
+struct dect_mm_cipher_param {
+	struct dect_ie_collection		common;
+	struct dect_ie_cipher_info		*cipher_info;
+	struct dect_ie_call_identity		*call_identity;
+	struct dect_ie_connection_identity	*connection_identity;
+	struct dect_ie_reject_reason		*reject_reason;
+	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+};
+
 struct dect_mm_locate_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;

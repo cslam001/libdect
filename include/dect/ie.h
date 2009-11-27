@@ -409,8 +409,29 @@ struct dect_ie_calling_party_number {
 
 /* Cipher info IE */
 
+enum dect_cipher_algs {
+	DECT_CIPHER_STANDARD_1		= 0x1,
+	DECT_CIPHER_GRPS_GEA_1		= 0x29,
+	DECT_CIPHER_GRPS_GEA_2		= 0x2a,
+	DECT_CIPHER_GRPS_GEA_3		= 0x2b,
+	DECT_CIPHER_GRPS_GEA_4		= 0x2c,
+	DECT_CIPHER_GRPS_GEA_5		= 0x2d,
+	DECT_CIPHER_GRPS_GEA_6		= 0x2e,
+	DECT_CIPHER_GRPS_GEA_7		= 0x2f,
+	DECT_CIPHER_ESC_TO_PROPRIETARY	= 0x7f,
+};
+
+enum dect_cipher_key_types {
+	DECT_CIPHER_DERIVED_KEY		= 0x9,
+	DECT_CIPHER_STATIC_KEY		= 0xa,
+};
+
 struct dect_ie_cipher_info {
 	struct dect_ie_common		common;
+	bool				enable;
+	enum dect_cipher_algs		cipher_alg_id;
+	enum dect_cipher_key_types	cipher_key_type;
+	uint8_t				cipher_key_num;
 };
 
 /* Connection attributes IE */
