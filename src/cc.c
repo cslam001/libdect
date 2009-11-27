@@ -437,7 +437,7 @@ static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer
 	struct dect_mncc_release_param *param;
 
 	cc_debug(call, "setup timer");
-	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		goto out;
 	// release-com
@@ -761,7 +761,7 @@ static void dect_mncc_alert_ind(struct dect_handle *dh, struct dect_call *call,
 {
 	struct dect_mncc_alert_param *param;
 
-	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		return;
 
@@ -812,7 +812,7 @@ static void dect_mncc_connect_ind(struct dect_handle *dh, struct dect_call *call
 {
 	struct dect_mncc_connect_param *param;
 
-	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		return;
 
@@ -922,7 +922,7 @@ static void dect_mncc_release_ind(struct dect_handle *dh, struct dect_call *call
 {
 	struct dect_mncc_release_param *param;
 
-	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		return;
 
@@ -955,7 +955,7 @@ static void dect_mncc_release_cfm(struct dect_handle *dh, struct dect_call *call
 {
 	struct dect_mncc_release_param *param;
 
-	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		return;
 
@@ -988,7 +988,7 @@ static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *ca
 	else {
 		struct dect_mncc_release_param *param;
 
-		param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+		param = dect_ie_collection_alloc(dh, sizeof(*param));
 		if (param == NULL)
 			goto out;
 
@@ -1037,7 +1037,7 @@ static void dect_mncc_info_ind(struct dect_handle *dh, struct dect_call *call,
 {
 	struct dect_mncc_info_param *param;
 
-	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		return;
 
@@ -1122,7 +1122,7 @@ static void dect_mncc_setup_ind(struct dect_handle *dh,
 {
 	struct dect_mncc_setup_param *param;
 
-	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		return;
 

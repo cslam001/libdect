@@ -378,7 +378,7 @@ static void dect_mm_rcv_authentication_reply(struct dect_handle *dh,
 				&msg.common, mb) < 0)
 		return;
 
-	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		goto err1;
 
@@ -412,7 +412,7 @@ static void dect_mm_rcv_authentication_reject(struct dect_handle *dh,
 				&msg.common, mb) < 0)
 		return;
 
-	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		goto err1;
 
@@ -536,7 +536,7 @@ static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
 				&msg.common, mb) < 0)
 		return;
 
-	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		goto err1;
 
@@ -614,7 +614,7 @@ static void dect_mm_locate_ind(struct dect_handle *dh,
 {
 	struct dect_mm_locate_param *param;
 
-	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		return;
 
@@ -702,7 +702,7 @@ static void dect_mm_rcv_temporary_identity_assign_rej(struct dect_handle *dh,
 				&msg.common, mb) < 0)
 		return;
 
-	param = (void *)dect_ie_collection_alloc(dh, sizeof(*param));
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		goto err1;
 

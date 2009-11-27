@@ -114,8 +114,7 @@ void dect_ie_list_put(const struct dect_handle *dh, struct dect_ie_list *iel)
  * Information Element collections
  */
 
-struct dect_ie_collection *dect_ie_collection_alloc(const struct dect_handle *dh,
-						    unsigned int size)
+void *dect_ie_collection_alloc(const struct dect_handle *dh, unsigned int size)
 {
 	struct dect_ie_collection *iec;
 

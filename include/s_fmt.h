@@ -392,8 +392,7 @@ extern struct dect_ie_common *dect_ie_alloc(const struct dect_handle *dh,
 					    unsigned int size);
 extern void dect_ie_destroy(const struct dect_handle *dh, struct dect_ie_common *ie);
 
-extern struct dect_ie_collection *dect_ie_collection_alloc(const struct dect_handle *dh,
-							   unsigned int size);
+extern void *dect_ie_collection_alloc(const struct dect_handle *dh, unsigned int size);
 
 struct dect_msg_buf;
 extern enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,

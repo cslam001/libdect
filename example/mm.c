@@ -122,7 +122,7 @@ static void mm_locate_ind(struct dect_handle *dh,
 
 	printf("MM_LOCATE-ind\n");
 
-	priv->locate = (void *)dect_ie_collection_hold(param);
+	priv->locate = dect_ie_collection_hold(param);
 	mm_authenticate_req(dh, mme);
 }
 

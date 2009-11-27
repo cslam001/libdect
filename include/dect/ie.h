@@ -27,7 +27,7 @@ struct dect_ie_collection {
 
 extern struct dect_ie_collection *__dect_ie_collection_hold(struct dect_ie_collection *iec);
 
-#define dect_ie_collection_hold(iec)	__dect_ie_collection_hold(&(iec)->common)
+#define dect_ie_collection_hold(iec)	((void *)__dect_ie_collection_hold(&(iec)->common))
 
 extern void __dect_ie_collection_put(const struct dect_handle *dh, struct dect_ie_collection *iec);
 
