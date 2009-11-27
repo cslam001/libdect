@@ -390,12 +390,11 @@ static void dect_mm_rcv_authentication_reply(struct dect_handle *dh,
 	param->iwu_to_iwu		= *dect_ie_list_hold(&msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dh->ops->mm_ops->mm_authenticate_cfm(dh, mme, true, param);
-	dect_ie_collection_put(dh, param);
-
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
 
+	dh->ops->mm_ops->mm_authenticate_cfm(dh, mme, true, param);
+	dect_ie_collection_put(dh, param);
 err1:
 	dect_msg_free(dh, &mm_authentication_reply_msg_desc, &msg.common);
 }
@@ -404,6 +403,7 @@ static void dect_mm_rcv_authentication_reject(struct dect_handle *dh,
 					      struct dect_mm_endpoint *mme,
 					      struct dect_msg_buf *mb)
 {
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_authentication_reject_msg msg;
 	struct dect_mm_authenticate_param *param;
 
@@ -421,7 +421,11 @@ static void dect_mm_rcv_authentication_reject(struct dect_handle *dh,
 	param->iwu_to_iwu		= *dect_ie_list_hold(&msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+
 	dh->ops->mm_ops->mm_authenticate_cfm(dh, mme, false, param);
+	dect_ie_collection_put(dh, param);
 err1:
 	dect_msg_free(dh, &mm_authentication_reject_msg_desc, &msg.common);
 }
