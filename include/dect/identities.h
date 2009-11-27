@@ -52,6 +52,7 @@ enum dect_ari_lengths {
 extern bool dect_ari_cmp(const struct dect_ari *a1, const struct dect_ari *a2);
 extern uint8_t dect_parse_ari(struct dect_ari *ari, uint64_t a);
 extern uint64_t dect_build_ari(const struct dect_ari *ari);
+extern void dect_dump_ari(const struct dect_ari *ari);
 
 /**
  * struct dect_park - Portable access rights key

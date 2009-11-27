@@ -18,6 +18,30 @@
 #include <identities.h>
 #include <utils.h>
 
+static const char * const ari_classes[] = {
+	[DECT_ARC_A]	= "A",
+	[DECT_ARC_B]	= "B",
+	[DECT_ARC_C]	= "C",
+	[DECT_ARC_D]	= "D",
+	[DECT_ARC_E]	= "E",
+};
+
+void dect_dump_ari(const struct dect_ari *ari)
+{
+	dect_debug("\tclass: %s\n", ari_classes[ari->arc]);
+
+	switch (ari->arc) {
+	case DECT_ARC_A:
+		dect_debug("\tEMC: %.4x\n", ari->emc);
+		dect_debug("\tFPN: %.5x\n", ari->fpn);
+		break;
+	case DECT_ARC_B:
+	case DECT_ARC_C:
+	case DECT_ARC_D:
+	case DECT_ARC_E:
+		break;
+	}
+}
 
 uint8_t dect_parse_ari(struct dect_ari *ari, uint64_t a)
 {
@@ -26,8 +50,6 @@ uint8_t dect_parse_ari(struct dect_ari *ari, uint64_t a)
 	case DECT_ARC_A:
 		ari->emc = (a & DECT_ARI_A_EMC_MASK) >> DECT_ARI_A_EMC_SHIFT;
 		ari->fpn = (a & DECT_ARI_A_FPN_MASK) >> DECT_ARI_A_FPN_SHIFT;
-		dect_debug("ARI class A: EMC: %.4x FPN: %.5x\n",
-			   ari->emc, ari->fpn);
 		return DECT_ARC_A_LEN;
 	case DECT_ARC_B:
 		ari->eic = (a & DECT_ARI_B_EIC_MASK) >> DECT_ARI_B_EIC_SHIFT;
@@ -84,11 +106,16 @@ uint64_t dect_build_ari(const struct dect_ari *ari)
 	return a;
 }
 
+static void dect_dump_ipei(const struct dect_ipei *ipei)
+{
+	dect_debug("\tEMC: %.4x\n", ipei->emc);
+	dect_debug("\tPSN: %.5x\n", ipei->psn);
+}
+
 static bool dect_parse_ipei(struct dect_ipei *ipei, uint64_t i)
 {
 	ipei->emc = (i & DECT_IPEI_EMC_MASK) >> DECT_IPEI_EMC_SHIFT;
 	ipei->psn = (i & DECT_IPEI_PSN_MASK);
-	dect_debug("IPEI: EMC: %.4x PSN: %.5x\n", ipei->emc, ipei->psn);
 	return true;
 }
 
@@ -99,6 +126,24 @@ static uint64_t dect_build_ipei(const struct dect_ipei *ipei)
 	i |= (uint64_t)ipei->emc << DECT_IPEI_EMC_SHIFT;
 	i |= (uint64_t)ipei->psn;
 	return i;
+}
+
+void dect_dump_ipui(const struct dect_ipui *ipui)
+{
+	switch (ipui->put) {
+	case DECT_IPUI_N:
+		dect_debug("\tPUT: N (IPEI)\n");
+		return dect_dump_ipei(&ipui->pun.n.ipei);
+	case DECT_IPUI_O:
+	case DECT_IPUI_P:
+	case DECT_IPUI_Q:
+	case DECT_IPUI_R:
+	case DECT_IPUI_S:
+	case DECT_IPUI_T:
+	case DECT_IPUI_U:
+	default:
+		dect_debug("\tIPUI: unhandled type %u\n", ipui->put);
+	}
 }
 
 bool dect_parse_ipui(struct dect_ipui *ipui, const uint8_t *ptr, uint8_t len)
@@ -121,7 +166,7 @@ bool dect_parse_ipui(struct dect_ipui *ipui, const uint8_t *ptr, uint8_t len)
 	case DECT_IPUI_T:
 	case DECT_IPUI_U:
 	default:
-		dect_debug("IPUI: unhandled type %u\n", ipui->put);
+		dect_debug("\tIPUI: unhandled type %u\n", ipui->put);
 		return false;
 	}
 }

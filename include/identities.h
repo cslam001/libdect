@@ -68,6 +68,7 @@
 extern bool dect_parse_ipui(struct dect_ipui *ipui,
 			    const uint8_t *ptr, uint8_t len);
 extern uint8_t dect_build_ipui(uint8_t *ptr, const struct dect_ipui *ipui);
+extern void dect_dump_ipui(const struct dect_ipui *ipui);
 
 /*
  * TPUI

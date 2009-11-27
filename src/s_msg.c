@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <inttypes.h>
 #include <asm/byteorder.h>
 
@@ -87,8 +88,8 @@ static void dect_sfmt_dump_basic_service(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_basic_service *ie = dect_ie_container(ie, _ie);
 
-	dect_debug("basic service:\n\tcall class: %s\n\tservice: %s\n",
-		   call_classes[ie->class], basic_services[ie->service]);
+	dect_debug("\tcall class: %s\n", call_classes[ie->class]);
+	dect_debug("\tservice: %s\n", basic_services[ie->service]);
 }
 
 static int dect_sfmt_parse_basic_service(const struct dect_handle *dh,
@@ -99,7 +100,6 @@ static int dect_sfmt_parse_basic_service(const struct dect_handle *dh,
 
 	dst->class   = src->data[1] >> DECT_BASIC_SERVICE_CALL_CLASS_SHIFT;
 	dst->service = src->data[1] & DECT_BASIC_SERVICE_SERVICE_MASK;
-	dect_sfmt_dump_basic_service(*ie);
 	return 0;
 }
 
@@ -113,6 +113,20 @@ static int dect_sfmt_build_basic_service(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static void dect_sfmt_dump_display(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_display *ie = dect_ie_container(ie, _ie);
+	char info[ie->len + 1];
+	unsigned int i;
+
+	for (i = 0; i < ie->len; i++)
+		info[i] = isascii(ie->info[i]) && isprint(ie->info[i]) ?
+				ie->info[i] : '.';
+	info[ie->len] = '\0';
+
+	dect_debug("\tinfo: '%s'\n", info);
+}
+
 static int dect_sfmt_parse_single_display(const struct dect_handle *dh,
 					  struct dect_ie_common **ie,
 					  const struct dect_sfmt_ie *src)
@@ -121,7 +135,6 @@ static int dect_sfmt_parse_single_display(const struct dect_handle *dh,
 
 	dst->info[0] = src->data[1];
 	dst->len     = 1;
-	dect_debug("single display: '%c'\n", dst->info[0]);
 	return 0;
 }
 
@@ -132,6 +145,13 @@ static int dect_sfmt_build_single_display(struct dect_sfmt_ie *dst,
 
 	dst->data[1] = ie->info[0];
 	return 0;
+}
+
+static void dect_sfmt_dump_single_keypad(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_keypad *ie = dect_ie_container(ie, _ie);
+
+	dect_debug("single keypad: '%c'\n", ie->info[0]);
 }
 
 static int dect_sfmt_parse_single_keypad(const struct dect_handle *dh,
@@ -178,6 +198,14 @@ static const char * const release_reasons[] = {
 	[DECT_RELEASE_IWU_CONGESTION]			= "IWU congestion",
 };
 
+static void dect_sfmt_dump_release_reason(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_release_reason *ie = dect_ie_container(ie, _ie);
+
+	dect_debug("\trelease reason: %x (%s)\n", ie->reason,
+		   release_reasons[ie->reason]);
+}
+
 static int dect_sfmt_parse_release_reason(const struct dect_handle *dh,
 					  struct dect_ie_common **ie,
 					  const struct dect_sfmt_ie *src)
@@ -185,8 +213,6 @@ static int dect_sfmt_parse_release_reason(const struct dect_handle *dh,
 	struct dect_ie_release_reason *dst = dect_ie_container(dst, *ie);
 
 	dst->reason = src->data[1];
-	dect_debug("release reason: %x (%s)\n", dst->reason,
-		   release_reasons[dst->reason]);
 	return 0;
 }
 
@@ -231,6 +257,23 @@ static int dect_sfmt_parse_timer_restart(const struct dect_handle *dh,
 		return 0;
 	default:
 		return -1;
+	}
+}
+
+static void dect_sfmt_dump_portable_identity(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_portable_identity *ie = dect_ie_container(ie, _ie);
+
+	switch (ie->type) {
+	case DECT_PORTABLE_ID_TYPE_IPUI:
+		dect_debug("\ttype: IPUI\n");
+		return dect_dump_ipui(&ie->ipui);
+	case DECT_PORTABLE_ID_TYPE_IPEI:
+		dect_debug("\ttype: IPEI\n");
+		break;
+	case DECT_PORTABLE_ID_TYPE_TPUI:
+		dect_debug("\ttype: TPUI\n");
+		break;
 	}
 }
 
@@ -299,6 +342,31 @@ static int dect_sfmt_build_portable_identity(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static void dect_sfmt_dump_fixed_identity(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_fixed_identity *ie = dect_ie_container(ie, _ie);
+
+	switch (ie->type) {
+	case DECT_FIXED_ID_TYPE_ARI:
+		dect_debug("\ttype: ARI\n");
+		dect_dump_ari(&ie->ari);
+		break;
+	case DECT_FIXED_ID_TYPE_PARK:
+		dect_debug("\ttype: PARK\n");
+		dect_dump_ari(&ie->ari);
+		break;
+	case DECT_FIXED_ID_TYPE_ARI_RPN:
+		dect_debug("\ttype: ARI/RPN\n");
+		dect_dump_ari(&ie->ari);
+		dect_debug("\tRPN: %u\n", ie->rpn);
+		break;
+	case DECT_FIXED_ID_TYPE_ARI_WRS:
+		dect_debug("\ttype: ARI/WRS\n");
+		dect_dump_ari(&ie->ari);
+		break;
+	}
+}
+
 static int dect_sfmt_parse_fixed_identity(const struct dect_handle *dh,
 					  struct dect_ie_common **ie,
 					  const struct dect_sfmt_ie *src)
@@ -354,6 +422,13 @@ static int dect_sfmt_build_fixed_identity(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static void dect_sfmt_dump_location_area(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_location_area *ie = dect_ie_container(ie, _ie);
+
+	dect_debug("\ttype: %x level: %x\n", ie->type, ie->level);
+}
+
 static int dect_sfmt_parse_location_area(const struct dect_handle *dh,
 					 struct dect_ie_common **ie,
 					 const struct dect_sfmt_ie *src)
@@ -363,7 +438,6 @@ static int dect_sfmt_parse_location_area(const struct dect_handle *dh,
 	dst->type  = (src->data[2] & DECT_LOCATION_AREA_TYPE_MASK) >>
 		     DECT_LOCATION_AREA_TYPE_SHIFT;
 	dst->level = (src->data[2] & DECT_LOCATION_LEVEL_MASK);
-	dect_debug("\ttype: %x level: %x\n", dst->type, dst->level);
 	return 0;
 }
 
@@ -446,8 +520,6 @@ static int dect_sfmt_parse_auth_type(const struct dect_handle *dh,
 
 	dst->flags	    = src->data[n] & 0xf0;
 	dst->cipher_key_num = src->data[n] & 0x0f;
-
-	dect_sfmt_dump_auth_type(*ie);
 	return 0;
 }
 
@@ -456,8 +528,6 @@ static int dect_sfmt_build_auth_type(struct dect_sfmt_ie *dst,
 {
 	struct dect_ie_auth_type *src = dect_ie_container(src, ie);
 	uint8_t n = 2;
-
-	dect_sfmt_dump_auth_type(ie);
 
 	dst->data[n++] = src->auth_id;
 	if (src->auth_id == DECT_AUTH_PROPRIETARY)
@@ -475,6 +545,13 @@ static int dect_sfmt_build_auth_type(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static void dect_sfmt_dump_auth_value(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_auth_value *ie = dect_ie_container(ie, _ie);
+
+	dect_debug("\tvalue: %.16" PRIx64 "\n", ie->value);
+}
+
 static int dect_sfmt_parse_auth_value(const struct dect_handle *dh,
 				      struct dect_ie_common **ie,
 				      const struct dect_sfmt_ie *src)
@@ -484,7 +561,6 @@ static int dect_sfmt_parse_auth_value(const struct dect_handle *dh,
 	if (src->len != sizeof(dst->value) + 2)
 		return -1;
 	dst->value = *(uint64_t *)&src->data[2];
-	dect_debug("\t%.16" PRIx64 "\n", dst->value);
 	return 0;
 }
 
@@ -498,6 +574,13 @@ static int dect_sfmt_build_auth_value(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static void dect_sfmt_dump_auth_res(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_auth_res *ie = dect_ie_container(ie, _ie);
+
+	dect_debug("\tvalue: %.8x\n", ie->value);
+}
+
 static int dect_sfmt_parse_auth_res(const struct dect_handle *dh,
 				    struct dect_ie_common **ie,
 				    const struct dect_sfmt_ie *src)
@@ -507,7 +590,6 @@ static int dect_sfmt_parse_auth_res(const struct dect_handle *dh,
 	if (src->len != sizeof(dst->value) + 2)
 		return -1;
 	dst->value = *(uint32_t *)&src->data[2];
-	dect_debug("\t%.8x\n", dst->value);
 	return 0;
 }
 
@@ -540,6 +622,17 @@ static int dect_sfmt_build_progress_indicator(struct dect_sfmt_ie *dst,
 	dst->data[3] = DECT_OCTET_GROUP_END | src->progress;
 	dst->data[2] = DECT_OCTET_GROUP_END | src->location;
 	dst->len = 4;
+	return 0;
+}
+
+static int dect_sfmt_parse_multi_display(const struct dect_handle *dh,
+					 struct dect_ie_common **ie,
+					 const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_display *dst = dect_ie_container(dst, *ie);
+
+	dst->len = src->len - 2;
+	memcpy(dst->info, src->data + 2, src->len -2);
 	return 0;
 }
 
@@ -599,6 +692,13 @@ static const char * const reject_reasons[256] = {
 	[DECT_REJECT_LOCATION_NATIONAL_ROAMING_NOT_ALLOWED]	= "national roaming not allowed",
 };
 
+static void dect_sfmt_dump_reject_reason(const struct dect_ie_common *_ie)
+{
+	struct dect_ie_reject_reason *ie = dect_ie_container(ie, _ie);
+
+	dect_debug("\treject reason: %s\n", reject_reasons[ie->reason]);
+}
+
 static int dect_sfmt_parse_reject_reason(const struct dect_handle *dh,
 					 struct dect_ie_common **ie,
 					 const struct dect_sfmt_ie *src)
@@ -606,7 +706,6 @@ static int dect_sfmt_parse_reject_reason(const struct dect_handle *dh,
 	struct dect_ie_reject_reason *dst = dect_ie_container(dst, *ie);
 
 	dst->reason = src->data[2];
-	dect_debug("\treject reason: %s\n", reject_reasons[dst->reason]);
 	return 0;
 }
 
@@ -779,8 +878,30 @@ group6:
 		return -1;
 
 group7:
-	dect_sfmt_dump_terminal_capability(*ie);
 	return 0;
+}
+
+static const char * const lock_limits[] = {
+	[DECT_LOCK_TEMPORARY_USER_LIMIT_1]	= "temporary user limit 1",
+	[DECT_LOCK_NO_LIMITS]			= "no limits",
+	[DECT_LOCK_TEMPORARY_USER_LIMIT_2]	= "temporary user limit 2",
+};
+
+static const char * const time_limits[] = {
+	[DECT_TIME_LIMIT_ERASE]			= "erase",
+	[DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_1]	= "defined time limit 1",
+	[DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_2]	= "defined time limit 2",
+	[DECT_TIME_LIMIT_STANDARD_TIME_LIMIT]	= "standard time limit",
+	[DECT_TIME_LIMIT_INFINITE]		= "infinite",
+};
+
+static void dect_sfmt_dump_duration(const struct dect_ie_common *_ie)
+{
+	struct dect_ie_duration *ie = dect_ie_container(ie, _ie);
+
+	dect_debug("\tlock: %s\n", lock_limits[ie->lock]);
+	dect_debug("\ttime: %s\n", time_limits[ie->time]);
+	dect_debug("\tduration: %u\n", ie->duration);
 }
 
 static int dect_sfmt_parse_duration(const struct dect_handle *dh,
@@ -813,6 +934,13 @@ static int dect_sfmt_build_duration(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static void dect_sfmt_dump_escape_to_proprietary(const struct dect_ie_common *_ie)
+{
+	struct dect_ie_escape_to_proprietary *ie = dect_ie_container(ie, _ie);
+
+	dect_debug("\tEMC %x\n", ie->emc);
+}
+
 static int dect_sfmt_parse_escape_to_proprietary(const struct dect_handle *dh,
 						 struct dect_ie_common **ie,
 						 const struct dect_sfmt_ie *src)
@@ -824,7 +952,6 @@ static int dect_sfmt_parse_escape_to_proprietary(const struct dect_handle *dh,
 	if (dtype != DECT_ESC_TO_PROPRIETARY_IE_DESC_EMC)
 		return -1;
 	dst->emc = __be16_to_cpu(*(__be16 *)&src->data[3]);
-	dect_debug("EMC %x\n", dst->emc);
 	return 0;
 }
 
@@ -836,6 +963,7 @@ static const struct dect_ie_handler {
 				 const struct dect_sfmt_ie *ie);
 	int		(*build)(struct dect_sfmt_ie *dst,
 				 const struct dect_ie_common *ie);
+	void		(*dump)(const struct dect_ie_common *ie);
 } dect_ie_handlers[256] = {
 	[S_SO_IE_REPEAT_INDICATOR]		= {
 		.name	= "repeat indicator",
@@ -865,12 +993,14 @@ static const struct dect_ie_handler {
 		.size	= sizeof(struct dect_ie_basic_service),
 		.parse	= dect_sfmt_parse_basic_service,
 		.build	= dect_sfmt_build_basic_service,
+		.dump	= dect_sfmt_dump_basic_service,
 	},
 	[S_DO_IE_RELEASE_REASON]		= {
 		.name	= "release reason",
 		.size	= sizeof(struct dect_ie_release_reason),
 		.parse	= dect_sfmt_parse_release_reason,
 		.build	= dect_sfmt_build_release_reason,
+		.dump	= dect_sfmt_dump_release_reason,
 	},
 	[S_DO_IE_SIGNAL]			= {
 		.name	= "signal",
@@ -891,11 +1021,13 @@ static const struct dect_ie_handler {
 		.size	= sizeof(struct dect_ie_display),
 		.parse	= dect_sfmt_parse_single_display,
 		.build	= dect_sfmt_build_single_display,
+		.dump	= dect_sfmt_dump_display,
 	},
 	[S_DO_IE_SINGLE_KEYPAD]			= {
 		.name	= "single keypad",
 		.size	= sizeof(struct dect_ie_keypad),
 		.parse	= dect_sfmt_parse_single_keypad,
+		.dump	= dect_sfmt_dump_single_keypad,
 	},
 	[S_VL_IE_INFO_TYPE]			= {
 		.name	= "info type",
@@ -910,18 +1042,21 @@ static const struct dect_ie_handler {
 		.size	= sizeof(struct dect_ie_portable_identity),
 		.parse	= dect_sfmt_parse_portable_identity,
 		.build	= dect_sfmt_build_portable_identity,
+		.dump	= dect_sfmt_dump_portable_identity,
 	},
 	[S_VL_IE_FIXED_IDENTITY]		= {
 		.name	= "fixed identity",
 		.size	= sizeof(struct dect_ie_fixed_identity),
 		.parse	= dect_sfmt_parse_fixed_identity,
 		.build	= dect_sfmt_build_fixed_identity,
+		.dump	= dect_sfmt_dump_fixed_identity,
 	},
 	[S_VL_IE_LOCATION_AREA]			= {
 		.name	= "location area",
 		.size	= sizeof(struct dect_ie_location_area),
 		.parse	= dect_sfmt_parse_location_area,
 		.build	= dect_sfmt_build_location_area,
+		.dump	= dect_sfmt_dump_location_area,
 	},
 	[S_VL_IE_NWK_ASSIGNED_IDENTITY]		= {
 		.name	= "NWK assigned identity",
@@ -938,24 +1073,28 @@ static const struct dect_ie_handler {
 		.size	= sizeof(struct dect_ie_auth_type),
 		.parse	= dect_sfmt_parse_auth_type,
 		.build	= dect_sfmt_build_auth_type,
+		.dump	= dect_sfmt_dump_auth_type,
 	},
 	[S_VL_IE_RAND]				= {
 		.name	= "RAND",
 		.size	= sizeof(struct dect_ie_auth_value),
 		.parse	= dect_sfmt_parse_auth_value,
 		.build	= dect_sfmt_build_auth_value,
+		.dump	= dect_sfmt_dump_auth_value,
 	},
 	[S_VL_IE_RES]				= {
 		.name	= "RES",
 		.size	= sizeof(struct dect_ie_auth_res),
 		.parse	= dect_sfmt_parse_auth_res,
 		.build	= dect_sfmt_build_auth_res,
+		.dump	= dect_sfmt_dump_auth_res,
 	},
 	[S_VL_IE_RS]				= {
 		.name	= "RS",
 		.size	= sizeof(struct dect_ie_auth_value),
 		.parse	= dect_sfmt_parse_auth_value,
 		.build	= dect_sfmt_build_auth_value,
+		.dump	= dect_sfmt_dump_auth_value,
 	},
 	[S_VL_IE_IWU_ATTRIBUTES]		= {
 		.name	= "IWU attributes",
@@ -1014,7 +1153,9 @@ static const struct dect_ie_handler {
 	[S_VL_IE_MULTI_DISPLAY]			= {
 		.name	= "multi display",
 		.size	= sizeof(struct dect_ie_display),
+		.parse	= dect_sfmt_parse_multi_display,
 		.build	= dect_sfmt_build_multi_display,
+		.dump	= dect_sfmt_dump_display,
 	},
 	[S_VL_IE_MULTI_KEYPAD]			= {
 		.name	= "multi keypad",
@@ -1054,6 +1195,7 @@ static const struct dect_ie_handler {
 		.size	= sizeof(struct dect_ie_reject_reason),
 		.parse	= dect_sfmt_parse_reject_reason,
 		.build	= dect_sfmt_build_reject_reason,
+		.dump	= dect_sfmt_dump_reject_reason,
 	},
 	[S_VL_IE_SETUP_CAPABILITY]		= {
 		.name	= "setup capability",
@@ -1065,6 +1207,7 @@ static const struct dect_ie_handler {
 		.name	= "terminal capability",
 		.size	= sizeof(struct dect_ie_terminal_capability),
 		.parse	= dect_sfmt_parse_terminal_capability,
+		.dump	= dect_sfmt_dump_terminal_capability,
 	},
 	[S_VL_IE_END_TO_END_COMPATIBILITY]	= {
 		.name	= "end-to-end compatibility",
@@ -1103,6 +1246,7 @@ static const struct dect_ie_handler {
 		.size	= sizeof(struct dect_ie_duration),
 		.parse	= dect_sfmt_parse_duration,
 		.build	= dect_sfmt_build_duration,
+		.dump	= dect_sfmt_dump_duration,
 	},
 	[S_VL_IE_SEGMENTED_INFO]		= {
 		.name	= "segmented info",
@@ -1128,6 +1272,7 @@ static const struct dect_ie_handler {
 		.name	= "escape to proprietary",
 		.size	= sizeof(struct dect_ie_escape_to_proprietary),
 		.parse	= dect_sfmt_parse_escape_to_proprietary,
+		.dump	= dect_sfmt_dump_escape_to_proprietary,
 	},
 	[S_VL_IE_CODEC_LIST]			= {
 		.name	= "codec list",
@@ -1183,14 +1328,17 @@ static void dect_msg_ie_init(const struct dect_sfmt_ie_desc *desc,
 	if (desc->flags & DECT_SFMT_IE_END)
 		return;
 
-	//dect_debug("init message IE %p: <%s>\n",
-	//	 ie, dect_ie_handlers[desc->type].name);
-
 	if (desc->type == S_SO_IE_REPEAT_INDICATOR) {
 		iel = dect_ie_container(iel, (struct dect_ie_common *)ie);
 		dect_ie_list_init(iel);
 	} else if (!(desc->flags & DECT_SFMT_IE_REPEAT))
 		*ie = NULL;
+	else
+		return;
+#if 0
+	dect_debug("init message IE %p: <%s>\n",
+		 ie, dect_ie_handlers[desc->type].name);
+#endif
 }
 
 static int dect_parse_sfmt_ie_header(struct dect_sfmt_ie *ie,
@@ -1267,10 +1415,14 @@ static int dect_parse_sfmt_ie(const struct dect_handle *dh,
 			goto err1;
 	}
 
-	dect_debug("parse IE: <%s> dst %p len %u\n", ieh->name, *dst, ie->len);
+	dect_debug("parse IE: <%s> id: %x len: %u dst: %p\n",
+		   ieh->name, ie->id, ie->len, *dst);
+
 	err = ieh->parse(dh, dst, ie);
 	if (err < 0)
 		goto err2;
+	if (ieh->dump != NULL)
+		ieh->dump(*dst);
 	return 0;
 
 err2:
@@ -1348,7 +1500,6 @@ next:
 	}
 out:
 	while (!(desc->flags & DECT_SFMT_IE_END)) {
-		//dect_debug("clear missing IE: <%s>\n", dect_ie_handlers[desc->type].name);
 		if (dect_rx_status(dh, desc) == DECT_SFMT_IE_MANDATORY)
 			return DECT_SFMT_MANDATORY_IE_MISSING;
 		dst = dect_next_ie(desc, dst);
@@ -1356,6 +1507,7 @@ out:
 		dect_msg_ie_init(desc, dst);
 	}
 
+	dect_debug("\n");
 	return DECT_SFMT_OK;
 }
 
@@ -1388,7 +1540,10 @@ dect_build_sfmt_ie(const struct dect_handle *dh,
 	if (ieh->build == NULL)
 		goto err1;
 
-	dect_debug("build IE: <%s> (%x) %p\n", ieh->name, type, ie);
+	dect_debug("build IE: <%s> id: %x %p\n", ieh->name, type, ie);
+	if (ieh->dump != NULL)
+		ieh->dump(ie);
+
 	dst.data = mb->data + mb->len;
 	dst.len = 0;
 	err = ieh->build(&dst, ie);
@@ -1443,6 +1598,7 @@ next:
 		desc++;
 	}
 
+	dect_debug("\n");
 	return DECT_SFMT_OK;
 }
 
