@@ -43,7 +43,8 @@ $(1)-depfiles		:= $$(patsubst $(SUBDIR)%.o,$(SUBDIR).%.d,$$($(1)-obj))
 .PHONY:	$(1)-clean
 $(1)-clean:
 			@echo -e "  CLEAN\t\t$(1)"
-			$$(RM) $$($(1)-obj) $$($(1)-depfiles) $$($(1)-extra-clean-files) $(1)
+			$$(RM) $$($(1)-obj) $$($(1)-depfiles) \
+			       $$($(1)-clean_files) $$($(1)-extra-clean-files)
 clean_targets		+= $(1)-clean
 
 .PHONY:			$(1)-install
@@ -61,6 +62,8 @@ $(SUBDIR)$(1):		$$($(1)-extra-targets) $$($(1)-obj)
 			$$(CC) $$($(1)-obj) $$(LDFLAGS) -o $$@
 all_targets		+= $(SUBDIR)$(1)
 
+$(1)-clean_files	+= $(SUBDIR)$(1)
+
 $(1)-install:
 			@echo -e "  INSTALL\t$1"
 			$(MKDIR_P) $$(DESTDIR)/$$($(1)-destdir)
@@ -77,6 +80,8 @@ $(SUBDIR)lib$(1).so:	$$($(1)-extra-targets) $$($(1)-obj)
 			$$(CC) -shared -Wl,-soname,lib$(1).so.0 $$($(1)-obj) $$(LDFLAGS) -o $$@
 			$(LN_S) -f lib$(1).so $$@.0
 all_targets		+= $(SUBDIR)lib$(1).so
+
+$(1)-clean_files	+= $(SUBDIR)lib$(1).so $(SUBDIR)lib$(1).so.0
 
 $(1)-install:
 			@echo -e "  INSTALL\t$1"
