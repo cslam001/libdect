@@ -271,7 +271,13 @@ static void dect_ddl_destroy(struct dect_handle *dh, struct dect_data_link *ddl)
 		dect_unregister_fd(dh, ddl->dfd);
 		dect_close(dh, ddl->dfd);
 	}
+
+	if (dect_timer_running(ddl->sdu_timer))
+		dect_stop_timer(dh, ddl->sdu_timer);
 	dect_free(dh, ddl->sdu_timer);
+
+	if (ddl->release_timer != NULL && dect_timer_running(ddl->release_timer))
+		dect_stop_timer(dh, ddl->release_timer);
 	dect_free(dh, ddl->release_timer);
 	dect_free(dh, ddl);
 }
