@@ -735,7 +735,8 @@ static void dect_sfmt_dump_reject_reason(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_reject_reason *ie = dect_ie_container(ie, _ie);
 
-	dect_debug("\treject reason: %s\n", reject_reasons[ie->reason]);
+	dect_debug("\treject reason: %s (%x)\n",
+		   reject_reasons[ie->reason], ie->reason);
 }
 
 static int dect_sfmt_parse_reject_reason(const struct dect_handle *dh,
@@ -891,6 +892,7 @@ static int dect_sfmt_parse_terminal_capability(const struct dect_handle *dh,
 		goto group4;
 
 group4:
+	dst->profile_indicator = 0;
 	for (i = 0; i < 8; i++) {
 		dst->profile_indicator |=
 			(uint64_t)(src->data[n] & ~DECT_OCTET_GROUP_END) <<
@@ -917,6 +919,47 @@ group6:
 		return -1;
 
 group7:
+	return 0;
+}
+
+static int dect_sfmt_build_terminal_capability(struct dect_sfmt_ie *dst,
+					       const struct dect_ie_common *ie)
+{
+	struct dect_ie_terminal_capability *src = dect_ie_container(src, ie);
+	uint8_t i, n = 2;
+
+	/* Octet group 3 */
+	dst->data[n]    = src->display;
+	dst->data[n++] |= src->tone << DECT_TERMINAL_CAPABILITY_TONE_SHIFT;
+
+	dst->data[n]    = src->echo << DECT_TERMINAL_CAPABILITY_ECHO_SHIFT;
+	dst->data[n]   |= src->noise_rejection << DECT_TERMINAL_CAPABILITY_NOISE_SHIFT;
+	dst->data[n++] |= src->volume_ctrl;
+
+	dst->data[n++]  = src->slot;
+	dst->data[n++]  = src->display_memory >> 7;
+	dst->data[n++]  = src->display_memory;
+	dst->data[n++]  = src->display_lines;
+	dst->data[n++]  = src->display_columns;
+	dst->data[n]    = src->scrolling;
+	dst->data[n++] |= DECT_OCTET_GROUP_END;
+
+	/* Octet group 4 */
+	for (i = 0; i < 8; i++) {
+		dst->data[n] = src->profile_indicator >> (64 - 8 * (i + 1));
+		if (!(src->profile_indicator & (~0ULL >> (64 - 8 * (i + 1))))) {
+			dst->data[n++] |= DECT_OCTET_GROUP_END;
+			break;
+		}
+		n++;
+	}
+
+	/* Octet group 5 */
+	dst->data[n++]  = src->display_control;
+	dst->data[n]    = src->display_charsets;
+	dst->data[n++] |= DECT_OCTET_GROUP_END;
+
+	dst->len = n;
 	return 0;
 }
 
@@ -1249,6 +1292,7 @@ static const struct dect_ie_handler {
 		.name	= "terminal capability",
 		.size	= sizeof(struct dect_ie_terminal_capability),
 		.parse	= dect_sfmt_parse_terminal_capability,
+		.build	= dect_sfmt_build_terminal_capability,
 		.dump	= dect_sfmt_dump_terminal_capability,
 	},
 	[S_VL_IE_END_TO_END_COMPATIBILITY]	= {
