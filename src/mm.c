@@ -614,13 +614,73 @@ err1:
 	dect_msg_free(dh, &mm_access_rights_request_msg_desc, &msg.common);
 }
 
-static void dect_mm_rcv_access_rights_reject(struct dect_handle *dh,
+static void dect_mm_rcv_access_rights_accept(struct dect_handle *dh,
+					     struct dect_mm_endpoint *mme,
 					     struct dect_msg_buf *mb)
 {
-	struct dect_mm_access_rights_reject_msg msg;
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_access_rights_accept_msg msg;
+	struct dect_mm_access_rights_param *param;
 
-	if (dect_parse_sfmt_msg(dh, &mm_access_rights_reject_msg_desc, &msg.common, mb) < 0)
+	mm_debug(mme, "ACCESS-RIGHTS-ACCEPT");
+	if (dect_parse_sfmt_msg(dh, &mm_access_rights_accept_msg_desc,
+				&msg.common, mb) < 0)
 		return;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->portable_identity	= dect_ie_hold(msg.portable_identity);
+	param->fixed_identity		= *dect_ie_list_hold(&msg.fixed_identity);
+	param->location_area		= dect_ie_hold(msg.location_area);
+	param->auth_type		= dect_ie_hold(msg.auth_type);
+	param->cipher_info		= dect_ie_hold(msg.cipher_info);
+	param->zap_field		= dect_ie_hold(msg.zap_field);
+	param->service_class		= dect_ie_hold(msg.service_class);
+	//param->setup_capability	= dect_ie_hold(msg.setup_capability);
+	param->model_identifier		= dect_ie_hold(msg.model_identifier);
+	//param->codec_list		= dect_ie_hold(msg.codec_list);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+
+	dh->ops->mm_ops->mm_access_rights_cfm(dh, mme, true, param);
+	dect_ie_collection_put(dh, param);
+err1:
+	dect_msg_free(dh, &mm_access_rights_accept_msg_desc, &msg.common);
+}
+
+static void dect_mm_rcv_access_rights_reject(struct dect_handle *dh,
+					     struct dect_mm_endpoint *mme,
+					     struct dect_msg_buf *mb)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_access_rights_reject_msg msg;
+	struct dect_mm_access_rights_param *param;
+
+	mm_debug(mme, "ACCESS-RIGHTS-REJECT");
+	if (dect_parse_sfmt_msg(dh, &mm_access_rights_reject_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->reject_reason		= dect_ie_hold(msg.reject_reason);
+	param->duration			= dect_ie_hold(msg.duration);
+	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+
+	dh->ops->mm_ops->mm_access_rights_cfm(dh, mme, false, param);
+	dect_ie_collection_put(dh, param);
+err1:
+	dect_msg_free(dh, &mm_access_rights_reject_msg_desc, &msg.common);
 }
 
 static int dect_mm_send_locate_accept(struct dect_handle *dh,
@@ -791,9 +851,9 @@ static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 	case DECT_MM_ACCESS_RIGHTS_REQUEST:
 		return dect_mm_rcv_access_rights_request(dh, mme, mb);
 	case DECT_MM_ACCESS_RIGHTS_ACCEPT:
-		break;
+		return dect_mm_rcv_access_rights_accept(dh, mme, mb);
 	case DECT_MM_ACCESS_RIGHTS_REJECT:
-		return dect_mm_rcv_access_rights_reject(dh, mb);
+		return dect_mm_rcv_access_rights_reject(dh, mme, mb);
 	case DECT_MM_ACCESS_RIGHTS_TERMINATE_REQUEST:
 	case DECT_MM_ACCESS_RIGHTS_TERMINATE_ACCEPT:
 	case DECT_MM_ACCESS_RIGHTS_TERMINATE_REJECT:
