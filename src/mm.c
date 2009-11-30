@@ -314,6 +314,36 @@ err1:
 	return err;
 }
 
+static void dect_mm_rcv_key_allocate(struct dect_handle *dh,
+				     struct dect_mm_endpoint *mme,
+				     struct dect_msg_buf *mb)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_key_allocate_msg msg;
+	struct dect_mm_key_allocate_param *param;
+
+	mm_debug(mme, "KEY-ALLOCATE");
+	if (mp->type != 0)
+		return;
+
+	if (dect_parse_sfmt_msg(dh, &mm_key_allocate_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->allocation_type	= dect_ie_hold(msg.allocation_type);
+	param->rand		= dect_ie_hold(msg.rand);
+	param->rs		= dect_ie_hold(msg.rs);
+
+	dh->ops->mm_ops->mm_key_allocate_ind(dh, mme, param);
+	dect_ie_collection_put(dh, param);
+err1:
+	dect_msg_free(dh, &mm_key_allocate_msg_desc, &msg.common);
+}
+
 /**
  * dect_mm_authenticate_req - MM_AUTHENTICATE-req primitive
  *
@@ -755,7 +785,7 @@ static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 	case DECT_MM_AUTHENTICATION_REPLY:
 		return dect_mm_rcv_authentication_reply(dh, mme, mb);
 	case DECT_MM_KEY_ALLOCATE:
-		break;
+		return dect_mm_rcv_key_allocate(dh, mme, mb);
 	case DECT_MM_AUTHENTICATION_REJECT:
 		return dect_mm_rcv_authentication_reject(dh, mme, mb);
 	case DECT_MM_ACCESS_RIGHTS_REQUEST:
@@ -808,6 +838,7 @@ static void dect_mm_open(struct dect_handle *dh,
 	case DECT_MM_AUTHENTICATION_REQUEST:
 	case DECT_MM_ACCESS_RIGHTS_REQUEST:
 	case DECT_MM_LOCATE_REQUEST:
+	case DECT_MM_KEY_ALLOCATE:
 		break;
 	default:
 		return;
