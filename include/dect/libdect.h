@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #include <dect/identities.h>
 #include <dect/cc.h>
