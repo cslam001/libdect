@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdarg.h>
+#include <errno.h>
 
 #include <netlink/netlink.h>
 #include <netlink/object.h>
@@ -86,7 +87,7 @@ static int dect_netlink_get_cluster_cb(struct nl_msg *msg, void *arg)
 int dect_netlink_init(struct dect_handle *dh)
 {
 	struct nl_dect_cluster *cl;
-	int err;
+	int err = 0;
 
 	dh->nlsock = nl_socket_alloc();
 	if (dh->nlsock == NULL)
@@ -131,6 +132,7 @@ err2:
 	nl_close(dh->nlsock);
 	nl_socket_free(dh->nlsock);
 err1:
+	dect_debug("dect_netlink_init: %s\n", err == 0 ? strerror(errno) : nl_geterror(err));
 	return -1;
 }
 

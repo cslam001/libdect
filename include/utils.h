@@ -6,6 +6,9 @@
 #ifndef AF_DECT
 #define AF_DECT 37
 #endif
+#ifndef SOL_DECT
+#define SOL_DECT 278
+#endif
 
 #define __init			__attribute__((constructor))
 #define __exit			__attribute__((destructor))

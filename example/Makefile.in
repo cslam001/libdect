@@ -1,5 +1,5 @@
 LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect
-PROGRAMS	+= test mm discover
+PROGRAMS	+= test mm discover hijack
 
 test-destdir	:= usr/bin
 
@@ -12,3 +12,6 @@ mm-obj		+= mm.o
 
 discover-obj	+= event_ops.o
 discover-obj	+= discover.o
+
+hijack-obj	+= event_ops.o
+hijack-obj	+= hijack.o
