@@ -1,15 +1,8 @@
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <linux/types.h>
-#include <linux/dect.h>
-#include <event.h>
 
 #include <dect/libdect.h>
 #include <dect/raw.h>
