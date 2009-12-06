@@ -16,6 +16,7 @@ dect-obj	+= auth.o
 dect-obj	+= dsaa.o
 dect-obj	+= netlink.o
 dect-obj	+= utils.o
+dect-obj	+= raw.o
 
 dect-obj	+= ccitt-adpcm/g711.o
 dect-obj	+= ccitt-adpcm/g72x.o
