@@ -62,34 +62,37 @@ static int dect_sfmt_build_empty_single_octet(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
-static const char * const call_classes[DECT_CALL_CLASS_MAX + 1] = {
-	[DECT_CALL_CLASS_MESSAGE]		= "message call",
-	[DECT_CALL_CLASS_DECT_ISDN]		= "DECT/ISDN IIP",
-	[DECT_CALL_CLASS_NORMAL]		= "normal call",
-	[DECT_CALL_CLASS_INTERNAL]		= "internal call",
-	[DECT_CALL_CLASS_EMERGENCY]		= "emergency call",
-	[DECT_CALL_CLASS_SERVICE]		= "service call",
-	[DECT_CALL_CLASS_EXTERNAL_HO]		= "external handover call",
-	[DECT_CALL_CLASS_SUPPLEMENTARY_SERVICE]	= "supplementary service call",
-	[DECT_CALL_CLASS_QA_M]			= "QA&M call",
+static const struct dect_trans_tbl dect_call_classes[] = {
+	TRANS_TBL(DECT_CALL_CLASS_MESSAGE,		"message call"),
+	TRANS_TBL(DECT_CALL_CLASS_DECT_ISDN,		"DECT/ISDN IIP"),
+	TRANS_TBL(DECT_CALL_CLASS_NORMAL,		"normal call"),
+	TRANS_TBL(DECT_CALL_CLASS_INTERNAL,		"internal call"),
+	TRANS_TBL(DECT_CALL_CLASS_EMERGENCY,		"emergency call"),
+	TRANS_TBL(DECT_CALL_CLASS_SERVICE,		"service call"),
+	TRANS_TBL(DECT_CALL_CLASS_EXTERNAL_HO,		"external handover call"),
+	TRANS_TBL(DECT_CALL_CLASS_SUPPLEMENTARY_SERVICE,"supplementary service call"),
+	TRANS_TBL(DECT_CALL_CLASS_QA_M,			"QA&M call"),
 };
 
-static const char * const basic_services[DECT_SERVICE_MAX + 1] = {
-	[DECT_SERVICE_BASIC_SPEECH_DEFAULT]	= "basic speech default attributes",
-	[DECT_SERVICE_DECT_GSM_IWP]		= "DECT GSM IWP profile",
-	[DECT_SERVICE_UMTS_IWP]			= "DECT UMTS IWP",
-	[DECT_SERVICE_LRMS]			= "LRMS (E-profile) service",
-	[DECT_SERVICE_GSM_IWP_SMS]		= "GSM IWP SMS",
-	[DECT_SERVICE_WIDEBAND_SPEECH]		= "Wideband speech",
-	[DECT_SERVICE_OTHER]			= "Other",
+static const struct dect_trans_tbl dect_basic_services[] = {
+	TRANS_TBL(DECT_SERVICE_BASIC_SPEECH_DEFAULT,	"basic speech default attributes"),
+	TRANS_TBL(DECT_SERVICE_DECT_GSM_IWP,		"DECT GSM IWP profile"),
+	TRANS_TBL(DECT_SERVICE_UMTS_IWP,		"DECT UMTS IWP"),
+	TRANS_TBL(DECT_SERVICE_LRMS,			"LRMS (E-profile) service"),
+	TRANS_TBL(DECT_SERVICE_GSM_IWP_SMS,		"GSM IWP SMS"),
+	TRANS_TBL(DECT_SERVICE_WIDEBAND_SPEECH,		"Wideband speech"),
+	TRANS_TBL(DECT_SERVICE_OTHER,			"Other"),
 };
 
 static void dect_sfmt_dump_basic_service(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_basic_service *ie = dect_ie_container(ie, _ie);
+	char buf[32];
 
-	dect_debug("\tcall class: %s\n", call_classes[ie->class]);
-	dect_debug("\tservice: %s\n", basic_services[ie->service]);
+	dect_debug("\tcall class: %s\n",
+		   dect_val2str(dect_call_classes, buf, ie->class));
+	dect_debug("\tservice: %s\n",
+		   dect_val2str(dect_basic_services, buf, ie->service));
 }
 
 static int dect_sfmt_parse_basic_service(const struct dect_handle *dh,
@@ -166,44 +169,45 @@ static int dect_sfmt_parse_single_keypad(const struct dect_handle *dh,
 	return 0;
 }
 
-static const char * const release_reasons[] = {
-	[DECT_RELEASE_NORMAL]				= "normal",
-	[DECT_RELEASE_UNEXPECTED_MESSAGE]		= "unexpected message",
-	[DECT_RELEASE_UNKNOWN_TRANSACTION_IDENTIFIER]	= "unknown transaction identifier",
-	[DECT_RELEASE_MANDATORY_IE_MISSING]		= "mandatory IE missing",
-	[DECT_RELEASE_INVALID_IE_CONTENTS]		= "invalid IE contents",
-	[DECT_RELEASE_INCOMPATIBLE_SERVICE]		= "incompatible service",
-	[DECT_RELEASE_SERVICE_NOT_IMPLEMENTED]		= "service not implemented",
-	[DECT_RELEASE_NEGOTIATION_NOT_SUPPORTED]	= "negotiation not supported",
-	[DECT_RELEASE_INVALID_IDENTITY]			= "invalid identity",
-	[DECT_RELEASE_AUTHENTICATION_FAILED]		= "authentication failed",
-	[DECT_RELEASE_UNKNOWN_IDENTITY]			= "unknown identity",
-	[DECT_RELEASE_NEGOTIATION_FAILED]		= "negotiation failed",
-	[DECT_RELEASE_TIMER_EXPIRY]			= "timer expiry",
-	[DECT_RELEASE_PARTIAL_RELEASE]			= "partial release",
-	[DECT_RELEASE_UNKNOWN]				= "unknown",
-	[DECT_RELEASE_USER_DETACHED]			= "user detached",
-	[DECT_RELEASE_USER_NOT_IN_RANGE]		= "user not in range",
-	[DECT_RELEASE_USER_UNKNOWN]			= "user unknown",
-	[DECT_RELEASE_USER_ALREADY_ACTIVE]		= "user already active",
-	[DECT_RELEASE_USER_BUSY]			= "user busy",
-	[DECT_RELEASE_USER_REJECTION]			= "user rejection",
-	[DECT_RELEASE_USER_CALL_MODIFY]			= "user call modify",
-	[DECT_RELEASE_EXTERNAL_HANDOVER_NOT_SUPPORTED]	= "external HO not supported",
-	[DECT_RELEASE_NETWORK_PARAMETERS_MISSING]	= "network parameters missing",
-	[DECT_RELEASE_EXTERNAL_HANDOVER_RELEASE]	= "external HO release",
-	[DECT_RELEASE_OVERLOAD]				= "overload",
-	[DECT_RELEASE_INSUFFICIENT_RESOURCES]		= "insufficient resources",
-	[DECT_RELEASE_INSUFFICIENT_BEARERS_AVAILABLE]	= "insufficient bearers available",
-	[DECT_RELEASE_IWU_CONGESTION]			= "IWU congestion",
+static const struct dect_trans_tbl dect_release_reasons[] = {
+	TRANS_TBL(DECT_RELEASE_NORMAL,				"normal"),
+	TRANS_TBL(DECT_RELEASE_UNEXPECTED_MESSAGE,		"unexpected message"),
+	TRANS_TBL(DECT_RELEASE_UNKNOWN_TRANSACTION_IDENTIFIER,	"unknown transaction identifier"),
+	TRANS_TBL(DECT_RELEASE_MANDATORY_IE_MISSING,		"mandatory IE missing"),
+	TRANS_TBL(DECT_RELEASE_INVALID_IE_CONTENTS,		"invalid IE contents"),
+	TRANS_TBL(DECT_RELEASE_INCOMPATIBLE_SERVICE,		"incompatible service"),
+	TRANS_TBL(DECT_RELEASE_SERVICE_NOT_IMPLEMENTED,		"service not implemented"),
+	TRANS_TBL(DECT_RELEASE_NEGOTIATION_NOT_SUPPORTED,	"negotiation not supported"),
+	TRANS_TBL(DECT_RELEASE_INVALID_IDENTITY,		"invalid identity"),
+	TRANS_TBL(DECT_RELEASE_AUTHENTICATION_FAILED,		"authentication failed"),
+	TRANS_TBL(DECT_RELEASE_UNKNOWN_IDENTITY,		"unknown identity"),
+	TRANS_TBL(DECT_RELEASE_NEGOTIATION_FAILED,		"negotiation failed"),
+	TRANS_TBL(DECT_RELEASE_TIMER_EXPIRY,			"timer expiry"),
+	TRANS_TBL(DECT_RELEASE_PARTIAL_RELEASE,			"partial release"),
+	TRANS_TBL(DECT_RELEASE_UNKNOWN,				"unknown"),
+	TRANS_TBL(DECT_RELEASE_USER_DETACHED,			"user detached"),
+	TRANS_TBL(DECT_RELEASE_USER_NOT_IN_RANGE,		"user not in range"),
+	TRANS_TBL(DECT_RELEASE_USER_UNKNOWN,			"user unknown"),
+	TRANS_TBL(DECT_RELEASE_USER_ALREADY_ACTIVE,		"user already active"),
+	TRANS_TBL(DECT_RELEASE_USER_BUSY,			"user busy"),
+	TRANS_TBL(DECT_RELEASE_USER_REJECTION,			"user rejection"),
+	TRANS_TBL(DECT_RELEASE_USER_CALL_MODIFY,		"user call modify"),
+	TRANS_TBL(DECT_RELEASE_EXTERNAL_HANDOVER_NOT_SUPPORTED,"external HO not supported"),
+	TRANS_TBL(DECT_RELEASE_NETWORK_PARAMETERS_MISSING,	"network parameters missing"),
+	TRANS_TBL(DECT_RELEASE_EXTERNAL_HANDOVER_RELEASE,	"external HO release"),
+	TRANS_TBL(DECT_RELEASE_OVERLOAD,			"overload"),
+	TRANS_TBL(DECT_RELEASE_INSUFFICIENT_RESOURCES,		"insufficient resources"),
+	TRANS_TBL(DECT_RELEASE_INSUFFICIENT_BEARERS_AVAILABLE,	"insufficient bearers available"),
+	TRANS_TBL(DECT_RELEASE_IWU_CONGESTION,			"IWU congestion"),
 };
 
 static void dect_sfmt_dump_release_reason(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_release_reason *ie = dect_ie_container(ie, _ie);
+	char buf[32];
 
 	dect_debug("\trelease reason: %x (%s)\n", ie->reason,
-		   release_reasons[ie->reason]);
+		   dect_val2str(dect_release_reasons, buf, ie->reason));
 }
 
 static int dect_sfmt_parse_release_reason(const struct dect_handle *dh,
@@ -476,25 +480,28 @@ static int dect_sfmt_build_allocation_type(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
-static const char * const dect_auth_algs[] = {
-	[DECT_AUTH_DSAA]	= "DSAA",
-	[DECT_AUTH_GSM]		= "GSM",
-	[DECT_AUTH_UMTS]	= "UMTS",
-	[DECT_AUTH_PROPRIETARY]	= "proprietary",
+static const struct dect_trans_tbl dect_auth_algs[] = {
+	TRANS_TBL(DECT_AUTH_DSAA,			"DSAA"),
+	TRANS_TBL(DECT_AUTH_GSM,			"GSM"),
+	TRANS_TBL(DECT_AUTH_UMTS,			"UMTS"),
+	TRANS_TBL(DECT_AUTH_PROPRIETARY,		"proprietary"),
 };
 
-static const char * const dect_auth_key_types[] = {
-	[DECT_KEY_USER_AUTHENTICATION_KEY]	= "User authentication key",
-	[DECT_KEY_USER_PERSONAL_IDENTITY]	= "User personal identity",
-	[DECT_KEY_AUTHENTICATION_CODE]		= "Authentication code",
+static const struct dect_trans_tbl dect_auth_key_types[] = {
+	TRANS_TBL(DECT_KEY_USER_AUTHENTICATION_KEY,	"User authentication key"),
+	TRANS_TBL(DECT_KEY_USER_PERSONAL_IDENTITY,	"User personal identity"),
+	TRANS_TBL(DECT_KEY_AUTHENTICATION_CODE,		"Authentication code"),
 };
 
 static void dect_sfmt_dump_auth_type(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_auth_type *ie = dect_ie_container(ie, _ie);
+	char buf[32];
 
-	dect_debug("\tauthentication algorithm: %s\n", dect_auth_algs[ie->auth_id]);
-	dect_debug("\tauthentication key type: %s\n", dect_auth_key_types[ie->auth_key_type]);
+	dect_debug("\tauthentication algorithm: %s\n",
+		   dect_val2str(dect_auth_algs, buf, ie->auth_id));
+	dect_debug("\tauthentication key type: %s\n",
+		   dect_val2str(dect_auth_key_types, buf, ie->auth_key_type));
 	dect_debug("\tauthentication key number: %u\n", ie->auth_key_num);
 	dect_debug("\tcipher key number: %u\n", ie->cipher_key_num);
 	dect_debug("\tINC: %u TXC: %u UPC: %u\n",
@@ -603,13 +610,33 @@ static int dect_sfmt_build_auth_res(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static const struct dect_trans_tbl dect_cipher_algs[] = {
+	TRANS_TBL(DECT_CIPHER_STANDARD_1,		"DECT Standard Cipher 1"),
+	TRANS_TBL(DECT_CIPHER_GRPS_GEA_1,		"GPRS GEA/1"),
+	TRANS_TBL(DECT_CIPHER_GRPS_GEA_2,		"GPRS GEA/2"),
+	TRANS_TBL(DECT_CIPHER_GRPS_GEA_3,		"GPRS GEA/3"),
+	TRANS_TBL(DECT_CIPHER_GRPS_GEA_4,		"GPRS GEA/4"),
+	TRANS_TBL(DECT_CIPHER_GRPS_GEA_5,		"GPRS GEA/5"),
+	TRANS_TBL(DECT_CIPHER_GRPS_GEA_6,		"GPRS GEA/6"),
+	TRANS_TBL(DECT_CIPHER_GRPS_GEA_7,		"GPRS GEA/7"),
+	TRANS_TBL(DECT_CIPHER_ESC_TO_PROPRIETARY,	"Escape to proprietary"),
+};
+
+static const struct dect_trans_tbl dect_cipher_key_types[] = {
+	TRANS_TBL(DECT_CIPHER_DERIVED_KEY,		"derived"),
+	TRANS_TBL(DECT_CIPHER_STATIC_KEY,		"static"),
+};
+
 static void dect_sfmt_dump_cipher_info(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_cipher_info *ie = dect_ie_container(ie, _ie);
+	char buf[32];
 
 	dect_debug("\tenable: %u\n", ie->enable);
-	dect_debug("\tcipher algorithm identifier: %u\n", ie->cipher_alg_id);
-	dect_debug("\tcipher key type: %u\n", ie->cipher_key_type);
+	dect_debug("\tcipher algorithm identifier: %s\n",
+		   dect_val2str(dect_cipher_algs, buf, ie->cipher_alg_id));
+	dect_debug("\tcipher key type: %s\n",
+		   dect_val2str(dect_cipher_key_types, buf, ie->cipher_key_type));
 	dect_debug("\tcipher key num: %u\n", ie->cipher_key_num);
 }
 
@@ -697,46 +724,48 @@ static int dect_sfmt_parse_multi_keypad(const struct dect_handle *dh,
 	return 0;
 }
 
-static const char * const reject_reasons[256] = {
-	[DECT_REJECT_TPUI_UNKNOWN]				= "TPUI unknown",
-	[DECT_REJECT_IPUI_UNKNOWN]				= "IPUI unknown",
-	[DECT_REJECT_NETWORK_ASSIGNED_IDENTITY_UNKNOWN]		= "network assign identity unknown",
-	[DECT_REJECT_IPEI_NOT_ACCEPTED]				= "IPEI not accepted",
-	[DECT_REJECT_IPUI_NOT_ACCEPTED]				= "IPUI not accepted",
-	[DECT_REJECT_AUTHENTICATION_FAILED]			= "authentication failed",
-	[DECT_REJECT_NO_AUTHENTICATION_ALGORITHM]		= "no authentication algorithm",
-	[DECT_REJECT_AUTHENTICATION_ALGORITHM_NOT_SUPPORTED]	= "authentication algorithm not supported",
-	[DECT_REJECT_AUTHENTICATION_KEY_NOT_SUPPORTED]		= "authentication key not supported",
-	[DECT_REJECT_UPI_NOT_ENTERED]			 	= "UPI not entered",
-	[DECT_REJECT_NO_CIPHER_ALGORITHM]			= "no cipher algorithm",
-	[DECT_REJECT_CIPHER_ALGORITHM_NOT_SUPPORTED]		= "cipher algorithm not supported",
-	[DECT_REJECT_CIPHER_KEY_NOT_SUPPORTED]			= "cipher key not supported",
-	[DECT_REJECT_INCOMPATIBLE_SERVICE]			= "incompatible service",
-	[DECT_REJECT_FALSE_LCE_REPLY]				= "false LCE reply",
-	[DECT_REJECT_LATE_LCE_REPLY]				= "late LCE reply",
-	[DECT_REJECT_INVALID_TPUI]				= "invalid TPUI",
-	[DECT_REJECT_TPUI_ASSIGNMENT_LIMITS_UNACCEPTABLE]	= "TPUI assignment limits unacceptable",
-	[DECT_REJECT_INSUFFICIENT_MEMORY]			= "insufficient memory",
-	[DECT_REJECT_OVERLOAD]					= "overload",
-	[DECT_REJECT_TEST_CALL_BACK_NORMAL_EN_BLOC]		= "test callback - en-bloc dialing",
-	[DECT_REJECT_TEST_CALL_BACK_NORMAL_PIECEWISE]		= "test callback - piecewise dialing",
-	[DECT_REJECT_TEST_CALL_BACK_EMERGENCY_EN_BLOC]		= "emergency test callback - en-bloc dialing",
-	[DECT_REJECT_TEST_CALL_BACK_EMERGENCY_PIECEWISE]	= "emergency test callback - piecewise dialing",
-	[DECT_REJECT_INVALID_MESSAGE]				= "invalid message",
-	[DECT_REJECT_INFORMATION_ELEMENT_ERROR]			= "information element error",
-	[DECT_REJECT_INVALID_INFORMATION_ELEMENT_CONTENTS]	= "invalid information element contents",
-	[DECT_REJECT_TIMER_EXPIRY]				= "timer expiry",
-	[DECT_REJECT_PLMN_NOT_ALLOWED]				= "plmn not allowed",
-	[DECT_REJECT_LOCATION_AREA_NOT_ALLOWED]			= "location area not allowed",
-	[DECT_REJECT_LOCATION_NATIONAL_ROAMING_NOT_ALLOWED]	= "national roaming not allowed",
+static const struct dect_trans_tbl dect_reject_reasons[] = {
+	TRANS_TBL(DECT_REJECT_TPUI_UNKNOWN,				"TPUI unknown"),
+	TRANS_TBL(DECT_REJECT_IPUI_UNKNOWN,				"IPUI unknown"),
+	TRANS_TBL(DECT_REJECT_NETWORK_ASSIGNED_IDENTITY_UNKNOWN,	"network assign identity unknown"),
+	TRANS_TBL(DECT_REJECT_IPEI_NOT_ACCEPTED,			"IPEI not accepted"),
+	TRANS_TBL(DECT_REJECT_IPUI_NOT_ACCEPTED,			"IPUI not accepted"),
+	TRANS_TBL(DECT_REJECT_AUTHENTICATION_FAILED,			"authentication failed"),
+	TRANS_TBL(DECT_REJECT_NO_AUTHENTICATION_ALGORITHM,		"no authentication algorithm"),
+	TRANS_TBL(DECT_REJECT_AUTHENTICATION_ALGORITHM_NOT_SUPPORTED,	"authentication algorithm not supported"),
+	TRANS_TBL(DECT_REJECT_AUTHENTICATION_KEY_NOT_SUPPORTED,		"authentication key not supported"),
+	TRANS_TBL(DECT_REJECT_UPI_NOT_ENTERED,			 	"UPI not entered"),
+	TRANS_TBL(DECT_REJECT_NO_CIPHER_ALGORITHM,			"no cipher algorithm"),
+	TRANS_TBL(DECT_REJECT_CIPHER_ALGORITHM_NOT_SUPPORTED,		"cipher algorithm not supported"),
+	TRANS_TBL(DECT_REJECT_CIPHER_KEY_NOT_SUPPORTED,			"cipher key not supported"),
+	TRANS_TBL(DECT_REJECT_INCOMPATIBLE_SERVICE,			"incompatible service"),
+	TRANS_TBL(DECT_REJECT_FALSE_LCE_REPLY,				"false LCE reply"),
+	TRANS_TBL(DECT_REJECT_LATE_LCE_REPLY,				"late LCE reply"),
+	TRANS_TBL(DECT_REJECT_INVALID_TPUI,				"invalid TPUI"),
+	TRANS_TBL(DECT_REJECT_TPUI_ASSIGNMENT_LIMITS_UNACCEPTABLE,	"TPUI assignment limits unacceptable"),
+	TRANS_TBL(DECT_REJECT_INSUFFICIENT_MEMORY,			"insufficient memory"),
+	TRANS_TBL(DECT_REJECT_OVERLOAD,					"overload"),
+	TRANS_TBL(DECT_REJECT_TEST_CALL_BACK_NORMAL_EN_BLOC,		"test callback - en-bloc dialing"),
+	TRANS_TBL(DECT_REJECT_TEST_CALL_BACK_NORMAL_PIECEWISE,		"test callback - piecewise dialing"),
+	TRANS_TBL(DECT_REJECT_TEST_CALL_BACK_EMERGENCY_EN_BLOC,		"emergency test callback - en-bloc dialing"),
+	TRANS_TBL(DECT_REJECT_TEST_CALL_BACK_EMERGENCY_PIECEWISE,	"emergency test callback - piecewise dialing"),
+	TRANS_TBL(DECT_REJECT_INVALID_MESSAGE,				"invalid message"),
+	TRANS_TBL(DECT_REJECT_INFORMATION_ELEMENT_ERROR,		"information element error"),
+	TRANS_TBL(DECT_REJECT_INVALID_INFORMATION_ELEMENT_CONTENTS,	"invalid information element contents"),
+	TRANS_TBL(DECT_REJECT_TIMER_EXPIRY,				"timer expiry"),
+	TRANS_TBL(DECT_REJECT_PLMN_NOT_ALLOWED,				"plmn not allowed"),
+	TRANS_TBL(DECT_REJECT_LOCATION_AREA_NOT_ALLOWED,		"location area not allowed"),
+	TRANS_TBL(DECT_REJECT_LOCATION_NATIONAL_ROAMING_NOT_ALLOWED,	"national roaming not allowed"),
 };
 
 static void dect_sfmt_dump_reject_reason(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_reject_reason *ie = dect_ie_container(ie, _ie);
+	char buf[32];
 
 	dect_debug("\treject reason: %s (%x)\n",
-		   reject_reasons[ie->reason], ie->reason);
+		   dect_val2str(dect_reject_reasons, buf, ie->reason),
+		   ie->reason);
 }
 
 static int dect_sfmt_parse_reject_reason(const struct dect_handle *dh,
@@ -782,64 +811,126 @@ static int dect_sfmt_build_setup_capability(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
-static const char * const display_capabilities[] = {
-	[DECT_DISPLAY_CAPABILITY_NOT_APPLICABLE]	= "not applicable",
-	[DECT_DISPLAY_CAPABILITY_NO_DISPLAY]		= "no display",
-	[DECT_DISPLAY_CAPABILITY_NUMERIC]		= "numeric",
-	[DECT_DISPLAY_CAPABILITY_NUMERIC_PLUS]		= "numeric-plus",
-	[DECT_DISPLAY_CAPABILITY_ALPHANUMERIC]		= "alphanumeric",
-	[DECT_DISPLAY_CAPABILITY_FULL_DISPLAY]		= "full display",
+static const struct dect_trans_tbl dect_display_capabilities[] = {
+	TRANS_TBL(DECT_DISPLAY_CAPABILITY_NOT_APPLICABLE,	"not applicable"),
+	TRANS_TBL(DECT_DISPLAY_CAPABILITY_NO_DISPLAY,		"no display"),
+	TRANS_TBL(DECT_DISPLAY_CAPABILITY_NUMERIC,		"numeric"),
+	TRANS_TBL(DECT_DISPLAY_CAPABILITY_NUMERIC_PLUS,		"numeric-plus"),
+	TRANS_TBL(DECT_DISPLAY_CAPABILITY_ALPHANUMERIC,		"alphanumeric"),
+	TRANS_TBL(DECT_DISPLAY_CAPABILITY_FULL_DISPLAY,		"full display"),
 };
 
-static const char * const tone_capabilities[] = {
-	[DECT_TONE_CAPABILITY_NOT_APPLICABLE]		= "not applicable",
-	[DECT_TONE_CAPABILITY_NO_TONE]			= "no tone",
-	[DECT_TONE_CAPABILITY_DIAL_TONE_ONLY]		= "dial tone only",
-	[DECT_TONE_CAPABILITY_ITU_T_E182_TONES]		= "ITU-T E.182 tones",
-	[DECT_TONE_CAPABILITY_COMPLETE_DECT_TONES]	= "complete DECT tones",
+static const struct dect_trans_tbl dect_tone_capabilities[] = {
+	TRANS_TBL(DECT_TONE_CAPABILITY_NOT_APPLICABLE,		"not applicable"),
+	TRANS_TBL(DECT_TONE_CAPABILITY_NO_TONE,			"no tone"),
+	TRANS_TBL(DECT_TONE_CAPABILITY_DIAL_TONE_ONLY,		"dial tone only"),
+	TRANS_TBL(DECT_TONE_CAPABILITY_ITU_T_E182_TONES,	"ITU-T E.182 tones"),
+	TRANS_TBL(DECT_TONE_CAPABILITY_COMPLETE_DECT_TONES,	"complete DECT tones"),
 };
 
-static const char * const echo_parameters[] = {
-	[DECT_ECHO_PARAMETER_NOT_APPLICABLE]		= "not applicable",
-	[DECT_ECHO_PARAMETER_MINIMUM_TCLW]		= "TCL > 34 dB",
-	[DECT_ECHO_PARAMETER_FULL_TCLW]			= "TCL > 46 dB",
-	[DECT_ECHO_PARAMETER_VOIP_COMPATIBLE_TLCW]	= "TCL > 55 dB",
+static const struct dect_trans_tbl dect_echo_parameters[] = {
+	TRANS_TBL(DECT_ECHO_PARAMETER_NOT_APPLICABLE,		"not applicable"),
+	TRANS_TBL(DECT_ECHO_PARAMETER_MINIMUM_TCLW,		"TCL > 34 dB"),
+	TRANS_TBL(DECT_ECHO_PARAMETER_FULL_TCLW,		"TCL > 46 dB"),
+	TRANS_TBL(DECT_ECHO_PARAMETER_VOIP_COMPATIBLE_TLCW,	"TCL > 55 dB"),
 };
 
-static const char * const noise_rejection_capabilities[] = {
-	[DECT_NOISE_REJECTION_NOT_APPLICABLE]		= "not applicable",
-	[DECT_NOISE_REJECTION_NONE]			= "none",
-	[DECT_NOISE_REJECTION_PROVIDED]			= "provided",
+static const struct dect_trans_tbl dect_noise_rejection_capabilities[] = {
+	TRANS_TBL(DECT_NOISE_REJECTION_NOT_APPLICABLE,		"not applicable"),
+	TRANS_TBL(DECT_NOISE_REJECTION_NONE,			"none"),
+	TRANS_TBL(DECT_NOISE_REJECTION_PROVIDED,		"provided"),
 };
 
-static const char * const volume_ctrl_provisions[] = {
-	[DECT_ADAPTIVE_VOLUME_NOT_APPLICABLE]		= "not applicable",
-	[DECT_ADAPTIVE_VOLUME_PP_CONTROL_NONE]		= "no PP adaptive volume control",
-	[DECT_ADAPTIVE_VOLUME_PP_CONTROL_USED]		= "PP adaptive volume control",
-	[DECT_ADAPTIVE_VOLUME_FP_CONTROL_DISABLE]	= "disable FP adaptive volume control",
+static const struct dect_trans_tbl dect_volume_ctrl_provisions[] = {
+	TRANS_TBL(DECT_ADAPTIVE_VOLUME_NOT_APPLICABLE,		"not applicable"),
+	TRANS_TBL(DECT_ADAPTIVE_VOLUME_PP_CONTROL_NONE,		"no PP adaptive volume control"),
+	TRANS_TBL(DECT_ADAPTIVE_VOLUME_PP_CONTROL_USED,		"PP adaptive volume control"),
+	TRANS_TBL(DECT_ADAPTIVE_VOLUME_FP_CONTROL_DISABLE,	"disable FP adaptive volume control"),
 };
 
-static const char * const scrolling_behaviour[] = {
-	[DECT_SCROLLING_NOT_SPECIFIED]			= "not specified",
-	[DECT_SCROLLING_TYPE_1]				= "type 1",
-	[DECT_SCROLLING_TYPE_2]				= "type 2",
+static const struct dect_trans_tbl dect_scrolling_behaviour[] = {
+	TRANS_TBL(DECT_SCROLLING_NOT_SPECIFIED,			"not specified"),
+	TRANS_TBL(DECT_SCROLLING_TYPE_1,			"type 1"),
+	TRANS_TBL(DECT_SCROLLING_TYPE_2,			"type 2"),
+};
+
+static const struct dect_trans_tbl dect_slot_capabilities[] = {
+	TRANS_TBL(DECT_SLOT_CAPABILITY_HALF_SLOT,		"half slot"),
+	TRANS_TBL(DECT_SLOT_CAPABILITY_LONG_SLOT_640,		"long slot 640"),
+	TRANS_TBL(DECT_SLOT_CAPABILITY_LONG_SLOT_672,		"long slot 672"),
+	TRANS_TBL(DECT_SLOT_CAPABILITY_FULL_SLOT,		"full slot"),
+	TRANS_TBL(DECT_SLOT_CAPABILITY_DOUBLE_SLOT,		"double slot"),
+};
+
+static const struct dect_trans_tbl dect_profile_indicators[] = {
+	TRANS_TBL(DECT_PROFILE_DPRS_ASYMETRIC_BEARERS_SUPPORTED,	"DPRS asymetric bearers"),
+	TRANS_TBL(DECT_PROFILE_DPRS_STREAM_SUPPORTED,			"DPRS Stream"),
+	TRANS_TBL(DECT_PROFILE_LRMS_SUPPORTED,				"LRMS"),
+	TRANS_TBL(DECT_PROFILE_ISDN_END_SYSTEM_SUPPORTED,		"ISDN End-system"),
+	TRANS_TBL(DECT_PROFILE_DECT_GSM_INTERWORKING_PROFILE_SUPPORTED,"DECT/GSM interworking"),
+	TRANS_TBL(DECT_PROFILE_GAP_SUPPORTED,				"GAP"),
+	TRANS_TBL(DECT_PROFILE_CAP_SUPPORTED,				"CAP"),
+	TRANS_TBL(DECT_PROFILE_RAP_1_PROFILE_SUPPORTED,			"RAP 1"),
+	TRANS_TBL(DECT_PROFILE_UMTS_GSM_FACSIMILE_SUPPORTED,		"UMTS-GSM interworking - Facsimile service"),
+	TRANS_TBL(DECT_PROFILE_UMTS_GSM_SMS_SERVICE_SUPPORTED,		"UMTS-GSM interworking - SMS service"),
+	TRANS_TBL(DECT_PROFILE_UMTS_GSM_BEARER_SERVICE,			"UMTS-GSM interworking - bearer service"),
+	TRANS_TBL(DECT_PROFILE_ISDN_IAP_SUPPORTED,			"ISDN Intermediate Access"),
+	TRANS_TBL(DECT_PROFILE_DATA_SERVICES_PROFILE_D,			"Data Services Profile D"),
+	TRANS_TBL(DECT_PROFILE_DPRS_FREL_SUPPORTED,			"DPRS FREL"),
+	TRANS_TBL(DECT_PROFILE_TOKEN_RING_SUPPORTED,			"Token Ring"),
+	TRANS_TBL(DECT_PROFILE_ETHERNET_SUPPORTED,			"Ethernet"),
+	TRANS_TBL(DECT_PROFILE_MULTIPORT_CTA,				"Multiport CPA"),
+	TRANS_TBL(DECT_PROFILE_DMAP_SUPPORTED,				"DMAP"),
+	TRANS_TBL(DECT_PROFILE_SMS_OVER_LRMS_SUPPORTED,			"SMS over LRMS"),
+	TRANS_TBL(DECT_PROFILE_WRS_SUPPORTED,				"WRS"),
+	TRANS_TBL(DECT_PROFILE_DECT_GSM_DUAL_MODE_TERMINAL,		"DECT/GSM dual mode terminal"),
+	TRANS_TBL(DECT_PROFILE_DPRS_SUPPORTED,				"DPRS"),
+	TRANS_TBL(DECT_PROFILE_RAP_2_PROFILE_SUPPORTED,			"RAP 2"),
+	TRANS_TBL(DECT_PROFILE_I_PQ_SERVICES_SUPPORTED,			"I_pq services"),
+	TRANS_TBL(DECT_PROFILE_C_F_CHANNEL_SUPPORTED,			"C_f channel"),
+	TRANS_TBL(DECT_PROFILE_V_24_SUPPORTED,				"V.24"),
+	TRANS_TBL(DECT_PROFILE_PPP_SUPPORTED,				"PPP"),
+	TRANS_TBL(DECT_PROFILE_IP_SUPPORTED,				"IP"),
+	TRANS_TBL(DECT_PROFILE_8_LEVEL_A_FIELD_MODULATION,		"8-level A-field modulation"),
+	TRANS_TBL(DECT_PROFILE_4_LEVEL_A_FIELD_MODULATION,		"4-level A-field modulation"),
+	TRANS_TBL(DECT_PROFILE_2_LEVEL_A_FIELD_MODULATION,		"2-level A-field modulation"),
+	TRANS_TBL(DECT_PROFILE_16_LEVEL_BZ_FIELD_MODULATION,		"16-level B/Z-field modulation"),
+	TRANS_TBL(DECT_PROFILE_8_LEVEL_BZ_FIELD_MODULATION,		"8-level B/Z-field modulation"),
+	TRANS_TBL(DECT_PROFILE_4_LEVEL_BZ_FIELD_MODULATION,		"4-level B/Z-field modulation"),
+	TRANS_TBL(DECT_PROFILE_2_LEVEL_BZ_FIELD_MODULATION,		"2-level B/Z-field modulation"),
+	TRANS_TBL(DECT_PROFILE_NO_EMISSION_MODE_SUPPORTED,		"no emission mode"),
+	TRANS_TBL(DECT_PROFILE_PT_WITH_FAST_HOPPING_RADIO,		"fast hopping radio"),
+	TRANS_TBL(DECT_PROFILE_G_F_CHANNEL_SUPPORTED,			"G_f channel"),
+	TRANS_TBL(DECT_PROFILE_F_MMS_INTERWORKING_PROFILE_SUPPORTED,	"F-MMS Interworking"),
+	TRANS_TBL(DECT_PROFILE_BASIC_ODAP_SUPPORTED,			"Basic ODAP"),
+	TRANS_TBL(DECT_PROFILE_DECT_UMTS_INTERWORKING_GPRS_SUPPORTED,	"UMTS interworking - GPRS service"),
+	TRANS_TBL(DECT_PROFILE_DECT_UMTS_INTERWORKING_PROFILE_SUPPORTED, "UMTS interworking"),
 };
 
 static void dect_sfmt_dump_terminal_capability(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_terminal_capability *ie = dect_ie_container(ie, _ie);
+	char buf[32];
 
-	dect_debug("\tdisplay capability: %s\n", display_capabilities[ie->display]);
-	dect_debug("\ttone capability: %s\n", tone_capabilities[ie->tone]);
-	dect_debug("\techo parameters: %s\n", echo_parameters[ie->echo]);
-	dect_debug("\tnoise rejection capability: %s\n", noise_rejection_capabilities[ie->noise_rejection]);
-	dect_debug("\tadaptive volume control provision: %s\n", volume_ctrl_provisions[ie->volume_ctrl]);
-	dect_debug("\tslot capabilities: %x\n", ie->slot);
+	dect_debug("\tdisplay capability: %s\n",
+		   dect_val2str(dect_display_capabilities, buf, ie->display));
+	dect_debug("\ttone capability: %s\n",
+		   dect_val2str(dect_tone_capabilities, buf, ie->tone));
+	dect_debug("\techo parameters: %s\n",
+		   dect_val2str(dect_echo_parameters, buf, ie->echo));
+	dect_debug("\tnoise rejection capability: %s\n",
+		   dect_val2str(dect_noise_rejection_capabilities, buf, ie->noise_rejection));
+	dect_debug("\tadaptive volume control provision: %s\n",
+		   dect_val2str(dect_volume_ctrl_provisions, buf, ie->volume_ctrl));
+	dect_debug("\tslot capabilities: %s\n",
+		   dect_flags2str(dect_slot_capabilities, buf, ie->slot));
 	dect_debug("\tdisplay memory: %u\n", ie->display_memory);
 	dect_debug("\tdisplay lines: %u\n", ie->display_lines);
 	dect_debug("\tdisplay columns: %u\n", ie->display_columns);
-	dect_debug("\tscrolling behaviour: %s\n", scrolling_behaviour[ie->scrolling]);
-	dect_debug("\tprofile indicator: %" PRIx64 "\n", ie->profile_indicator);
+	dect_debug("\tscrolling behaviour: %s\n",
+		   dect_val2str(dect_scrolling_behaviour, buf, ie->scrolling));
+	dect_debug("\tprofile indicator: %s\n",
+		   dect_flags2str(dect_profile_indicators, buf, ie->profile_indicator));
 	dect_debug("\tdisplay control: %x\n", ie->display_control);
 	dect_debug("\tdisplay charsets: %x\n", ie->display_charsets);
 }
@@ -963,26 +1054,27 @@ static int dect_sfmt_build_terminal_capability(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
-static const char * const lock_limits[] = {
-	[DECT_LOCK_TEMPORARY_USER_LIMIT_1]	= "temporary user limit 1",
-	[DECT_LOCK_NO_LIMITS]			= "no limits",
-	[DECT_LOCK_TEMPORARY_USER_LIMIT_2]	= "temporary user limit 2",
+static const struct dect_trans_tbl dect_lock_limits[] = {
+	TRANS_TBL(DECT_LOCK_TEMPORARY_USER_LIMIT_1,	"temporary user limit 1"),
+	TRANS_TBL(DECT_LOCK_NO_LIMITS,			"no limits"),
+	TRANS_TBL(DECT_LOCK_TEMPORARY_USER_LIMIT_2,	"temporary user limit 2"),
 };
 
-static const char * const time_limits[] = {
-	[DECT_TIME_LIMIT_ERASE]			= "erase",
-	[DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_1]	= "defined time limit 1",
-	[DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_2]	= "defined time limit 2",
-	[DECT_TIME_LIMIT_STANDARD_TIME_LIMIT]	= "standard time limit",
-	[DECT_TIME_LIMIT_INFINITE]		= "infinite",
+static const struct dect_trans_tbl dect_time_limits[] = {
+	TRANS_TBL(DECT_TIME_LIMIT_ERASE,		"erase"),
+	TRANS_TBL(DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_1,	"defined time limit 1"),
+	TRANS_TBL(DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_2,	"defined time limit 2"),
+	TRANS_TBL(DECT_TIME_LIMIT_STANDARD_TIME_LIMIT,	"standard time limit"),
+	TRANS_TBL(DECT_TIME_LIMIT_INFINITE,		"infinite"),
 };
 
 static void dect_sfmt_dump_duration(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_duration *ie = dect_ie_container(ie, _ie);
+	char buf[32];
 
-	dect_debug("\tlock: %s\n", lock_limits[ie->lock]);
-	dect_debug("\ttime: %s\n", time_limits[ie->time]);
+	dect_debug("\tlock: %s\n", dect_val2str(dect_lock_limits, buf, ie->lock));
+	dect_debug("\ttime: %s\n", dect_val2str(dect_time_limits, buf, ie->time));
 	dect_debug("\tduration: %u\n", ie->duration);
 }
 

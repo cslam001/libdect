@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
@@ -43,6 +44,47 @@ void dect_hexdump(const char *prefix, const uint8_t *buf, size_t size)
 			dect_debug("%s: %-48s    |%s|\n", prefix, hbuf, abuf);
 		}
 	}
+}
+
+const char *__dect_flags2str(const struct dect_trans_tbl *tbl, unsigned int nelem,
+			     char *buf, size_t size, uint64_t val)
+{
+	const char *delim = NULL;
+	unsigned int i;
+
+	buf[0] = '\0';
+	for (i = 0; i < nelem && val ; i++) {
+		if (tbl[i].val & val) {
+			val &= ~tbl[i].val;
+			if (delim)
+				strncat(buf, delim, size - strlen(buf) - 1);
+			strncat(buf, tbl[i].str, size - strlen(buf) - 1);
+			delim = ",";
+		}
+	}
+
+	if (val) {
+		snprintf(buf, size - strlen(buf), "unknown (%" PRIx64 ")", val);
+		if (delim)
+			strncat(buf, delim, size - strlen(buf) - 1);
+		strncat(buf, tbl[i].str, size - strlen(buf) - 1);
+	}
+
+	return buf;
+}
+
+const char *__dect_val2str(const struct dect_trans_tbl *tbl, unsigned int nelem,
+			   char *buf, size_t size, uint64_t val)
+{
+	unsigned int i;
+
+	for (i = 0; i < nelem; i++) {
+		if (tbl[i].val == val)
+			return tbl[i].str;
+	}
+
+	snprintf(buf, size, "unknown (%" PRIx64 ")", val);
+	return buf;
 }
 
 void *dect_malloc(const struct dect_handle *dh, size_t size)

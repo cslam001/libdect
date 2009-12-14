@@ -21,6 +21,25 @@
 extern void dect_debug(const char *fmt, ...) __fmtstring(1, 2);
 extern void dect_hexdump(const char *prefix, const uint8_t *buf, size_t size);
 
+struct dect_trans_tbl {
+	uint64_t	val;
+	const char	*str;
+};
+
+#define TRANS_TBL(_val, _str)	{ .val = (_val), .str = (_str) }
+
+extern const char *__dect_flags2str(const struct dect_trans_tbl *tbl, unsigned int nelem,
+				    char *buf, size_t size, uint64_t val);
+
+#define dect_val2str(trans, buf, val) \
+	__dect_val2str(trans, array_size(trans), buf, sizeof(buf), val)
+
+extern const char *__dect_val2str(const struct dect_trans_tbl *tbl, unsigned int nelem,
+				  char *buf, size_t len, uint64_t val);
+
+#define dect_flags2str(trans, buf, val) \
+	__dect_flags2str(trans, array_size(trans), buf, sizeof(buf), val)
+
 extern void *dect_malloc(const struct dect_handle *dh, size_t size);
 extern void *dect_zalloc(const struct dect_handle *dh, size_t size);
 extern void dect_free(const struct dect_handle *dh, void *ptr);
