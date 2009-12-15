@@ -89,6 +89,7 @@ extern int dect_lce_send(const struct dect_handle *dh,
  * @shutdown:	Perform an active shutdown of the transaction
  * @rcv:	Receive a message related to an active transaction
  */
+enum dect_cipher_states;
 struct dect_nwk_protocol {
 	const char		*name;
 	enum dect_pds		pd;
@@ -101,6 +102,9 @@ struct dect_nwk_protocol {
 	void			(*rcv)(struct dect_handle *dh,
 				       struct dect_transaction *ta,
 				       struct dect_msg_buf *mb);
+	void			(*encrypt_ind)(struct dect_handle *dh,
+					       struct dect_transaction *ta,
+					       enum dect_cipher_states state);
 };
 
 extern void dect_lce_register_protocol(const struct dect_nwk_protocol *protocol);
@@ -154,6 +158,7 @@ struct dect_data_link {
 	struct dect_ipui		ipui;
 	struct dect_fd			*dfd;
 	enum dect_data_link_states	state;
+	enum dect_cipher_states		cipher;
 	struct dect_timer		*sdu_timer;
 	struct dect_timer		*release_timer;
 	struct dect_timer		*page_timer;
@@ -166,6 +171,11 @@ struct dect_data_link {
 #define DECT_DDL_ESTABLISH_SDU_TIMEOUT	5	/* seconds */
 #define DECT_DDL_PAGE_TIMEOUT		5	/* seconds */
 #define DECT_DDL_PAGE_RETRANS_MAX	3	/* N.300 */
+
+extern int dect_ddl_set_cipher_key(const struct dect_data_link *ddl,
+				   uint8_t ck[]);
+extern int dect_ddl_encrypt_req(const struct dect_data_link *ddl,
+				enum dect_cipher_states status);
 
 extern int dect_lce_group_ring(struct dect_handle *dh,
 			       enum dect_ring_patterns pattern);

@@ -9,6 +9,8 @@
  */
 
 #include <stdio.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
@@ -25,6 +27,7 @@
 #include <b_fmt.h>
 #include <lce.h>
 #include <ss.h>
+#include <dect/auth.h>
 
 static DECT_SFMT_MSG_DESC(lce_page_response,
 	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_NONE,      IE_MANDATORY, 0),
@@ -66,17 +69,30 @@ struct dect_msg_buf *dect_mbuf_alloc(const struct dect_handle *dh)
 	return mb;
 }
 
-static ssize_t dect_mbuf_rcv(const struct dect_fd *dfd, struct dect_msg_buf *mb)
+static ssize_t dect_mbuf_rcv(const struct dect_fd *dfd, struct msghdr *msg,
+			     struct dect_msg_buf *mb)
 {
+	struct iovec iov;
 	ssize_t len;
 
 	memset(mb, 0, sizeof(*mb));
 	mb->data = mb->head;
-	len = recv(dfd->fd, mb->data, sizeof(mb->head), 0);
+
+	msg->msg_name		= NULL;
+	msg->msg_namelen	= 0;
+	msg->msg_iov		= &iov;
+	msg->msg_iovlen		= 1;
+	msg->msg_flags		= 0;
+
+	iov.iov_base		= mb->data;
+	iov.iov_len		= sizeof(mb->head);
+
+	len = recvmsg(dfd->fd, msg, 0);
 	if (len < 0) {
-		dect_debug("recv: %s\n", strerror(errno));
+		dect_debug("recvmsg: %s\n", strerror(errno));
 		return len;
 	}
+
 	mb->len = len;
 	return len;
 }
@@ -176,8 +192,12 @@ static void dect_lce_bsap_event(struct dect_handle *dh, struct dect_fd *dfd,
 				uint32_t events)
 {
 	struct dect_msg_buf _mb, *mb = &_mb;
+	struct msghdr msg;
 
-	if (dect_mbuf_rcv(dfd, mb) < 0)
+	msg.msg_control		= NULL;
+	msg.msg_controllen	= 0;
+
+	if (dect_mbuf_rcv(dfd, &msg, mb) < 0)
 		return;
 	dect_mbuf_dump(mb, "BCAST RX");
 
@@ -352,6 +372,59 @@ static void dect_ddl_shutdown(struct dect_handle *dh,
 		protocols[ta->pd]->shutdown(dh, ta);
 		if (last)
 			break;
+	}
+}
+
+/**
+ * dect_ddl_set_cipher_key - set cipher key for datalink
+ *
+ * @ddl:	Datalink
+ * @ck:		Cipher key
+ */
+int dect_ddl_set_cipher_key(const struct dect_data_link *ddl,
+			    uint8_t ck[DECT_CIPHER_KEY_LEN])
+{
+	int err;
+
+	ddl_debug(ddl, "DL_ENC_KEY-req: %.16" PRIx64, *(uint64_t *)ck);
+	err = setsockopt(ddl->dfd->fd, SOL_DECT, DECT_DL_ENC_KEY,
+			 ck, DECT_CIPHER_KEY_LEN);
+	if (err != 0)
+		ddl_debug(ddl, "setsockopt: %s", strerror(errno));
+	return err;
+}
+
+/**
+ * dect_ddl_encrypt_req - enable/disable encryption for a datalink
+ *
+ * @ddl:	Datalink
+ * @status:	desired ciphering state (enabled/disabled)
+ */
+int dect_ddl_encrypt_req(const struct dect_data_link *ddl,
+			 enum dect_cipher_states status)
+{
+	struct dect_dl_encrypt dle = { .status = status };
+	int err;
+
+	ddl_debug(ddl, "DL_ENCRYPT-req: status: %u\n", status);
+	err = setsockopt(ddl->dfd->fd, SOL_DECT, DECT_DL_ENCRYPT,
+			 &dle, sizeof(dle));
+	if (err != 0)
+		ddl_debug(ddl, "setsockopt: %s", strerror(errno));
+	return err;
+}
+
+static void dect_ddl_encrypt_ind(struct dect_handle *dh,
+				 struct dect_data_link *ddl,
+				 enum dect_cipher_states state)
+{
+	struct dect_transaction *ta, *next;
+
+	ddl_debug(ddl, "DL_ENCRYPT-ind");
+	ddl->cipher = state;
+	list_for_each_entry_safe(ta, next, &ddl->transactions, list) {
+		if (protocols[ta->pd]->encrypt_ind)
+			protocols[ta->pd]->encrypt_ind(dh, ta, state);
 	}
 }
 
@@ -651,10 +724,16 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 {
 	struct dect_msg_buf _mb, *mb = &_mb;
 	struct dect_transaction *ta;
+	struct msghdr msg;
+	struct cmsghdr *cmsg;
+	char cmsg_buf[4 * CMSG_SPACE(16)];
 	uint8_t pd, tv;
 	bool f;
 
-	if (dect_mbuf_rcv(ddl->dfd, mb) < 0) {
+	msg.msg_control		= cmsg_buf;
+	msg.msg_controllen	= sizeof(cmsg_buf);
+
+	if (dect_mbuf_rcv(ddl->dfd, &msg, mb) < 0) {
 		switch (errno) {
 		case ENOTCONN:
 			if (ddl->state == DECT_DATA_LINK_RELEASE_PENDING)
@@ -674,6 +753,25 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 			ddl_debug(ddl, "unhandled receive error: %s",
 				  strerror(errno));
 			BUG();
+		}
+	}
+
+	for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
+		const struct dect_dl_encrypt *dle;
+
+		if (cmsg->cmsg_level != SOL_DECT)
+			continue;
+
+		switch (cmsg->cmsg_type) {
+		case DECT_DL_ENCRYPT:
+			if (cmsg->cmsg_len < CMSG_LEN(sizeof(*dle)))
+				continue;
+			dle = (struct dect_dl_encrypt *)CMSG_DATA(cmsg);
+			dect_ddl_encrypt_ind(dh, ddl, dle->status);
+			continue;
+		default:
+			ddl_debug(ddl, "unhandled cmsg: %u\n", cmsg->cmsg_type);
+			continue;
 		}
 	}
 
