@@ -382,7 +382,7 @@ static void dect_ddl_shutdown(struct dect_handle *dh,
  * @ck:		Cipher key
  */
 int dect_ddl_set_cipher_key(const struct dect_data_link *ddl,
-			    uint8_t ck[DECT_CIPHER_KEY_LEN])
+			    const uint8_t ck[DECT_CIPHER_KEY_LEN])
 {
 	int err;
 

@@ -173,7 +173,7 @@ struct dect_data_link {
 #define DECT_DDL_PAGE_RETRANS_MAX	3	/* N.300 */
 
 extern int dect_ddl_set_cipher_key(const struct dect_data_link *ddl,
-				   uint8_t ck[]);
+				   const uint8_t ck[]);
 extern int dect_ddl_encrypt_req(const struct dect_data_link *ddl,
 				enum dect_cipher_states status);
 

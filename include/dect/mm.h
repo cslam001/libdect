@@ -108,6 +108,13 @@ struct dect_mm_ops {
 				       struct dect_mm_endpoint *mme, bool accept,
 				       struct dect_mm_authenticate_param *param);
 
+	void	(*mm_cipher_ind)(struct dect_handle *dh,
+				 struct dect_mm_endpoint *mme,
+				 struct dect_mm_cipher_param *param);
+	void	(*mm_cipher_cfm)(struct dect_handle *dh,
+				 struct dect_mm_endpoint *mme, bool accept,
+				 struct dect_mm_cipher_param *param);
+
 	void	(*mm_locate_ind)(struct dect_handle *dh,
 				 struct dect_mm_endpoint *mme,
 				 struct dect_mm_locate_param *param);
@@ -135,6 +142,13 @@ extern int dect_mm_authenticate_req(struct dect_handle *dh, struct dect_mm_endpo
 				    const struct dect_mm_authenticate_param *param);
 extern int dect_mm_authenticate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 				    const struct dect_mm_authenticate_param *param);
+
+extern int dect_mm_cipher_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+			      const struct dect_mm_cipher_param *param,
+			      const uint8_t ck[]);
+extern int dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+			      bool accept, const struct dect_mm_cipher_param *param,
+			      const uint8_t ck[]);
 
 extern int dect_mm_locate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			      const struct dect_mm_locate_param *param);

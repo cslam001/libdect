@@ -136,6 +136,11 @@ struct dect_mm_cipher_request_msg {
 
 struct dect_mm_cipher_suggest_msg {
 	struct dect_msg_common			common;
+	struct dect_ie_cipher_info		*cipher_info;
+	struct dect_ie_call_identity		*call_identity;
+	struct dect_ie_connection_identity	*connection_identity;
+	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_detach_msg {
@@ -253,6 +258,7 @@ enum dect_mm_procedures {
 	DECT_MMP_ACCESS_RIGHTS,
 	DECT_MMP_AUTHENTICATE,
 	DECT_MMP_KEY_ALLOCATION,
+	DECT_MMP_CIPHER,
 };
 
 struct dect_mm_procedure {

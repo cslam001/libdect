@@ -21,6 +21,7 @@
 #include <s_fmt.h>
 #include <lce.h>
 #include <mm.h>
+#include <dect/auth.h>
 
 static DECT_SFMT_MSG_DESC(mm_access_rights_accept,
 	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_MANDATORY, IE_NONE,      0),
@@ -487,6 +488,218 @@ err1:
 }
 
 /**
+ * dect_mm_cipher_req - MM_CIPHER-req primitive
+ *
+ * @dh:		libdect DECT handle
+ * @mme:	Mobility Management Endpoint
+ * @param:	cipher request parameters
+ * @ck:		cipher key
+ */
+int dect_mm_cipher_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+		       const struct dect_mm_cipher_param *param,
+		       const uint8_t ck[DECT_CIPHER_KEY_LEN])
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_cipher_request_msg msg;
+	int err;
+
+	mm_debug(mme, "CIPHER-req");
+	if (mp->type != DECT_MMP_NONE)
+		return -1;
+
+	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
+					DECT_PD_MM);
+	if (err < 0)
+		goto err1;
+
+	err = dect_ddl_set_cipher_key(mme->link, ck);
+	if (err < 0)
+		goto err2;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.cipher_info			= param->cipher_info;
+	msg.call_identity		= param->call_identity;
+	msg.connection_identity		= param->connection_identity;
+	msg.iwu_to_iwu			= param->iwu_to_iwu;
+	msg.escape_to_proprietary	= param->escape_to_proprietary;
+
+	/* cipher_request and cipher_suggest messages have identical layout */
+	if (dh->mode == DECT_MODE_FP)
+		err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_INITIATOR,
+				       &mm_cipher_request_msg_desc,
+				       &msg.common, DECT_MM_CIPHER_REQUEST);
+	else
+		err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_INITIATOR,
+				       &mm_cipher_suggest_msg_desc,
+				       &msg.common, DECT_MM_CIPHER_SUGGEST);
+
+	if (err < 0)
+		goto err2;
+
+	mp->type = DECT_MMP_CIPHER;
+	return 0;
+
+err2:
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+err1:
+	return err;
+}
+
+/**
+ * dect_mm_cipher_res - MM_CIPHER-res primitive
+ *
+ * @dh:		libdect DECT handle
+ * @mme:	Mobility Management Endpoint
+ * @accept:	accept/reject ciphering
+ * @param:	cipher respond parameters
+ * @ck:		cipher key
+ */
+int dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+		       bool accept, const struct dect_mm_cipher_param *param,
+		       const uint8_t ck[DECT_CIPHER_KEY_LEN])
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_cipher_reject_msg rmsg;
+	int err;
+
+	if (mp->type != DECT_MMP_CIPHER)
+		return -1;
+
+	if (accept) {
+		err = dect_ddl_set_cipher_key(mme->link, ck);
+		if (err < 0)
+			goto err1;
+
+		err = dect_ddl_encrypt_req(mme->link, DECT_CIPHER_ENABLED);
+		if (err < 0)
+			goto err1;
+	} else {
+		memset(&rmsg, 0, sizeof(rmsg));
+		//rmsg.cipher_info		= param->cipher_info;
+		rmsg.reject_reason		= param->reject_reason;
+		rmsg.escape_to_proprietary	= param->escape_to_proprietary;
+	}
+
+	return 0;
+
+err1:
+	return err;
+}
+
+static void dect_mm_rcv_cipher_request(struct dect_handle *dh,
+				       struct dect_mm_endpoint *mme,
+				       struct dect_msg_buf *mb)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_cipher_request_msg msg;
+	struct dect_mm_cipher_param *param;
+
+	mm_debug(mme, "CIPHER-REQUEST");
+	if (mp->type != DECT_MMP_NONE)
+		return;
+
+	if (dect_parse_sfmt_msg(dh, &mm_cipher_request_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->cipher_info		= dect_ie_hold(msg.cipher_info);
+	param->call_identity		= dect_ie_hold(msg.call_identity);
+	param->connection_identity	= dect_ie_hold(msg.connection_identity);
+	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	dh->ops->mm_ops->mm_cipher_ind(dh, mme, param);
+err1:
+	dect_msg_free(dh, &mm_cipher_request_msg_desc, &msg.common);
+}
+
+static void dect_mm_rcv_cipher_suggest(struct dect_handle *dh,
+				       struct dect_mm_endpoint *mme,
+				       struct dect_msg_buf *mb)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_cipher_suggest_msg msg;
+	struct dect_mm_cipher_param *param;
+
+	mm_debug(mme, "CIPHER-SUGGEST");
+	if (mp->type != DECT_MMP_NONE)
+		return;
+
+	if (dect_parse_sfmt_msg(dh, &mm_cipher_suggest_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->cipher_info		= dect_ie_hold(msg.cipher_info);
+	param->call_identity		= dect_ie_hold(msg.call_identity);
+	param->connection_identity	= dect_ie_hold(msg.connection_identity);
+	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	dh->ops->mm_ops->mm_cipher_ind(dh, mme, param);
+err1:
+	dect_msg_free(dh, &mm_cipher_suggest_msg_desc, &msg.common);
+}
+
+static void dect_mm_rcv_cipher_reject(struct dect_handle *dh,
+				      struct dect_mm_endpoint *mme,
+				      struct dect_msg_buf *mb)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_cipher_reject_msg msg;
+	struct dect_mm_cipher_param *param;
+
+	mm_debug(mme, "CIPHER-REJECT");
+	if (dect_parse_sfmt_msg(dh, &mm_cipher_reject_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	//param->cipher_info		= dect_ie_hold(msg.cipher_info);
+	param->reject_reason		= dect_ie_hold(msg.reject_reason);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+
+	dh->ops->mm_ops->mm_cipher_cfm(dh, mme, false, param);
+err1:
+	dect_msg_free(dh, &mm_cipher_reject_msg_desc, &msg.common);
+}
+
+static void dect_mm_cipher_cfm(struct dect_handle *dh,
+			       struct dect_mm_endpoint *mme)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+
+	mm_debug(mme, "CIPHER-cfm");
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+
+	dh->ops->mm_ops->mm_cipher_cfm(dh, mme, true, NULL);
+}
+
+static void dect_mm_encrypt_ind(struct dect_handle *dh, struct dect_transaction *ta,
+				enum dect_cipher_states state)
+{
+	struct dect_mm_endpoint *mme = dect_mm_endpoint(ta);
+	struct dect_mm_procedure *mp = &mme->procedure[ta->role];
+
+	if (mp->type == DECT_MMP_CIPHER)
+		dect_mm_cipher_cfm(dh, mme);
+}
+
+/**
  * dect_mm_access_rights_req - MM_ACCESS_RIGHTS-req primitive
  *
  * @dh:		libdect DECT handle
@@ -857,9 +1070,13 @@ static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 	case DECT_MM_ACCESS_RIGHTS_TERMINATE_REQUEST:
 	case DECT_MM_ACCESS_RIGHTS_TERMINATE_ACCEPT:
 	case DECT_MM_ACCESS_RIGHTS_TERMINATE_REJECT:
+		break;
 	case DECT_MM_CIPHER_REQUEST:
+		return dect_mm_rcv_cipher_request(dh, mme, mb);
 	case DECT_MM_CIPHER_SUGGEST:
+		return dect_mm_rcv_cipher_suggest(dh, mme, mb);
 	case DECT_MM_CIPHER_REJECT:
+		return dect_mm_rcv_cipher_reject(dh, mme, mb);
 	case DECT_MM_INFO_REQUEST:
 	case DECT_MM_INFO_ACCEPT:
 	case DECT_MM_INFO_SUGGEST:
@@ -896,6 +1113,7 @@ static void dect_mm_open(struct dect_handle *dh,
 
 	switch (mb->type) {
 	case DECT_MM_AUTHENTICATION_REQUEST:
+	case DECT_MM_CIPHER_REQUEST:
 	case DECT_MM_ACCESS_RIGHTS_REQUEST:
 	case DECT_MM_LOCATE_REQUEST:
 	case DECT_MM_KEY_ALLOCATE:
@@ -934,6 +1152,7 @@ static const struct dect_nwk_protocol mm_protocol = {
 	.open			= dect_mm_open,
 	.shutdown		= dect_mm_shutdown,
 	.rcv			= dect_mm_rcv,
+	.encrypt_ind		= dect_mm_encrypt_ind,
 };
 
 static void __init dect_mm_init(void)
