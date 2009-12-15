@@ -534,6 +534,8 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 	dect_free(dh, req->page_timer);
 
 	ddl_debug(ddl, "complete indirect link establishment req %p", req);
+	ddl->ipui = req->ipui;
+
 	/* Transfer transactions to the new link */
 	list_for_each_entry_safe(ta, ta_next, &req->transactions, list) {
 		ddl_debug(ta->link, "transfer transaction to link %p", ddl);
