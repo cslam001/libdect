@@ -40,12 +40,28 @@ static void mm_authenticate_req(struct dect_handle *dh,
 	auth_type.auth_key_type	 = DECT_KEY_AUTHENTICATION_CODE;
 	auth_type.auth_key_num   = 0 | DECT_AUTH_KEY_IPUI_PARK;
 	auth_type.cipher_key_num = 0;
-	auth_type.flags		 = 0;
+	auth_type.flags		 = DECT_AUTH_FLAG_UPC;
 	read(rand_fd, &rand.value, sizeof(rand.value));
 	priv->rand = rand.value;
 	rs.value = 0;
 
 	dect_mm_authenticate_req(dh, mme, &param);
+}
+
+static void mm_cipher_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+			  uint8_t ck[DECT_CIPHER_KEY_LEN])
+{
+	struct dect_ie_cipher_info cipher_info;
+	struct dect_mm_cipher_param param = {
+		.cipher_info	= &cipher_info,
+	};
+
+	cipher_info.enable		= true;
+	cipher_info.cipher_alg_id	= DECT_CIPHER_STANDARD_1;
+	cipher_info.cipher_key_type	= DECT_CIPHER_DERIVED_KEY;
+	cipher_info.cipher_key_num	= 0;
+
+	dect_mm_cipher_req(dh, mme, &param, ck);
 }
 
 static void mm_locate_res(struct dect_handle *dh,
@@ -99,9 +115,20 @@ static void mm_authenticate_cfm(struct dect_handle *dh,
 
 	if (res1 == param->res->value) {
 		printf("authentication success\n");
-		mm_locate_res(dh, mme);
+		mm_cipher_req(dh, mme, dck);
 	} else
 		printf("authentication failure\n");
+}
+
+static void mm_cipher_cfm(struct dect_handle *dh,
+			  struct dect_mm_endpoint *mme, bool accept,
+			  struct dect_mm_cipher_param *param)
+{
+	struct mm_priv *priv = dect_mm_priv(mme);
+
+	printf("MM_CIPHER-cfm: accept %u\n", accept);
+	if (accept)
+		mm_locate_res(dh, mme);
 
 	dect_ie_collection_put(dh, priv->locate);
 }
@@ -137,6 +164,7 @@ static const struct dect_mm_ops mm_ops = {
 	.priv_size		= sizeof(struct mm_priv),
 	.mm_authenticate_ind	= mm_authenticate_ind,
 	.mm_authenticate_cfm	= mm_authenticate_cfm,
+	.mm_cipher_cfm		= mm_cipher_cfm,
 	.mm_access_rights_ind	= mm_access_rights_ind,
 	.mm_locate_ind		= mm_locate_ind,
 	.mm_identity_assign_cfm	= mm_identity_assign_cfm,
