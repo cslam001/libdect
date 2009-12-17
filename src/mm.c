@@ -1104,7 +1104,7 @@ err1:
 	dect_msg_free(dh, &mm_access_rights_reject_msg_desc, &msg.common);
 }
 
-static int dect_mm_send_locate_accept(struct dect_handle *dh,
+static int dect_mm_send_locate_accept(const struct dect_handle *dh,
 				      struct dect_mm_endpoint *mme,
 				      const struct dect_mm_locate_param *param)
 {
@@ -1133,19 +1133,14 @@ static int dect_mm_send_locate_accept(struct dect_handle *dh,
 	if (param->portable_identity->type == DECT_PORTABLE_ID_TYPE_TPUI ||
 	    param->nwk_assigned_identity)
 		mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;
-	else {
-		dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-		mp->type = DECT_MMP_NONE;
-	}
 
 	return err;
 }
 
-static int dect_mm_send_locate_reject(struct dect_handle *dh,
+static int dect_mm_send_locate_reject(const struct dect_handle *dh,
 				      struct dect_mm_endpoint *mme,
 				      const struct dect_mm_locate_param *param)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_locate_reject_msg msg = {
 		.reject_reason		= param->reject_reason,
 		.duration		= param->duration,
@@ -1153,26 +1148,36 @@ static int dect_mm_send_locate_reject(struct dect_handle *dh,
 		.iwu_to_iwu		= param->iwu_to_iwu,
 		.escape_to_proprietary	= param->escape_to_proprietary,
 	};
-	int err;
 
-	err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
-			       &mm_locate_reject_msg_desc,
-			       &msg.common, DECT_MM_LOCATE_REJECT);
-
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
-	return err;
+	return dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
+				&mm_locate_reject_msg_desc,
+				&msg.common, DECT_MM_LOCATE_REJECT);
 }
 
 int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
-		       const struct dect_mm_locate_param *param)
+		       bool accept, const struct dect_mm_locate_param *param)
 {
-	mm_debug(mme, "MM_LOCATE-res");
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	int err;
 
-	if (param->reject_reason == NULL)
-		return dect_mm_send_locate_accept(dh, mme, param);
+	mm_debug(mme, "MM_LOCATE-res: accept: %u", accept);
+	if (mp->type != DECT_MMP_LOCATION_REGISTRATION)
+		return -1;
+
+	if (accept)
+		err = dect_mm_send_locate_accept(dh, mme, param);
 	else
-		return dect_mm_send_locate_reject(dh, mme, param);
+		err = dect_mm_send_locate_reject(dh, mme, param);
+
+	if (err < 0)
+		return err;
+
+	if (mp->type != DECT_MMP_LOCATION_REGISTRATION)
+		return 0;
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+	return 0;
 }
 
 static void dect_mm_rcv_locate_request(struct dect_handle *dh,
@@ -1182,18 +1187,20 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_locate_request_msg msg;
 	struct dect_mm_locate_param *param;
+	enum dect_sfmt_error err;
 
 	mm_debug(mme, "LOCATE-REQUEST");
 	if (mp->type != DECT_MMP_NONE)
 		return;
 
-	if (dect_parse_sfmt_msg(dh, &mm_locate_request_msg_desc,
-				&msg.common, mb) < 0)
-		goto err1;
+	err = dect_parse_sfmt_msg(dh, &mm_locate_request_msg_desc,
+				  &msg.common, mb);
+	if (err < 0)
+		return dect_mm_send_reject(dh, mme, locate, err);
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
-		goto err2;
+		goto err1;
 
 	param->portable_identity	= dect_ie_hold(msg.portable_identity),
 	param->fixed_identity		= dect_ie_hold(msg.fixed_identity),
@@ -1209,10 +1216,8 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 	dh->ops->mm_ops->mm_locate_ind(dh, mme, param);
 
 	dect_ie_collection_put(dh, param);
-err2:
-	dect_msg_free(dh, &mm_locate_request_msg_desc, &msg.common);
 err1:
-	return;
+	dect_msg_free(dh, &mm_locate_request_msg_desc, &msg.common);
 }
 
 static void dect_mm_rcv_locate_accept(struct dect_handle *dh,

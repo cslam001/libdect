@@ -204,7 +204,7 @@ extern int dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *m
 extern int dect_mm_locate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			      const struct dect_mm_locate_param *param);
 extern int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
-			      const struct dect_mm_locate_param *param);
+			      bool accept, const struct dect_mm_locate_param *param);
 
 extern int dect_mm_detach_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			      struct dect_mm_detach_param *param);

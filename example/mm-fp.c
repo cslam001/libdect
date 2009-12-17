@@ -69,7 +69,7 @@ static void mm_locate_res(struct dect_handle *dh,
 	duration.time = DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_1;
 	duration.duration = 1;
 
-	dect_mm_locate_res(dh, mme, &reply);
+	dect_mm_locate_res(dh, mme, true, &reply);
 }
 
 static void mm_cipher_cfm(struct dect_handle *dh,
