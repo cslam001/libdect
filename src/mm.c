@@ -749,6 +749,21 @@ err1:
 	return err;
 }
 
+static int dect_mm_send_cipher_reject(const struct dect_handle *dh,
+				      struct dect_mm_endpoint *mme,
+				      const struct dect_mm_cipher_param *param)
+{
+	struct dect_mm_locate_reject_msg msg = {
+		//.cipher_info		= param->cipher_info,
+		.reject_reason		= param->reject_reason,
+		.escape_to_proprietary	= param->escape_to_proprietary,
+	};
+
+	return dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
+				&mm_cipher_reject_msg_desc,
+				&msg.common, DECT_MM_CIPHER_REJECT);
+}
+
 /**
  * dect_mm_cipher_res - MM_CIPHER-res primitive
  *
@@ -763,7 +778,6 @@ int dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		       const uint8_t ck[DECT_CIPHER_KEY_LEN])
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
-	struct dect_mm_cipher_reject_msg rmsg;
 	int err;
 
 	mm_debug(mme, "MM_CIPHER-res");
@@ -778,12 +792,8 @@ int dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		err = dect_ddl_encrypt_req(mme->link, DECT_CIPHER_ENABLED);
 		if (err < 0)
 			goto err1;
-	} else {
-		memset(&rmsg, 0, sizeof(rmsg));
-		//rmsg.cipher_info		= param->cipher_info;
-		rmsg.reject_reason		= param->reject_reason;
-		rmsg.escape_to_proprietary	= param->escape_to_proprietary;
-	}
+	} else
+		err = dect_mm_send_cipher_reject(dh, mme, param);
 
 	return 0;
 
@@ -798,14 +808,16 @@ static void dect_mm_rcv_cipher_request(struct dect_handle *dh,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_cipher_request_msg msg;
 	struct dect_mm_cipher_param *param;
+	enum dect_sfmt_error err;
 
 	mm_debug(mme, "CIPHER-REQUEST");
 	if (mp->type != DECT_MMP_NONE)
 		return;
 
-	if (dect_parse_sfmt_msg(dh, &mm_cipher_request_msg_desc,
-				&msg.common, mb) < 0)
-		return;
+	err = dect_parse_sfmt_msg(dh, &mm_cipher_request_msg_desc,
+				  &msg.common, mb);
+	if (err < 0)
+		return dect_mm_send_reject(dh, mme, cipher, err);
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
