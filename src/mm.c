@@ -375,7 +375,7 @@ static struct dect_mm_endpoint *dect_mm_endpoint(struct dect_transaction *ta)
 	return container_of(ta, struct dect_mm_endpoint, procedure[ta->role].transaction);
 }
 
-static int dect_mm_send_msg(struct dect_handle *dh,
+static int dect_mm_send_msg(const struct dect_handle *dh,
 			    const struct dect_mm_endpoint *mme,
 			    enum dect_transaction_role role,
 			    const struct dect_sfmt_msg_desc *desc,
@@ -519,17 +519,69 @@ err1:
 	return err;
 }
 
+static int dect_mm_send_authenticate_reply(const struct dect_handle *dh,
+					   struct dect_mm_endpoint *mme,
+					   const struct dect_mm_authenticate_param *param)
+{
+	struct dect_mm_authentication_reply_msg msg = {
+		.res		= param->res,
+		.rs		= param->rs,
+		.zap_field	= param->zap_field,
+		.service_class	= param->service_class,
+		.key		= param->key,
+		.iwu_to_iwu	= param->iwu_to_iwu,
+	};
+
+	return dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
+				&mm_authentication_reply_msg_desc,
+				&msg.common, DECT_MM_AUTHENTICATION_REPLY);
+}
+
+static int dect_mm_send_authenticate_reject(const struct dect_handle *dh,
+					    struct dect_mm_endpoint *mme,
+					    const struct dect_mm_authenticate_param *param)
+{
+	struct dect_mm_authentication_reject_msg msg = {
+		//.auth_type		= param->auth_type,
+		.reject_reason		= param->reject_reason,
+		.iwu_to_iwu		= param->iwu_to_iwu,
+		.escape_to_proprietary	= param->escape_to_proprietary,
+	};
+
+	return dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
+				&mm_authentication_reject_msg_desc,
+				&msg.common, DECT_MM_AUTHENTICATION_REJECT);
+}
+
 /**
  * dect_mm_authenticate_req - MM_AUTHENTICATE-res primitive
  *
  * @dh:		libdect DECT handle
  * @mme:	Mobility Management Endpoint
+ * @accept:	accept/reject authentication
  * @param:	authenticate response parameters
  */
 int dect_mm_authenticate_res(struct dect_handle *dh,
-			     struct dect_mm_endpoint *mme,
+			     struct dect_mm_endpoint *mme, bool accept,
 			     const struct dect_mm_authenticate_param *param)
 {
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	int err;
+
+	mm_debug(mme, "MM_AUTHENTICATE-res: accept: %u", accept);
+	if (mp->type != DECT_MMP_AUTHENTICATE)
+		return -1;
+
+	if (accept)
+		err = dect_mm_send_authenticate_reply(dh, mme, param);
+	else
+		err = dect_mm_send_authenticate_reject(dh, mme, param);
+
+	if (err < 0)
+		return err;
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
 	return 0;
 }
 
@@ -537,12 +589,38 @@ static void dect_mm_rcv_authentication_request(struct dect_handle *dh,
 					       struct dect_mm_endpoint *mme,
 					       struct dect_msg_buf *mb)
 {
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_authentication_request_msg msg;
+	struct dect_mm_authenticate_param *param;
+	enum dect_sfmt_error err;
 
 	mm_debug(mme, "AUTHENTICATION-REQUEST");
-	if (dect_parse_sfmt_msg(dh, &mm_authentication_request_msg_desc,
-				&msg.common, mb) < 0)
+	if (mp->type != DECT_MMP_NONE)
 		return;
+
+	err = dect_parse_sfmt_msg(dh, &mm_authentication_request_msg_desc,
+				  &msg.common, mb);
+	if (err < 0)
+		return dect_mm_send_reject(dh, mme, authenticate, err);
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->auth_type		= dect_ie_hold(msg.auth_type);
+	param->rand			= dect_ie_hold(msg.rand);
+	param->res			= dect_ie_hold(msg.res);
+	param->rs			= dect_ie_hold(msg.rs);
+	param->cipher_info		= dect_ie_hold(msg.cipher_info);
+	param->iwu_to_iwu		= *dect_ie_list_hold(&msg.iwu_to_iwu);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	mp->type = DECT_MMP_CIPHER;
+
+	dh->ops->mm_ops->mm_authenticate_ind(dh, mme, param);
+	dect_ie_collection_put(dh, param);
+err1:
+	dect_msg_free(dh, &mm_key_allocate_msg_desc, &msg.common);
 }
 
 static void dect_mm_rcv_authentication_reply(struct dect_handle *dh,

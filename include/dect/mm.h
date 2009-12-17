@@ -192,7 +192,7 @@ extern int dect_mm_key_allocate_req(struct dect_handle *dh, struct dect_mm_endpo
 extern int dect_mm_authenticate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 				    const struct dect_mm_authenticate_param *param);
 extern int dect_mm_authenticate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
-				    const struct dect_mm_authenticate_param *param);
+				    bool accept, const struct dect_mm_authenticate_param *param);
 
 extern int dect_mm_cipher_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			      const struct dect_mm_cipher_param *param,
