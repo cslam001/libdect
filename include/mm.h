@@ -77,14 +77,22 @@ struct dect_mm_access_rights_request_msg {
 
 struct dect_mm_access_rights_terminate_accept_msg {
 	struct dect_msg_common			common;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_access_rights_terminate_reject_msg {
 	struct dect_msg_common			common;
+	struct dect_ie_reject_reason		*reject_reason;
+	struct dect_ie_duration			*duration;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_access_rights_terminate_request_msg {
 	struct dect_msg_common			common;
+	struct dect_ie_portable_identity	*portable_identity;
+	struct dect_ie_list			*fixed_identity;
+	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_authentication_reject_msg {
@@ -145,14 +153,30 @@ struct dect_mm_cipher_suggest_msg {
 
 struct dect_mm_detach_msg {
 	struct dect_msg_common			common;
+	struct dect_ie_portable_identity	*portable_identity;
+	struct dect_ie_nwk_assigned_identity	*nwk_assigned_identity;
+	struct dect_ie_network_parameter	*network_parameter;
+	struct dect_ie_list			*segmented_info;
+	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_identity_reply_msg {
 	struct dect_msg_common			common;
+	struct dect_ie_list			*portable_identity;
+	struct dect_ie_list			*fixed_identity;
+	struct dect_ie_list			*nwk_assigned_identity;
+	struct dect_ie_model_identifier		*model_identifier;
+	struct dect_ie_list			*iwu_to_iwu;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_identity_request_msg {
 	struct dect_msg_common			common;
+	struct dect_ie_list			*identity_type;
+	struct dect_ie_network_parameter	*network_parameter;
+	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_key_allocate_msg {
@@ -288,6 +312,8 @@ struct dect_mm_iwu_msg {
 
 struct dect_mm_notify_msg {
 	struct dect_msg_common			common;
+	struct dect_ie_timer_restart		*timer_restart;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 enum dect_mm_procedures {
