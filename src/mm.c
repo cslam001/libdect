@@ -965,6 +965,52 @@ err1:
 	return -1;
 }
 
+static int dect_mm_send_access_rights_accept(const struct dect_handle *dh,
+					     struct dect_mm_endpoint *mme,
+					     const struct dect_mm_access_rights_param *param)
+{
+	struct dect_ie_fixed_identity fixed_identity;
+	struct dect_mm_access_rights_accept_msg msg = {
+		.portable_identity	= param->portable_identity,
+		.fixed_identity		= param->fixed_identity,
+		.auth_type		= param->auth_type,
+		.location_area		= param->location_area,
+		.cipher_info		= param->cipher_info,
+		.setup_capability	= NULL,
+		.model_identifier	= param->model_identifier,
+		//.iwu_to_iwu		= param->iwu_to_iwu,
+		//.codec_list		= param->codec_list,
+		.escape_to_proprietary	= param->escape_to_proprietary,
+	};
+
+	if (param->fixed_identity.list == NULL) {
+		fixed_identity.type = DECT_FIXED_ID_TYPE_PARK;
+		fixed_identity.ari = dh->pari;
+		fixed_identity.rpn = 0;
+		dect_ie_list_add(&fixed_identity, &msg.fixed_identity);
+	}
+
+	return dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
+				&mm_access_rights_accept_msg_desc,
+				&msg.common, DECT_MM_ACCESS_RIGHTS_ACCEPT);
+}
+
+static int dect_mm_send_access_rights_reject(const struct dect_handle *dh,
+					     struct dect_mm_endpoint *mme,
+					     const struct dect_mm_access_rights_param *param)
+{
+	struct dect_mm_access_rights_reject_msg msg = {
+		.reject_reason		= param->reject_reason,
+		.duration		= param->duration,
+		.iwu_to_iwu		= param->iwu_to_iwu,
+		.escape_to_proprietary	= param->escape_to_proprietary,
+	};
+
+	return dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
+				&mm_access_rights_reject_msg_desc,
+				&msg.common, DECT_MM_ACCESS_RIGHTS_REJECT);
+}
+
 /**
  * dect_mm_access_rights_res - MM_ACCESS_RIGHTS-res primitive
  *
@@ -977,36 +1023,19 @@ int dect_mm_access_rights_res(struct dect_handle *dh,
 			      const struct dect_mm_access_rights_param *param)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
-	struct dect_mm_access_rights_accept_msg msg;
-	struct dect_ie_fixed_identity fixed_identity;
 	int err;
 
 	mm_debug(mme, "MM_ACCESS_RIGHTS-res");
 	if (mp->type != DECT_MMP_ACCESS_RIGHTS)
 		return -1;
 
-	memset(&msg, 0, sizeof(msg));
-	msg.portable_identity		= param->portable_identity;
-	msg.fixed_identity		= param->fixed_identity;
-	msg.auth_type			= param->auth_type;
-	msg.location_area		= param->location_area;
-	msg.cipher_info			= param->cipher_info;
-	msg.setup_capability		= NULL;
-	msg.model_identifier		= param->model_identifier;
-	//msg.iwu_to_iwu		= param->iwu_to_iwu;
-	//msg.codec_list		= param->codec_list;
-	msg.escape_to_proprietary	= param->escape_to_proprietary;
+	if (accept)
+		err = dect_mm_send_access_rights_accept(dh, mme, param);
+	else
+		err = dect_mm_send_access_rights_reject(dh, mme, param);
 
-	if (param->fixed_identity.list == NULL) {
-		fixed_identity.type = DECT_FIXED_ID_TYPE_PARK;
-		fixed_identity.ari = dh->pari;
-		fixed_identity.rpn = 0;
-		dect_ie_list_add(&fixed_identity, &msg.fixed_identity);
-	}
-
-	err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
-			       &mm_access_rights_accept_msg_desc,
-			       &msg.common, DECT_MM_ACCESS_RIGHTS_ACCEPT);
+	if (err < 0)
+		return err;
 
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	dect_mm_endpoint_destroy(dh, mme);
@@ -1020,14 +1049,16 @@ static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_access_rights_request_msg msg;
 	struct dect_mm_access_rights_param *param;
+	enum dect_sfmt_error err;
 
 	mm_debug(mme, "ACCESS-RIGHTS-REQUEST");
 	if (mp->type != DECT_MMP_NONE)
 		return;
 
-	if (dect_parse_sfmt_msg(dh, &mm_access_rights_request_msg_desc,
-				&msg.common, mb) < 0)
-		return;
+	err = dect_parse_sfmt_msg(dh, &mm_access_rights_request_msg_desc,
+				  &msg.common, mb);
+	if (err < 0)
+		return dect_mm_send_reject(dh, mme, access_rights, err);
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
