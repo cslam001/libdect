@@ -1521,6 +1521,42 @@ err1:
 	return err;
 }
 
+static int dect_mm_send_info_accept(const struct dect_handle *dh,
+				    struct dect_mm_endpoint *mme,
+				    const struct dect_mm_info_param *param)
+{
+	struct dect_mm_info_accept_msg msg = {
+		.info_type		= param->info_type,
+		.call_identity		= param->call_identity,
+		.fixed_identity		= param->fixed_identity,
+		.location_area		= param->location_area,
+		.nwk_assigned_identity	= param->nwk_assigned_identity,
+		.network_parameter	= param->network_parameter,
+		.iwu_to_iwu		= param->iwu_to_iwu,
+		.escape_to_proprietary	= param->escape_to_proprietary,
+	};
+
+	return dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
+				&mm_info_accept_msg_desc,
+				&msg.common, DECT_MM_INFO_ACCEPT);
+}
+
+static int dect_mm_send_info_reject(const struct dect_handle *dh,
+				    struct dect_mm_endpoint *mme,
+				    const struct dect_mm_info_param *param)
+{
+	struct dect_mm_info_reject_msg msg = {
+		.call_identity		= param->call_identity,
+		.reject_reason		= param->reject_reason,
+		.iwu_to_iwu		= param->iwu_to_iwu,
+		.escape_to_proprietary	= param->escape_to_proprietary,
+	};
+
+	return dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
+				&mm_info_reject_msg_desc,
+				&msg.common, DECT_MM_INFO_REJECT);
+}
+
 /**
  * dect_mm_info_res - MM_INFO-res primitive
  *
@@ -1532,43 +1568,22 @@ int dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		     bool accept, struct dect_mm_info_param *param)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
-	struct dect_mm_info_accept_msg amsg;
-	struct dect_mm_info_reject_msg rmsg;
 	int err;
 
 	mm_debug(mme, "MM_INFO-res");
 	if (mp->type != DECT_MMP_PARAMETER_RETRIEVAL)
 		return -1;
 
-	if (accept) {
-		memset(&amsg, 0, sizeof(amsg));
-		amsg.info_type			= param->info_type;
-		amsg.call_identity		= param->call_identity;
-		amsg.fixed_identity		= param->fixed_identity;
-		amsg.location_area		= param->location_area;
-		amsg.nwk_assigned_identity	= param->nwk_assigned_identity;
-		amsg.network_parameter		= param->network_parameter;
-		amsg.iwu_to_iwu			= param->iwu_to_iwu;
-		amsg.escape_to_proprietary	= param->escape_to_proprietary;
+	if (accept)
+		err = dect_mm_send_info_accept(dh, mme, param);
+	else
+		err = dect_mm_send_info_reject(dh, mme, param);
 
-		err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
-				       &mm_info_accept_msg_desc,
-				       &amsg.common, DECT_MM_INFO_ACCEPT);
-	} else {
-		memset(&rmsg, 0, sizeof(rmsg));
-		rmsg.call_identity		= param->call_identity;
-		rmsg.reject_reason		= param->reject_reason;
-		rmsg.iwu_to_iwu			= param->iwu_to_iwu;
-		rmsg.escape_to_proprietary	= param->escape_to_proprietary;
-
-		err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
-				       &mm_info_reject_msg_desc,
-				       &rmsg.common, DECT_MM_INFO_REJECT);
-	}
+	if (err < 0)
+		return err;
 
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
-
 	return 0;
 }
 
@@ -1579,14 +1594,16 @@ static void dect_mm_rcv_info_request(struct dect_handle *dh,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_info_request_msg msg;
 	struct dect_mm_info_param *param;
+	enum dect_sfmt_error err;
 
 	mm_debug(mme, "INFO-REQUEST");
 	if (mp->type != DECT_MMP_NONE)
 		return;
 
-	if (dect_parse_sfmt_msg(dh, &mm_info_request_msg_desc,
-				&msg.common, mb) < 0)
-		return;
+	err = dect_parse_sfmt_msg(dh, &mm_info_request_msg_desc,
+				  &msg.common, mb);
+	if (err < 0)
+		return dect_mm_send_reject(dh, mme, info, err);
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
