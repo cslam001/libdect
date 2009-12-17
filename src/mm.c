@@ -1574,16 +1574,10 @@ static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 	struct dect_mm_endpoint *mme = dect_mm_endpoint(ta);
 
 	switch (mb->type) {
-	case DECT_MM_AUTHENTICATION_REQUEST:
-		return dect_mm_rcv_authentication_request(dh, mme, mb);
 	case DECT_MM_AUTHENTICATION_REPLY:
 		return dect_mm_rcv_authentication_reply(dh, mme, mb);
-	case DECT_MM_KEY_ALLOCATE:
-		return dect_mm_rcv_key_allocate(dh, mme, mb);
 	case DECT_MM_AUTHENTICATION_REJECT:
 		return dect_mm_rcv_authentication_reject(dh, mme, mb);
-	case DECT_MM_ACCESS_RIGHTS_REQUEST:
-		return dect_mm_rcv_access_rights_request(dh, mme, mb);
 	case DECT_MM_ACCESS_RIGHTS_ACCEPT:
 		return dect_mm_rcv_access_rights_accept(dh, mme, mb);
 	case DECT_MM_ACCESS_RIGHTS_REJECT:
@@ -1598,24 +1592,14 @@ static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 		return dect_mm_rcv_cipher_suggest(dh, mme, mb);
 	case DECT_MM_CIPHER_REJECT:
 		return dect_mm_rcv_cipher_reject(dh, mme, mb);
-	case DECT_MM_INFO_REQUEST:
-		return dect_mm_rcv_info_request(dh, mme, mb);
 	case DECT_MM_INFO_ACCEPT:
 		return dect_mm_rcv_info_accept(dh, mme, mb);
-	case DECT_MM_INFO_SUGGEST:
-		return dect_mm_rcv_info_suggest(dh, mme, mb);
 	case DECT_MM_INFO_REJECT:
 		return dect_mm_rcv_info_reject(dh, mme, mb);
-	case DECT_MM_LOCATE_REQUEST:
-		return dect_mm_rcv_locate_request(dh, mme, mb);
 	case DECT_MM_LOCATE_ACCEPT:
 		return dect_mm_rcv_locate_accept(dh, mme, mb);
 	case DECT_MM_LOCATE_REJECT:
 		return dect_mm_rcv_locate_reject(dh, mme, mb);
-	case DECT_MM_DETACH:
-		return dect_mm_rcv_detach(dh, mme, mb);
-	case DECT_MM_IDENTITY_REQUEST:
-		return dect_mm_rcv_identity_request(dh, mme, mb);
 	case DECT_MM_IDENTITY_REPLY:
 		return dect_mm_rcv_identity_reply(dh, mme, mb);
 	case DECT_MM_TEMPORARY_IDENTITY_ASSIGN:
@@ -1641,10 +1625,12 @@ static void dect_mm_open(struct dect_handle *dh,
 	switch (mb->type) {
 	case DECT_MM_AUTHENTICATION_REQUEST:
 	case DECT_MM_CIPHER_REQUEST:
+	case DECT_MM_CIPHER_SUGGEST:
 	case DECT_MM_ACCESS_RIGHTS_REQUEST:
 	case DECT_MM_LOCATE_REQUEST:
 	case DECT_MM_KEY_ALLOCATE:
 	case DECT_MM_INFO_REQUEST:
+	case DECT_MM_INFO_SUGGEST:
 	case DECT_MM_IDENTITY_REQUEST:
 	case DECT_MM_DETACH:
 		break;
@@ -1663,7 +1649,30 @@ static void dect_mm_open(struct dect_handle *dh,
 	ta = &mme->procedure[DECT_TRANSACTION_RESPONDER].transaction;
 	dect_confirm_transaction(dh, ta, req);
 
-	dect_mm_rcv(dh, ta, mb);
+	switch (mb->type) {
+	case DECT_MM_AUTHENTICATION_REQUEST:
+		return dect_mm_rcv_authentication_request(dh, mme, mb);
+	case DECT_MM_CIPHER_REQUEST:
+		return dect_mm_rcv_cipher_request(dh, mme, mb);
+	case DECT_MM_CIPHER_SUGGEST:
+		return dect_mm_rcv_cipher_suggest(dh, mme, mb);
+	case DECT_MM_ACCESS_RIGHTS_REQUEST:
+		return dect_mm_rcv_access_rights_request(dh, mme, mb);
+	case DECT_MM_LOCATE_REQUEST:
+		return dect_mm_rcv_locate_request(dh, mme, mb);
+	case DECT_MM_KEY_ALLOCATE:
+		return dect_mm_rcv_key_allocate(dh, mme, mb);
+	case DECT_MM_INFO_REQUEST:
+		return dect_mm_rcv_info_request(dh, mme, mb);
+	case DECT_MM_INFO_SUGGEST:
+		return dect_mm_rcv_info_suggest(dh, mme, mb);
+	case DECT_MM_IDENTITY_REQUEST:
+		return dect_mm_rcv_identity_request(dh, mme, mb);
+	case DECT_MM_DETACH:
+		return dect_mm_rcv_detach(dh, mme, mb);
+	default:
+		BUG();
+	}
 }
 
 static void dect_mm_shutdown(struct dect_handle *dh,
