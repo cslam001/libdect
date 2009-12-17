@@ -780,7 +780,7 @@ int dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	int err;
 
-	mm_debug(mme, "MM_CIPHER-res");
+	mm_debug(mme, "MM_CIPHER-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_CIPHER)
 		return -1;
 
@@ -1016,6 +1016,7 @@ static int dect_mm_send_access_rights_reject(const struct dect_handle *dh,
  *
  * @dh:		libdect DECT handle
  * @mme:	Mobility Management Endpoint
+ * @accept:	accept/reject access rights request
  * @param:	access rights response parameters
  */
 int dect_mm_access_rights_res(struct dect_handle *dh,
@@ -1025,7 +1026,7 @@ int dect_mm_access_rights_res(struct dect_handle *dh,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	int err;
 
-	mm_debug(mme, "MM_ACCESS_RIGHTS-res");
+	mm_debug(mme, "MM_ACCESS_RIGHTS-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_ACCESS_RIGHTS)
 		return -1;
 
@@ -1197,6 +1198,14 @@ static int dect_mm_send_locate_reject(const struct dect_handle *dh,
 				&msg.common, DECT_MM_LOCATE_REJECT);
 }
 
+/**
+ * dect_mm_locate_res - MM_LOCATE-res primitive
+ *
+ * @dh:		libdect DECT handle
+ * @mme:	Mobility Management Endpoint
+ * @accept:	accept/reject location registration/update
+ * @param:	access rights response parameters
+ */
 int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		       bool accept, const struct dect_mm_locate_param *param)
 {
@@ -1564,6 +1573,7 @@ static int dect_mm_send_info_reject(const struct dect_handle *dh,
  *
  * @dh:		libdect DECT handle
  * @mme:	Mobility Management Endpoint
+ * @accept:	accept/reject info request
  * @param:	info parameters
  */
 int dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
@@ -1572,7 +1582,7 @@ int dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	int err;
 
-	mm_debug(mme, "MM_INFO-res");
+	mm_debug(mme, "MM_INFO-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_PARAMETER_RETRIEVAL)
 		return -1;
 
