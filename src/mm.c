@@ -175,6 +175,61 @@ static DECT_SFMT_MSG_DESC(mm_locate_request,
 	DECT_SFMT_IE_END_MSG
 );
 
+static DECT_SFMT_MSG_DESC(mm_info_accept,
+	DECT_SFMT_IE(S_VL_IE_INFO_TYPE,			IE_MANDATORY, IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_CALL_IDENTITY,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_FIXED_IDENTITY,		IE_OPTIONAL,  IE_NONE,      DECT_SFMT_IE_REPEAT),
+	DECT_SFMT_IE(S_VL_IE_LOCATION_AREA,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_NWK_ASSIGNED_IDENTITY,	IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_NETWORK_PARAMETER,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_DURATION,			IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE_END_MSG
+);
+
+static DECT_SFMT_MSG_DESC(mm_info_reject,
+	DECT_SFMT_IE(S_VL_IE_CALL_IDENTITY,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_REJECT_REASON,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE_END_MSG
+);
+
+static DECT_SFMT_MSG_DESC(mm_info_request,
+	DECT_SFMT_IE(S_VL_IE_INFO_TYPE,			IE_MANDATORY, IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_CALL_IDENTITY,		IE_NONE,      IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_NONE,      IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_NONE,      IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_FIXED_IDENTITY,		IE_NONE,      IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
+	DECT_SFMT_IE(S_VL_IE_LOCATION_AREA,		IE_NONE,      IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_NWK_ASSIGNED_IDENTITY,	IE_NONE,      IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_NETWORK_PARAMETER,		IE_NONE,      IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_NONE,      IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_NONE,      IE_OPTIONAL,  0),
+	DECT_SFMT_IE_END_MSG
+);
+
+static DECT_SFMT_MSG_DESC(mm_info_suggest,
+	DECT_SFMT_IE(S_VL_IE_INFO_TYPE,			IE_MANDATORY, IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_CALL_IDENTITY,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_FIXED_IDENTITY,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_LOCATION_AREA,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_NWK_ASSIGNED_IDENTITY,	IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_NETWORK_PARAMETER,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_EXT_HO_INDICATOR,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_KEY,			IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_SETUP_CAPABILITY,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE_END_MSG
+);
+
 static DECT_SFMT_MSG_DESC(mm_temporary_identity_assign,
 	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_LOCATION_AREA,		IE_OPTIONAL,  IE_NONE,      0),
@@ -1096,6 +1151,267 @@ err1:
 	dect_msg_free(dh, &mm_temporary_identity_assign_rej_msg_desc, &msg.common);
 }
 
+/**
+ * dect_mm_info_req - MM_INFO-req primitive
+ *
+ * @dh:		libdect DECT handle
+ * @mme:	Mobility Management Endpoint
+ * @param:	info parameters
+ */
+int dect_mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+		     struct dect_mm_info_param *param)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_info_request_msg rmsg;
+	struct dect_mm_info_suggest_msg smsg;
+	int err;
+
+	mm_debug(mme, "INFO-req");
+	if (mp->type != DECT_MMP_NONE)
+		return -1;
+
+	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
+					DECT_PD_MM);
+	if (err < 0)
+		goto err1;
+
+	if (dh->mode == DECT_MODE_FP) {
+		memset(&smsg, 0, sizeof(smsg));
+		smsg.info_type			= param->info_type;
+		smsg.call_identity		= param->call_identity;
+		//smsg.fixed_identity		= param->fixed_identity;
+		smsg.location_area		= param->location_area;
+		smsg.nwk_assigned_identity	= param->nwk_assigned_identity;
+		smsg.network_parameter		= param->network_parameter;
+		smsg.iwu_to_iwu			= param->iwu_to_iwu;
+		smsg.escape_to_proprietary	= param->escape_to_proprietary;
+
+		err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_INITIATOR,
+				       &mm_info_suggest_msg_desc,
+				       &smsg.common, DECT_MM_INFO_SUGGEST);
+		if (err < 0)
+			goto err2;
+
+		dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	} else {
+		memset(&rmsg, 0, sizeof(rmsg));
+		rmsg.info_type			= param->info_type;
+		rmsg.call_identity		= param->call_identity;
+		rmsg.portable_identity		= param->portable_identity;
+		rmsg.fixed_identity		= param->fixed_identity;
+		rmsg.location_area		= param->location_area;
+		rmsg.nwk_assigned_identity	= param->nwk_assigned_identity;
+		rmsg.network_parameter		= param->network_parameter;
+		rmsg.iwu_to_iwu			= param->iwu_to_iwu;
+		rmsg.escape_to_proprietary	= param->escape_to_proprietary;
+
+		err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_INITIATOR,
+				       &mm_info_request_msg_desc,
+				       &rmsg.common, DECT_MM_INFO_REQUEST);
+		if (err < 0)
+			goto err2;
+
+		mp->type = DECT_MMP_PARAMETER_RETRIEVAL;
+	}
+
+	return 0;
+err2:
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+err1:
+	return err;
+}
+
+/**
+ * dect_mm_info_res - MM_INFO-res primitive
+ *
+ * @dh:		libdect DECT handle
+ * @mme:	Mobility Management Endpoint
+ * @param:	info parameters
+ */
+int dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+		     bool accept, struct dect_mm_info_param *param)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_info_accept_msg amsg;
+	struct dect_mm_info_reject_msg rmsg;
+	int err;
+
+	if (mp->type != DECT_MMP_PARAMETER_RETRIEVAL)
+		return -1;
+
+	if (accept) {
+		memset(&amsg, 0, sizeof(amsg));
+		amsg.info_type			= param->info_type;
+		amsg.call_identity		= param->call_identity;
+		amsg.fixed_identity		= param->fixed_identity;
+		amsg.location_area		= param->location_area;
+		amsg.nwk_assigned_identity	= param->nwk_assigned_identity;
+		amsg.network_parameter		= param->network_parameter;
+		amsg.iwu_to_iwu			= param->iwu_to_iwu;
+		amsg.escape_to_proprietary	= param->escape_to_proprietary;
+
+		err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
+				       &mm_info_accept_msg_desc,
+				       &amsg.common, DECT_MM_INFO_ACCEPT);
+	} else {
+		memset(&rmsg, 0, sizeof(rmsg));
+		rmsg.call_identity		= param->call_identity;
+		rmsg.reject_reason		= param->reject_reason;
+		rmsg.iwu_to_iwu			= param->iwu_to_iwu;
+		rmsg.escape_to_proprietary	= param->escape_to_proprietary;
+
+		err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
+				       &mm_info_reject_msg_desc,
+				       &rmsg.common, DECT_MM_INFO_REJECT);
+	}
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+
+	return 0;
+}
+
+static void dect_mm_rcv_info_request(struct dect_handle *dh,
+				     struct dect_mm_endpoint *mme,
+				     struct dect_msg_buf *mb)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_info_request_msg msg;
+	struct dect_mm_info_param *param;
+
+	mm_debug(mme, "INFO-REQUEST");
+	if (mp->type != DECT_MMP_NONE)
+		return;
+
+	if (dect_parse_sfmt_msg(dh, &mm_info_request_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->info_type		= dect_ie_hold(msg.info_type);
+	param->call_identity		= dect_ie_hold(msg.call_identity);
+	param->portable_identity	= dect_ie_hold(msg.portable_identity);
+	param->fixed_identity		= dect_ie_hold(msg.fixed_identity);
+	param->location_area		= dect_ie_hold(msg.location_area);
+	param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity);
+	param->network_parameter	= dect_ie_hold(msg.network_parameter);
+	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	mp->type = DECT_MMP_PARAMETER_RETRIEVAL;
+
+	dh->ops->mm_ops->mm_info_ind(dh, mme, param);
+	dect_ie_collection_put(dh, param);
+err1:
+	dect_msg_free(dh, &mm_info_request_msg_desc, &msg.common);
+}
+
+static void dect_mm_rcv_info_accept(struct dect_handle *dh,
+				    struct dect_mm_endpoint *mme,
+				    struct dect_msg_buf *mb)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_info_accept_msg msg;
+	struct dect_mm_info_param *param;
+
+	mm_debug(mme, "INFO-ACCEPT");
+	if (mp->type != DECT_MMP_PARAMETER_RETRIEVAL)
+		return;
+
+	if (dect_parse_sfmt_msg(dh, &mm_info_accept_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->info_type		= dect_ie_hold(msg.info_type);
+	param->call_identity		= dect_ie_hold(msg.call_identity);
+	param->fixed_identity		= dect_ie_hold(msg.fixed_identity);
+	param->location_area		= dect_ie_hold(msg.location_area);
+	param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity);
+	param->network_parameter	= dect_ie_hold(msg.network_parameter);
+	param->duration			= dect_ie_hold(msg.duration);
+	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+
+	dh->ops->mm_ops->mm_info_cfm(dh, mme, true, param);
+	dect_ie_collection_put(dh, param);
+err1:
+	dect_msg_free(dh, &mm_info_accept_msg_desc, &msg.common);
+}
+
+static void dect_mm_rcv_info_reject(struct dect_handle *dh,
+				    struct dect_mm_endpoint *mme,
+				    struct dect_msg_buf *mb)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_info_reject_msg msg;
+	struct dect_mm_info_param *param;
+
+	mm_debug(mme, "INFO-REJECT");
+	if (mp->type != DECT_MMP_PARAMETER_RETRIEVAL)
+		return;
+
+	if (dect_parse_sfmt_msg(dh, &mm_info_reject_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->call_identity		= dect_ie_hold(msg.call_identity);
+	param->reject_reason		= dect_ie_hold(msg.reject_reason);
+	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+
+	dh->ops->mm_ops->mm_info_cfm(dh, mme, false, param);
+	dect_ie_collection_put(dh, param);
+err1:
+	dect_msg_free(dh, &mm_info_reject_msg_desc, &msg.common);
+
+}
+
+static void dect_mm_rcv_info_suggest(struct dect_handle *dh,
+				     struct dect_mm_endpoint *mme,
+				     struct dect_msg_buf *mb)
+{
+	struct dect_mm_info_suggest_msg msg;
+	struct dect_mm_info_param *param;
+
+	mm_debug(mme, "INFO-SUGGEST");
+	if (dect_parse_sfmt_msg(dh, &mm_info_suggest_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->info_type		= dect_ie_hold(msg.info_type);
+	param->call_identity		= dect_ie_hold(msg.call_identity);
+	//param->fixed_identity		= dect_ie_hold(msg.fixed_identity);
+	param->location_area		= dect_ie_hold(msg.location_area);
+	param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity);
+	param->network_parameter	= dect_ie_hold(msg.network_parameter);
+	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+
+	dh->ops->mm_ops->mm_info_ind(dh, mme, param);
+	dect_ie_collection_put(dh, param);
+err1:
+	dect_msg_free(dh, &mm_info_suggest_msg_desc, &msg.common);
+}
+
 static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 			struct dect_msg_buf *mb)
 {
@@ -1127,10 +1443,13 @@ static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 	case DECT_MM_CIPHER_REJECT:
 		return dect_mm_rcv_cipher_reject(dh, mme, mb);
 	case DECT_MM_INFO_REQUEST:
+		return dect_mm_rcv_info_request(dh, mme, mb);
 	case DECT_MM_INFO_ACCEPT:
+		return dect_mm_rcv_info_accept(dh, mme, mb);
 	case DECT_MM_INFO_SUGGEST:
+		return dect_mm_rcv_info_suggest(dh, mme, mb);
 	case DECT_MM_INFO_REJECT:
-		break;
+		return dect_mm_rcv_info_reject(dh, mme, mb);
 	case DECT_MM_LOCATE_REQUEST:
 		return dect_mm_rcv_locate_request(dh, mme, mb);
 	case DECT_MM_LOCATE_ACCEPT:
@@ -1166,6 +1485,7 @@ static void dect_mm_open(struct dect_handle *dh,
 	case DECT_MM_ACCESS_RIGHTS_REQUEST:
 	case DECT_MM_LOCATE_REQUEST:
 	case DECT_MM_KEY_ALLOCATE:
+	case DECT_MM_INFO_REQUEST:
 		break;
 	default:
 		return;

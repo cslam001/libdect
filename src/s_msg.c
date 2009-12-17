@@ -169,6 +169,76 @@ static int dect_sfmt_parse_single_keypad(const struct dect_handle *dh,
 	return 0;
 }
 
+static const struct dect_trans_tbl dect_info_type_parameters[] = {
+	TRANS_TBL(DECT_INFO_LOCATE_SUGGEST,				"Locate suggest"),
+	TRANS_TBL(DECT_INFO_ACCESS_RIGHTS_MODIFY_SUGGEST,		"Access rights modify suggest"),
+	TRANS_TBL(DECT_INFO_PP_AUTHENTICATION_FAILURE,			"PP authentication failure"),
+	TRANS_TBL(DECT_INFO_DYNAMIC_PARAMETERS_ALLOCATION,		"Dynamic parameters allocation"),
+	TRANS_TBL(DECT_INFO_EXTERNAL_HO_PARAMETERS,			"External handover parameters"),
+	TRANS_TBL(DECT_INFO_LOCATION_AREA,				"Location area"),
+	TRANS_TBL(DECT_INFO_HANDOVER_REFERENCE,				"Handover reference"),
+	TRANS_TBL(DECT_INFO_MF_PSCN_SYNCHRONIZED_HANDOVER_CANDIATE,	"Multiframe/PSCN synchronized ext. handover candidate"),
+	TRANS_TBL(DECT_INFO_EXT_HANDOVER_CANDIDATE,			"Ext. handover candidate"),
+	TRANS_TBL(DECT_INFO_MF_SYNCHRONIZED_HANDOVER_CANDIATE,		"Multiframe synchronized ext. handover candidate"),
+	TRANS_TBL(DECT_INFO_MF_PSCN_MFN_SYNCHRONIZED_HANDOVER_CANDIATE,	"Multiframe/PSCN/MFN synchronized ext. handover candidate"),
+	TRANS_TBL(DECT_INFO_NON_SYNCHRONIZED_HANDOVER_CANDIDATE,	"Non synchronized ext. handover candidate"),
+	TRANS_TBL(DECT_INFO_OLD_FIXED_PART_IDENTITY,			"Old fixed part identity"),
+	TRANS_TBL(DECT_INFO_OLD_NETWORK_ASSIGNED_IDENTITY,		"Old network assigned identity"),
+	TRANS_TBL(DECT_INFO_OLD_NETWORK_ASSIGNED_LOCATION_AREA,		"Old network assigned location area"),
+	TRANS_TBL(DECT_INFO_OLD_NETWORK_ASSIGNED_HANDOVER_REFERENCE,	"Old network assigend handover reference"),
+	TRANS_TBL(DECT_INFO_BILLING,					"Billing"),
+	TRANS_TBL(DECT_INFO_DEBITING,					"Debiting"),
+	TRANS_TBL(DECT_INFO_CK_TRANSFER,				"CK transfer"),
+	TRANS_TBL(DECT_INFO_HANDOVER_FAILED_REVERSION,			"Handover failed, reversion to old channel"),
+	TRANS_TBL(DECT_INFO_QA_M_CALL,					"QA&M call"),
+	TRANS_TBL(DECT_INFO_DISTRIBUTED_COMMUNICATION_DOWNLOAD,		"Distributed Communication Download"),
+	TRANS_TBL(DECT_INFO_ETHERNET_ADDRESS,				"Ethernet address"),
+	TRANS_TBL(DECT_INFO_TOKEN_RING_ADDRESS,				"Token Ring address"),
+	TRANS_TBL(DECT_INFO_IPV4_ADDRESS,				"IPv4 address"),
+	TRANS_TBL(DECT_INFO_IPV6_ADDRESS,				"IPv6 address"),
+	TRANS_TBL(DECT_INFO_IDENTITY_ALLOCATION,			"Identity allocation"),
+};
+
+static void dect_sfmt_dump_info_type(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_info_type *ie = dect_ie_container(ie, _ie);
+	unsigned int i;
+	char buf[32];
+
+	for (i = 0; i < ie->num; i++)
+		dect_debug("\tparameter type[%u]: %x (%s)\n", i, ie->type[i],
+			   dect_val2str(dect_info_type_parameters, buf, ie->type[i]));
+}
+
+static int dect_sfmt_build_info_type(struct dect_sfmt_ie *dst,
+				     const struct dect_ie_common *src)
+{
+	struct dect_ie_info_type *ie = dect_ie_container(ie, src);
+	unsigned int n = 2, i;
+
+	for (i = 0; i < ie->num; i++)
+		dst->data[n++] = ie->type[i];
+	dst->data[n - 1] |= DECT_OCTET_GROUP_END;
+	dst->len = n;
+	return 0;
+}
+
+static int dect_sfmt_parse_info_type(const struct dect_handle *dh,
+				     struct dect_ie_common **ie,
+				     const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_info_type *dst = dect_ie_container(dst, *ie);
+	unsigned int n = 2;
+
+	while (dst->num < array_size(dst->type)) {
+		dst->type[dst->num++] = src->data[n] & ~DECT_OCTET_GROUP_END;
+		if (src->data[n] & DECT_OCTET_GROUP_END)
+			break;
+		n++;
+	}
+	return 0;
+}
+
 static const struct dect_trans_tbl dect_release_reasons[] = {
 	TRANS_TBL(DECT_RELEASE_NORMAL,				"normal"),
 	TRANS_TBL(DECT_RELEASE_UNEXPECTED_MESSAGE,		"unexpected message"),
@@ -1206,6 +1276,9 @@ static const struct dect_ie_handler {
 	[S_VL_IE_INFO_TYPE]			= {
 		.name	= "info type",
 		.size	= sizeof(struct dect_ie_info_type),
+		.parse	= dect_sfmt_parse_info_type,
+		.build	= dect_sfmt_build_info_type,
+		.dump	= dect_sfmt_dump_info_type,
 	},
 	[S_VL_IE_IDENTITY_TYPE]			= {
 		.name	= "identity type",
