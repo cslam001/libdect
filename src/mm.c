@@ -1462,8 +1462,6 @@ int dect_mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		     struct dect_mm_info_param *param)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
-	struct dect_mm_info_request_msg rmsg;
-	struct dect_mm_info_suggest_msg smsg;
 	int err;
 
 	mm_debug(mme, "MM_INFO-req");
@@ -1476,38 +1474,42 @@ int dect_mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		goto err1;
 
 	if (dh->mode == DECT_MODE_FP) {
-		memset(&smsg, 0, sizeof(smsg));
-		smsg.info_type			= param->info_type;
-		smsg.call_identity		= param->call_identity;
-		//smsg.fixed_identity		= param->fixed_identity;
-		smsg.location_area		= param->location_area;
-		smsg.nwk_assigned_identity	= param->nwk_assigned_identity;
-		smsg.network_parameter		= param->network_parameter;
-		smsg.iwu_to_iwu			= param->iwu_to_iwu;
-		smsg.escape_to_proprietary	= param->escape_to_proprietary;
+		struct dect_mm_info_suggest_msg msg;
+
+		memset(&msg, 0, sizeof(msg));
+		msg.info_type			= param->info_type;
+		msg.call_identity		= param->call_identity;
+		//msg.fixed_identity		= param->fixed_identity;
+		msg.location_area		= param->location_area;
+		msg.nwk_assigned_identity	= param->nwk_assigned_identity;
+		msg.network_parameter		= param->network_parameter;
+		msg.iwu_to_iwu			= param->iwu_to_iwu;
+		msg.escape_to_proprietary	= param->escape_to_proprietary;
 
 		err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_INITIATOR,
 				       &mm_info_suggest_msg_desc,
-				       &smsg.common, DECT_MM_INFO_SUGGEST);
+				       &msg.common, DECT_MM_INFO_SUGGEST);
 		if (err < 0)
 			goto err2;
 
 		dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	} else {
-		memset(&rmsg, 0, sizeof(rmsg));
-		rmsg.info_type			= param->info_type;
-		rmsg.call_identity		= param->call_identity;
-		rmsg.portable_identity		= param->portable_identity;
-		rmsg.fixed_identity		= param->fixed_identity;
-		rmsg.location_area		= param->location_area;
-		rmsg.nwk_assigned_identity	= param->nwk_assigned_identity;
-		rmsg.network_parameter		= param->network_parameter;
-		rmsg.iwu_to_iwu			= param->iwu_to_iwu;
-		rmsg.escape_to_proprietary	= param->escape_to_proprietary;
+		struct dect_mm_info_request_msg msg;
+
+		memset(&msg, 0, sizeof(msg));
+		msg.info_type			= param->info_type;
+		msg.call_identity		= param->call_identity;
+		msg.portable_identity		= param->portable_identity;
+		msg.fixed_identity		= param->fixed_identity;
+		msg.location_area		= param->location_area;
+		msg.nwk_assigned_identity	= param->nwk_assigned_identity;
+		msg.network_parameter		= param->network_parameter;
+		msg.iwu_to_iwu			= param->iwu_to_iwu;
+		msg.escape_to_proprietary	= param->escape_to_proprietary;
 
 		err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_INITIATOR,
 				       &mm_info_request_msg_desc,
-				       &rmsg.common, DECT_MM_INFO_REQUEST);
+				       &msg.common, DECT_MM_INFO_REQUEST);
 		if (err < 0)
 			goto err2;
 
