@@ -379,6 +379,18 @@ enum dect_sfmt_error {
 	DECT_SFMT_INVALID_IE		= -3,
 };
 
+static inline enum dect_reject_reasons dect_sfmt_reject_reason(enum dect_sfmt_error err)
+{
+	switch (err) {
+	case DECT_SFMT_MANDATORY_IE_MISSING:
+		return DECT_REJECT_INFORMATION_ELEMENT_ERROR;
+	case DECT_SFMT_MANDATORY_IE_ERROR:
+		return DECT_REJECT_INVALID_INFORMATION_ELEMENT_CONTENTS;
+	default:
+		BUG();
+	}
+}
+
 /**
  * struct dect_msg_common - Common dummy msg structure to avoid casts
  *

@@ -385,6 +385,18 @@ static int dect_mm_send_msg(struct dect_handle *dh,
 	return dect_lce_send(dh, &mme->procedure[role].transaction, desc, msg, type);
 }
 
+#define dect_mm_send_reject(dh, mme, type, err)			\
+({								\
+	struct dect_ie_reject_reason reject_reason;		\
+	struct dect_mm_ ## type ## _param reply = {		\
+		.reject_reason = &reject_reason,		\
+	};							\
+								\
+	reject_reason.reason = dect_sfmt_reject_reason(err);	\
+	dect_mm_send_ ## type ## _reject(dh, mme, &reply);	\
+	(void)0;						\
+})
+
 /**
  * dect_mm_key_allocate_req - MM_KEY_ALLOCATE-req primitive
  *
