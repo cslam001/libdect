@@ -400,7 +400,7 @@ int dect_mm_key_allocate_req(struct dect_handle *dh,
 	struct dect_mm_key_allocate_msg msg;
 	int err;
 
-	mm_debug(mme, "KEY_ALLOCATE-req");
+	mm_debug(mme, "MM_KEY_ALLOCATE-req");
 	if (mp->type != DECT_MMP_NONE)
 		return -1;
 
@@ -438,7 +438,7 @@ static void dect_mm_rcv_key_allocate(struct dect_handle *dh,
 	struct dect_mm_key_allocate_param *param;
 
 	mm_debug(mme, "KEY-ALLOCATE");
-	if (mp->type != 0)
+	if (mp->type != DECT_MMP_NONE)
 		return;
 
 	if (dect_parse_sfmt_msg(dh, &mm_key_allocate_msg_desc,
@@ -474,7 +474,7 @@ int dect_mm_authenticate_req(struct dect_handle *dh,
 	struct dect_mm_authentication_request_msg msg;
 	int err;
 
-	mm_debug(mme, "AUTHENTICATE-req");
+	mm_debug(mme, "MM_AUTHENTICATE-req");
 	if (mp->type != DECT_MMP_NONE)
 		return -1;
 
@@ -617,7 +617,7 @@ int dect_mm_cipher_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	struct dect_mm_cipher_request_msg msg;
 	int err;
 
-	mm_debug(mme, "CIPHER-req");
+	mm_debug(mme, "MM_CIPHER-req");
 	if (mp->type != DECT_MMP_NONE)
 		return -1;
 
@@ -676,6 +676,7 @@ int dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	struct dect_mm_cipher_reject_msg rmsg;
 	int err;
 
+	mm_debug(mme, "MM_CIPHER-res");
 	if (mp->type != DECT_MMP_CIPHER)
 		return -1;
 
@@ -828,7 +829,10 @@ int dect_mm_access_rights_req(struct dect_handle *dh,
 	struct dect_mm_access_rights_request_msg msg;
 	int err;
 
-	mm_debug(mme, "ACCESS_RIGHTS-req");
+	mm_debug(mme, "MM_ACCESS_RIGHTS-req");
+	if (mp->type != DECT_MMP_NONE)
+		return -1;
+
 	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
 				        DECT_PD_MM);
 	if (err < 0)
@@ -875,7 +879,7 @@ int dect_mm_access_rights_res(struct dect_handle *dh,
 	struct dect_ie_fixed_identity fixed_identity;
 	int err;
 
-	mm_debug(mme, "ACCESS_RIGHTS-res");
+	mm_debug(mme, "MM_ACCESS_RIGHTS-res");
 	if (mp->type != DECT_MMP_ACCESS_RIGHTS)
 		return -1;
 
@@ -1073,6 +1077,8 @@ static int dect_mm_send_locate_reject(struct dect_handle *dh,
 int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		       const struct dect_mm_locate_param *param)
 {
+	mm_debug(mme, "MM_LOCATE-res");
+
 	if (param->reject_reason == NULL)
 		return dect_mm_send_locate_accept(dh, mme, param);
 	else
@@ -1161,7 +1167,7 @@ int dect_mm_detach_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	struct dect_mm_detach_msg msg;
 	int err;
 
-	mm_debug(mme, "DETACH-req");
+	mm_debug(mme, "MM_DETACH-req");
 	if (mp->type != DECT_MMP_NONE)
 		return -1;
 
@@ -1192,7 +1198,7 @@ static void dect_mm_rcv_detach(struct dect_handle *dh,
 	struct dect_mm_detach_param *param;
 	struct dect_mm_detach_msg msg;
 
-	mm_debug(mme, "DETACH");
+	mm_debug(mme, "MM_DETACH");
 	if (mp->type != DECT_MMP_NONE)
 		return;
 
@@ -1322,7 +1328,7 @@ int dect_mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	struct dect_mm_info_suggest_msg smsg;
 	int err;
 
-	mm_debug(mme, "INFO-req");
+	mm_debug(mme, "MM_INFO-req");
 	if (mp->type != DECT_MMP_NONE)
 		return -1;
 
@@ -1392,6 +1398,7 @@ int dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	struct dect_mm_info_reject_msg rmsg;
 	int err;
 
+	mm_debug(mme, "MM_INFO-res");
 	if (mp->type != DECT_MMP_PARAMETER_RETRIEVAL)
 		return -1;
 
