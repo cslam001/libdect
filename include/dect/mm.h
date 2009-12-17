@@ -106,7 +106,7 @@ struct dect_mm_info_param {
 	struct dect_ie_info_type		*info_type;
 	struct dect_ie_call_identity		*call_identity;
 	struct dect_ie_portable_identity	*portable_identity;
-	struct dect_ie_list			*fixed_identity;
+	struct dect_ie_list			fixed_identity;
 	struct dect_ie_location_area		*location_area;
 	struct dect_ie_nwk_assigned_identity	*nwk_assigned_identity;
 	struct dect_ie_network_parameter	*network_parameter;

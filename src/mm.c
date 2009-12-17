@@ -1624,7 +1624,7 @@ static void dect_mm_rcv_info_request(struct dect_handle *dh,
 	param->info_type		= dect_ie_hold(msg.info_type);
 	param->call_identity		= dect_ie_hold(msg.call_identity);
 	param->portable_identity	= dect_ie_hold(msg.portable_identity);
-	param->fixed_identity		= dect_ie_hold(msg.fixed_identity);
+	param->fixed_identity		= *dect_ie_list_hold(&msg.fixed_identity);
 	param->location_area		= dect_ie_hold(msg.location_area);
 	param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity);
 	param->network_parameter	= dect_ie_hold(msg.network_parameter);
@@ -1661,7 +1661,7 @@ static void dect_mm_rcv_info_accept(struct dect_handle *dh,
 
 	param->info_type		= dect_ie_hold(msg.info_type);
 	param->call_identity		= dect_ie_hold(msg.call_identity);
-	param->fixed_identity		= dect_ie_hold(msg.fixed_identity);
+	param->fixed_identity		= *dect_ie_list_hold(&msg.fixed_identity);
 	param->location_area		= dect_ie_hold(msg.location_area);
 	param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity);
 	param->network_parameter	= dect_ie_hold(msg.network_parameter);

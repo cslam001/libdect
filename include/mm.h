@@ -90,7 +90,7 @@ struct dect_mm_access_rights_terminate_reject_msg {
 struct dect_mm_access_rights_terminate_request_msg {
 	struct dect_msg_common			common;
 	struct dect_ie_portable_identity	*portable_identity;
-	struct dect_ie_list			*fixed_identity;
+	struct dect_ie_list			fixed_identity;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
@@ -156,24 +156,24 @@ struct dect_mm_detach_msg {
 	struct dect_ie_portable_identity	*portable_identity;
 	struct dect_ie_nwk_assigned_identity	*nwk_assigned_identity;
 	struct dect_ie_network_parameter	*network_parameter;
-	struct dect_ie_list			*segmented_info;
+	struct dect_ie_list			segmented_info;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_identity_reply_msg {
 	struct dect_msg_common			common;
-	struct dect_ie_list			*portable_identity;
-	struct dect_ie_list			*fixed_identity;
-	struct dect_ie_list			*nwk_assigned_identity;
+	struct dect_ie_list			portable_identity;
+	struct dect_ie_list			fixed_identity;
+	struct dect_ie_list			nwk_assigned_identity;
 	struct dect_ie_model_identifier		*model_identifier;
-	struct dect_ie_list			*iwu_to_iwu;
+	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_identity_request_msg {
 	struct dect_msg_common			common;
-	struct dect_ie_list			*identity_type;
+	struct dect_ie_list			identity_type;
 	struct dect_ie_network_parameter	*network_parameter;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
@@ -233,7 +233,7 @@ struct dect_mm_info_accept_msg {
 	struct dect_msg_common			common;
 	struct dect_ie_info_type		*info_type;
 	struct dect_ie_call_identity		*call_identity;
-	struct dect_ie_list			*fixed_identity;
+	struct dect_ie_list			fixed_identity;
 	struct dect_ie_location_area		*location_area;
 	struct dect_ie_nwk_assigned_identity	*nwk_assigned_identity;
 	struct dect_ie_network_parameter	*network_parameter;
@@ -257,7 +257,7 @@ struct dect_mm_info_request_msg {
 	struct dect_ie_info_type		*info_type;
 	struct dect_ie_call_identity		*call_identity;
 	struct dect_ie_portable_identity	*portable_identity;
-	struct dect_ie_list			*fixed_identity;
+	struct dect_ie_list			fixed_identity;
 	struct dect_ie_location_area		*location_area;
 	struct dect_ie_nwk_assigned_identity	*nwk_assigned_identity;
 	struct dect_ie_network_parameter	*network_parameter;
