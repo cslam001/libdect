@@ -81,6 +81,7 @@ struct dect_mm_identity_assign_param {
 	struct dect_ie_duration			*duration;
 	struct dect_ie_reject_reason		*reject_reason;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_endpoint;
