@@ -89,7 +89,6 @@ static void dect_keypad_complete(struct dect_handle *dh, void *call,
 static void dect_mncc_connect_ind(struct dect_handle *dh, struct dect_call *call,
 				  struct dect_mncc_connect_param *param)
 {
-	printf("MNCC_CONNECT-ind\n");
 }
 
 static void dect_mncc_setup_ind(struct dect_handle *dh, struct dect_call *call,
@@ -101,7 +100,6 @@ static void dect_mncc_setup_ind(struct dect_handle *dh, struct dect_call *call,
 		//.signal		= &signal,
 	};
 
-	printf("MNCC_SETUP-ind\n");
 	dect_ie_init(&signal);
 	signal.code = DECT_SIGNAL_DIAL_TONE_ON;
 
@@ -114,7 +112,6 @@ static void dect_mncc_setup_ind(struct dect_handle *dh, struct dect_call *call,
 static void dect_mncc_setup_ack_ind(struct dect_handle *dh, struct dect_call *call,
 				    struct dect_mncc_setup_ack_param *param)
 {
-	printf("MNCC_SETUP_ACK-ind\n");
 }
 
 static void dect_mncc_info_ind(struct dect_handle *dh, struct dect_call *call,
@@ -127,7 +124,6 @@ static void dect_mncc_info_ind(struct dect_handle *dh, struct dect_call *call,
 		.signal			= &signal,
 	};
 
-	printf("MNCC_INFO-ind\n");
 	return;
 	dect_keypad_append(dh, priv->keybuf, param->keypad,
 			   param->sending_complete);
@@ -201,7 +197,6 @@ static void dect_mncc_info_timer(int fd, short even, void *data)
 static void dect_mncc_alert_ind(struct dect_handle *dh, struct dect_call *call,
 				struct dect_mncc_alert_param *param)
 {
-	printf("MNCC_ALERT-ind\n");
 	dect_mncc_info_timer(0, 0, call);
 }
 
@@ -210,14 +205,12 @@ static void dect_mncc_reject_ind(struct dect_handle *dh, struct dect_call *call,
 {
 	struct call *priv = dect_call_priv(call);
 
-	printf("MNCC_REJECT-ind\n");
 	event_del(&priv->event);
 }
 
 static void dect_mncc_release_ind(struct dect_handle *dh, struct dect_call *call,
 				  struct dect_mncc_release_param *param)
 {
-	printf("MNCC_RELEASE-ind\n");
 	dect_mncc_release_res(dh, call, param);
 }
 

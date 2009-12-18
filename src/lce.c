@@ -48,11 +48,14 @@ static DECT_SFMT_MSG_DESC(lce_page_reject,
 
 static const struct dect_nwk_protocol *protocols[DECT_PD_MAX + 1];
 
+#define lce_debug(fmt, args...) \
+	dect_debug("LCE: " fmt, ## args)
+
 void dect_lce_register_protocol(const struct dect_nwk_protocol *protocol)
 {
 	protocols[protocol->pd] = protocol;
-	dect_debug("LCE: registered protocol %u (%s)\n",
-		   protocol->pd, protocol->name);
+	lce_debug("registered protocol %u (%s)\n",
+		  protocol->pd, protocol->name);
 }
 
 struct dect_msg_buf *dect_mbuf_alloc(const struct dect_handle *dh)
@@ -89,7 +92,7 @@ static ssize_t dect_mbuf_rcv(const struct dect_fd *dfd, struct msghdr *msg,
 
 	len = recvmsg(dfd->fd, msg, 0);
 	if (len < 0) {
-		dect_debug("recvmsg: %s\n", strerror(errno));
+		lce_debug("recvmsg: %s\n", strerror(errno));
 		return len;
 	}
 
@@ -136,7 +139,7 @@ static int dect_lce_broadcast(const struct dect_handle *dh,
 {
 	ssize_t size;
 
-	dect_hexdump("BROADCAST", msg, len);
+	dect_hexdump("LCE: BCAST TX", msg, len);
 	size = send(dh->b_sap->fd, msg, len, 0);
 	assert(size == (ssize_t)len);
 	return 0;
@@ -184,8 +187,8 @@ static void dect_lce_rcv_short_page(struct dect_handle *dh,
 
 	w   = msg->hdr & DECT_LCE_PAGE_W_FLAG;
 	hdr = msg->hdr & DECT_LCE_PAGE_HDR_MASK;
-	dect_debug("short page: w=%u hdr=%u information=%x\n",
-		   w, hdr, __be16_to_cpu(msg->information));
+	lce_debug("short page: w=%u hdr=%u information=%x\n",
+		  w, hdr, __be16_to_cpu(msg->information));
 }
 
 static void dect_lce_bsap_event(struct dect_handle *dh, struct dect_fd *dfd,
@@ -199,7 +202,7 @@ static void dect_lce_bsap_event(struct dect_handle *dh, struct dect_fd *dfd,
 
 	if (dect_mbuf_rcv(dfd, &msg, mb) < 0)
 		return;
-	dect_mbuf_dump(mb, "BCAST RX");
+	dect_mbuf_dump(mb, "LCE: BCAST RX");
 
 	switch (mb->len) {
 	case 3:
@@ -214,9 +217,9 @@ static void dect_lce_bsap_event(struct dect_handle *dh, struct dect_fd *dfd,
  */
 
 #define ddl_debug(ddl, fmt, args...) \
-	dect_debug("link %d (%s): " fmt "\n", \
-		   (ddl)->dfd ? (ddl)->dfd->fd : -1, \
-		   ddl_states[(ddl)->state], ## args)
+	lce_debug("link %d (%s): " fmt "\n", \
+		  (ddl)->dfd ? (ddl)->dfd->fd : -1, \
+		  ddl_states[(ddl)->state], ## args)
 
 static const char * const ddl_states[DECT_DATA_LINK_STATE_MAX + 1] = {
 	[DECT_DATA_LINK_RELEASED]		= "RELEASED",
@@ -458,7 +461,7 @@ static int dect_send(const struct dect_handle *dh,
 {
 	ssize_t len;
 
-	dect_mbuf_dump(mb, "TX");
+	dect_mbuf_dump(mb, "LCE: TX");
 	len = send(ddl->dfd->fd, mb->data, mb->len, 0);
 	if (len < 0)
 		ddl_debug(ddl, "send %u bytes: %s", mb->len, strerror(errno));
@@ -573,7 +576,7 @@ err3:
 err2:
 	dect_free(dh, ddl);
 err1:
-	dect_debug("LCE: dect_ddl_establish: %s\n", strerror(errno));
+	lce_debug("dect_ddl_establish: %s\n", strerror(errno));
 	return NULL;
 }
 
@@ -694,7 +697,7 @@ static void dect_lce_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 	case DECT_LCE_PAGE_REJECT:
 		return dect_lce_rcv_page_reject(dh, ta, mb);
 	default:
-		ddl_debug(ta->link, "LCE: unknown message type %x", mb->type);
+		ddl_debug(ta->link, "unknown message type %x", mb->type);
 		return;
 	}
 }
@@ -707,7 +710,7 @@ static void dect_lce_open(struct dect_handle *dh,
 	case DECT_LCE_PAGE_RESPONSE:
 		return dect_lce_rcv_page_response(dh, ta, mb);
 	default:
-		ddl_debug(ta->link, "LCE: unknown message type %x", mb->type);
+		ddl_debug(ta->link, "unknown message type %x", mb->type);
 		return;
 	}
 }
@@ -775,8 +778,7 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 		}
 	}
 
-	dect_debug("\n");
-	dect_mbuf_dump(mb, "RX");
+	dect_mbuf_dump(mb, "LCE: RX");
 
 	if (mb->len < DECT_S_HDR_SIZE)
 		return;
@@ -817,6 +819,7 @@ static void dect_lce_data_link_event(struct dect_handle *dh,
 {
 	struct dect_data_link *ddl = dfd->data;
 
+	dect_debug("\n");
 	if (events & DECT_FD_WRITE) {
 		switch (ddl->state) {
 		case DECT_DATA_LINK_ESTABLISH_PENDING:
@@ -943,6 +946,7 @@ static void dect_lce_ssap_listener_event(struct dect_handle *dh,
 	struct dect_data_link *ddl;
 	struct dect_fd *nfd;
 
+	dect_debug("\n");
 	ddl = dect_ddl_alloc(dh);
 	if (ddl == NULL)
 		goto err1;
@@ -974,7 +978,7 @@ err3:
 err2:
 	dect_free(dh, ddl);
 err1:
-	dect_debug("LCE: dect_lce_ssap_listener_event: %s\n", strerror(errno));
+	lce_debug("dect_lce_ssap_listener_event: %s\n", strerror(errno));
 	return;
 }
 
@@ -1027,7 +1031,7 @@ err3:
 err2:
 	dect_close(dh, dh->b_sap);
 err1:
-	dect_debug("LCE: dect_lce_init: %s\n", strerror(errno));
+	lce_debug("dect_lce_init: %s\n", strerror(errno));
 	return -1;
 }
 

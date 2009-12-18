@@ -314,8 +314,14 @@ static DECT_SFMT_MSG_DESC(mm_notify_msg,
 	DECT_SFMT_IE_END_MSG
 );
 
+#define __mm_debug(mme, pfx, fmt, args...) \
+	dect_debug("%sMM (link %d): " fmt "\n", (pfx), \
+		   (mme)->link->dfd->fd, ## args)
+
 #define mm_debug(mme, fmt, args...) \
-	dect_debug("MM (link %d): " fmt "\n", (mme)->link->dfd->fd, ## args)
+	__mm_debug(mme, "", fmt, ## args)
+#define mm_debug_entry(mme, fmt, args...) \
+	__mm_debug(mme, "\n", fmt, ## args)
 
 void *dect_mm_priv(struct dect_mm_endpoint *mme)
 {
@@ -412,7 +418,7 @@ int dect_mm_key_allocate_req(struct dect_handle *dh,
 	struct dect_mm_key_allocate_msg msg;
 	int err;
 
-	mm_debug(mme, "MM_KEY_ALLOCATE-req");
+	mm_debug_entry(mme, "MM_KEY_ALLOCATE-req");
 	if (mp->type != DECT_MMP_NONE)
 		return -1;
 
@@ -465,6 +471,7 @@ static void dect_mm_rcv_key_allocate(struct dect_handle *dh,
 	param->rand		= dect_ie_hold(msg.rand);
 	param->rs		= dect_ie_hold(msg.rs);
 
+	mm_debug(mme, "MM_KEY_ALLOCATE-ind");
 	dh->ops->mm_ops->mm_key_allocate_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
 err1:
@@ -486,7 +493,7 @@ int dect_mm_authenticate_req(struct dect_handle *dh,
 	struct dect_mm_authentication_request_msg msg;
 	int err;
 
-	mm_debug(mme, "MM_AUTHENTICATE-req");
+	mm_debug_entry(mme, "MM_AUTHENTICATE-req");
 	if (mp->type != DECT_MMP_NONE)
 		return -1;
 
@@ -568,7 +575,7 @@ int dect_mm_authenticate_res(struct dect_handle *dh,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	int err;
 
-	mm_debug(mme, "MM_AUTHENTICATE-res: accept: %u", accept);
+	mm_debug_entry(mme, "MM_AUTHENTICATE-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_AUTHENTICATE)
 		return -1;
 
@@ -617,6 +624,7 @@ static void dect_mm_rcv_authentication_request(struct dect_handle *dh,
 
 	mp->type = DECT_MMP_CIPHER;
 
+	mm_debug(mme, "MM_AUTHENTICATE-ind");
 	dh->ops->mm_ops->mm_authenticate_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
 err1:
@@ -654,6 +662,7 @@ static void dect_mm_rcv_authentication_reply(struct dect_handle *dh,
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
 
+	mm_debug(mme, "MM_AUTHENTICATE-cfm: accept: 1");
 	dh->ops->mm_ops->mm_authenticate_cfm(dh, mme, true, param);
 	dect_ie_collection_put(dh, param);
 err1:
@@ -685,6 +694,7 @@ static void dect_mm_rcv_authentication_reject(struct dect_handle *dh,
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
 
+	mm_debug(mme, "MM_AUTHENTICATE-cfm: accept: 0");
 	dh->ops->mm_ops->mm_authenticate_cfm(dh, mme, false, param);
 	dect_ie_collection_put(dh, param);
 err1:
@@ -707,7 +717,7 @@ int dect_mm_cipher_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	struct dect_mm_cipher_request_msg msg;
 	int err;
 
-	mm_debug(mme, "MM_CIPHER-req");
+	mm_debug_entry(mme, "MM_CIPHER-req");
 	if (mp->type != DECT_MMP_NONE)
 		return -1;
 
@@ -780,7 +790,7 @@ int dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	int err;
 
-	mm_debug(mme, "MM_CIPHER-res: accept: %u", accept);
+	mm_debug_entry(mme, "MM_CIPHER-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_CIPHER)
 		return -1;
 
@@ -829,6 +839,7 @@ static void dect_mm_rcv_cipher_request(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
+	mm_debug(mme, "MM_CIPHER-ind");
 	dh->ops->mm_ops->mm_cipher_ind(dh, mme, param);
 err1:
 	dect_msg_free(dh, &mm_cipher_request_msg_desc, &msg.common);
@@ -860,6 +871,7 @@ static void dect_mm_rcv_cipher_suggest(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
+	mm_debug(mme, "MM_CIPHER-ind");
 	dh->ops->mm_ops->mm_cipher_ind(dh, mme, param);
 err1:
 	dect_msg_free(dh, &mm_cipher_suggest_msg_desc, &msg.common);
@@ -889,6 +901,7 @@ static void dect_mm_rcv_cipher_reject(struct dect_handle *dh,
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
 
+	mm_debug(mme, "MM_CIPHER-cfm: accept: 0");
 	dh->ops->mm_ops->mm_cipher_cfm(dh, mme, false, param);
 err1:
 	dect_msg_free(dh, &mm_cipher_reject_msg_desc, &msg.common);
@@ -903,6 +916,7 @@ static void dect_mm_cipher_cfm(struct dect_handle *dh,
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
 
+	mm_debug(mme, "MM_CIPHER-cfm: accept: 1");
 	dh->ops->mm_ops->mm_cipher_cfm(dh, mme, true, NULL);
 }
 
@@ -931,7 +945,7 @@ int dect_mm_access_rights_req(struct dect_handle *dh,
 	struct dect_mm_access_rights_request_msg msg;
 	int err;
 
-	mm_debug(mme, "MM_ACCESS_RIGHTS-req");
+	mm_debug_entry(mme, "MM_ACCESS_RIGHTS-req");
 	if (mp->type != DECT_MMP_NONE)
 		return -1;
 
@@ -1026,7 +1040,7 @@ int dect_mm_access_rights_res(struct dect_handle *dh,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	int err;
 
-	mm_debug(mme, "MM_ACCESS_RIGHTS-res: accept: %u", accept);
+	mm_debug_entry(mme, "MM_ACCESS_RIGHTS-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_ACCESS_RIGHTS)
 		return -1;
 
@@ -1073,6 +1087,7 @@ static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
 
 	mp->type = DECT_MMP_ACCESS_RIGHTS;
 
+	mm_debug(mme, "MM_ACCESS_RIGHTS-ind");
 	dh->ops->mm_ops->mm_access_rights_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
 err1:
@@ -1111,6 +1126,7 @@ static void dect_mm_rcv_access_rights_accept(struct dect_handle *dh,
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
 
+	mm_debug(mme, "MM_ACCESS_RIGHTS-cfm: accept: 1");
 	dh->ops->mm_ops->mm_access_rights_cfm(dh, mme, true, param);
 	dect_ie_collection_put(dh, param);
 err1:
@@ -1142,6 +1158,7 @@ static void dect_mm_rcv_access_rights_reject(struct dect_handle *dh,
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
 
+	mm_debug(mme, "MM_ACCESS_RIGHTS-cfm: accept: 0");
 	dh->ops->mm_ops->mm_access_rights_cfm(dh, mme, false, param);
 	dect_ie_collection_put(dh, param);
 err1:
@@ -1212,7 +1229,7 @@ int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	int err;
 
-	mm_debug(mme, "MM_LOCATE-res: accept: %u", accept);
+	mm_debug_entry(mme, "MM_LOCATE-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_LOCATION_REGISTRATION)
 		return -1;
 
@@ -1264,9 +1281,10 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu),
 	param->model_identifier		= dect_ie_hold(msg.model_identifier),
 
-	mp->type = DECT_MMP_LOCATION_REGISTRATION;;
-	dh->ops->mm_ops->mm_locate_ind(dh, mme, param);
+	mp->type = DECT_MMP_LOCATION_REGISTRATION;
 
+	mm_debug(mme, "MM_LOCATE-ind");
+	dh->ops->mm_ops->mm_locate_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
 err1:
 	dect_msg_free(dh, &mm_locate_request_msg_desc, &msg.common);
@@ -1314,7 +1332,7 @@ int dect_mm_detach_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	struct dect_mm_detach_msg msg;
 	int err;
 
-	mm_debug(mme, "MM_DETACH-req");
+	mm_debug_entry(mme, "MM_DETACH-req");
 	if (mp->type != DECT_MMP_NONE)
 		return -1;
 
@@ -1362,6 +1380,8 @@ static void dect_mm_rcv_detach(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+
+	mm_debug(mme, "MM_DETACH-ind");
 	dh->ops->mm_ops->mm_detach_ind(dh, mme, param);
 
 	dect_ie_collection_put(dh, param);
@@ -1423,6 +1443,7 @@ static void dect_mm_rcv_temporary_identity_assign_ack(struct dect_handle *dh,
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
 
+	mm_debug(mme, "MM_IDENTITY_ASSIGN-cfm: accept: 1");
 	dh->ops->mm_ops->mm_identity_assign_cfm(dh, mme, true, param);
 err1:
 	dect_msg_free(dh, &mm_temporary_identity_assign_ack_msg_desc, &msg.common);
@@ -1454,6 +1475,7 @@ static void dect_mm_rcv_temporary_identity_assign_rej(struct dect_handle *dh,
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
 
+	mm_debug(mme, "MM_IDENTITY_ASSIGN-cfm: accept: 0");
 	dh->ops->mm_ops->mm_identity_assign_cfm(dh, mme, false, param);
 	dect_ie_collection_put(dh, param);
 err1:
@@ -1473,7 +1495,7 @@ int dect_mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	int err;
 
-	mm_debug(mme, "MM_INFO-req");
+	mm_debug_entry(mme, "MM_INFO-req");
 	if (mp->type != DECT_MMP_NONE)
 		return -1;
 
@@ -1582,7 +1604,7 @@ int dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	int err;
 
-	mm_debug(mme, "MM_INFO-res: accept: %u", accept);
+	mm_debug_entry(mme, "MM_INFO-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_PARAMETER_RETRIEVAL)
 		return -1;
 
@@ -1633,6 +1655,7 @@ static void dect_mm_rcv_info_request(struct dect_handle *dh,
 
 	mp->type = DECT_MMP_PARAMETER_RETRIEVAL;
 
+	mm_debug(mme, "MM_INFO-ind");
 	dh->ops->mm_ops->mm_info_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
 err1:
@@ -1672,6 +1695,7 @@ static void dect_mm_rcv_info_accept(struct dect_handle *dh,
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
 
+	mm_debug(mme, "MM_INFO-cfm: accept: 1");
 	dh->ops->mm_ops->mm_info_cfm(dh, mme, true, param);
 	dect_ie_collection_put(dh, param);
 err1:
@@ -1705,6 +1729,7 @@ static void dect_mm_rcv_info_reject(struct dect_handle *dh,
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
 
+	mm_debug(mme, "MM_INFO-cfm: accept: 0");
 	dh->ops->mm_ops->mm_info_cfm(dh, mme, false, param);
 	dect_ie_collection_put(dh, param);
 err1:
@@ -1736,6 +1761,7 @@ static void dect_mm_rcv_info_suggest(struct dect_handle *dh,
 	param->network_parameter	= dect_ie_hold(msg.network_parameter);
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 
+	mm_debug(mme, "MM_INFO-ind");
 	dh->ops->mm_ops->mm_info_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
 err1:
@@ -1794,8 +1820,7 @@ static void dect_mm_open(struct dect_handle *dh,
 	struct dect_mm_endpoint *mme;
 	struct dect_transaction *ta;
 
-	dect_debug("MM: unknown transaction msg type: %x\n", mb->type);
-
+	dect_debug("MM: unknown transaction: msg type: %x\n", mb->type);
 	switch (mb->type) {
 	case DECT_MM_AUTHENTICATION_REQUEST:
 	case DECT_MM_CIPHER_REQUEST:

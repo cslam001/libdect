@@ -33,14 +33,12 @@ static void mm_authenticate_ind(struct dect_handle *dh,
 				struct dect_mm_endpoint *mme,
 				struct dect_mm_authenticate_param *param)
 {
-	debug("MM_AUTHENTICATE-ind\n");
 }
 
 static void mm_identity_assign_cfm(struct dect_handle *dh,
 				   struct dect_mm_endpoint *mme, bool accept,
 				   struct dect_mm_identity_assign_param *param)
 {
-	debug("MM_IDENTITY_ASSIGN-cfm\n");
 }
 
 static void mm_locate_res(struct dect_handle *dh,
@@ -78,7 +76,6 @@ static void mm_cipher_cfm(struct dect_handle *dh,
 {
 	struct mm_priv *priv = dect_mm_priv(mme);
 
-	debug("MM_CIPHER-cfm: accept %u\n", accept);
 	if (accept)
 		mm_locate_res(dh, mme);
 
@@ -111,7 +108,6 @@ static void mm_authenticate_cfm(struct dect_handle *dh,
 	uint8_t ac[4];
 	uint32_t res1;
 
-	debug("MM_AUTHENTICATE-cfm accept: %u\n", accept);
 	if (!accept)
 		goto err;
 
@@ -162,7 +158,6 @@ static void mm_locate_ind(struct dect_handle *dh,
 {
 	struct mm_priv *priv = dect_mm_priv(mme);
 
-	debug("MM_LOCATE-ind\n");
 	priv->locate = dect_ie_collection_hold(param);
 	mm_authenticate_req(dh, mme);
 }
@@ -171,7 +166,6 @@ static void mm_access_rights_ind(struct dect_handle *dh,
 				 struct dect_mm_endpoint *mme,
 				 struct dect_mm_access_rights_param *param)
 {
-	debug("MM_ACCESS_RIGHTS-ind\n");
 	dect_mm_access_rights_res(dh, mme, true, param);
 }
 

@@ -1622,8 +1622,8 @@ static int dect_parse_sfmt_ie_header(struct dect_sfmt_ie *ie,
 	}
 	ie->data = mb->data;
 
-	dect_debug("found IE: <%s> (%x) len: %u\n", dect_ie_handlers[ie->id].name,
-		   ie->id, ie->len);
+//	dect_debug("found IE: <%s> (%x) len: %u\n", dect_ie_handlers[ie->id].name,
+//		   ie->id, ie->len);
 	return 0;
 }
 
@@ -1666,7 +1666,7 @@ static int dect_parse_sfmt_ie(const struct dect_handle *dh,
 			goto err1;
 	}
 
-	dect_debug("parse IE: <%s> id: %x len: %u dst: %p\n",
+	dect_debug("  IE: <%s> id: %x len: %u dst: %p\n",
 		   ieh->name, ie->id, ie->len, *dst);
 
 	err = ieh->parse(dh, dst, ie);
@@ -1684,6 +1684,21 @@ err1:
 	return err;
 }
 
+static void dect_debug_msg(const struct dect_sfmt_msg_desc *mdesc, const char *msg)
+{
+	char buf[strlen(mdesc->name) + 1];
+	unsigned int i;
+
+	strcpy(buf, mdesc->name);
+	for (i = 0; i < sizeof(buf); i++) {
+		if (islower(buf[i]))
+			buf[i] = toupper(buf[i]);
+		if (buf[i] == '_')
+			buf[i] = '-';
+	}
+	dect_debug("%s {%s} message\n", msg, buf);
+}
+
 enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,
 					 const struct dect_sfmt_msg_desc *mdesc,
 					 struct dect_msg_common *_dst,
@@ -1693,6 +1708,8 @@ enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,
 	struct dect_ie_common **dst = &_dst->ie[0];
 	struct dect_sfmt_ie _ie[2], *ie;
 	uint8_t idx = 0;
+
+	dect_debug_msg(mdesc, "parse");
 
 	dect_msg_ie_init(desc, dst);
 	while (mb->len > 0) {
@@ -1758,7 +1775,6 @@ out:
 		dect_msg_ie_init(desc, dst);
 	}
 
-	dect_debug("\n");
 	return DECT_SFMT_OK;
 }
 
@@ -1791,7 +1807,7 @@ dect_build_sfmt_ie(const struct dect_handle *dh,
 	if (ieh->build == NULL)
 		goto err1;
 
-	dect_debug("build IE: <%s> id: %x %p\n", ieh->name, type, ie);
+	dect_debug("  IE: <%s> id: %x %p\n", ieh->name, type, ie);
 	if (ieh->dump != NULL)
 		ieh->dump(ie);
 
@@ -1818,6 +1834,8 @@ enum dect_sfmt_error dect_build_sfmt_msg(const struct dect_handle *dh,
 	struct dect_ie_common * const *src = &_src->ie[0], **next, *rsrc;
 	struct dect_ie_list *iel;
 	enum dect_sfmt_error err;
+
+	dect_debug_msg(mdesc, "build");
 
 	while (!(desc->flags & DECT_SFMT_IE_END)) {
 		next = dect_next_ie(desc, (struct dect_ie_common **)src);
@@ -1849,7 +1867,6 @@ next:
 		desc++;
 	}
 
-	dect_debug("\n");
 	return DECT_SFMT_OK;
 }
 
