@@ -1165,6 +1165,147 @@ err1:
 	dect_msg_free(dh, &mm_access_rights_reject_msg_desc, &msg.common);
 }
 
+/**
+ * dect_mm_access_rights_terminate_req - MM_ACCESS_RIGHTS_TERMINATE-req primitive
+ *
+ * @dh:		libdect DECT handle
+ * @mme:	Mobility Management Endpoint
+ * @param:	access rights terminate request parameters
+ */
+int dect_mm_access_rights_terminate_req(struct dect_handle *dh,
+					struct dect_mm_endpoint *mme,
+					const struct dect_mm_access_rights_terminate_param *param)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_access_rights_terminate_request_msg msg;
+	int err;
+
+	mm_debug_entry(mme, "MM_ACCESS_RIGHTS_TERMINATE-req");
+	if (mp->type != DECT_MMP_NONE)
+		return -1;
+
+	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
+					DECT_PD_MM);
+	if (err < 0)
+		goto err1;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.portable_identity		= param->portable_identity;
+	msg.fixed_identity		= param->fixed_identity;
+	msg.iwu_to_iwu			= param->iwu_to_iwu;
+	msg.escape_to_proprietary	= param->escape_to_proprietary;
+
+	err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_INITIATOR,
+			       &mm_access_rights_terminate_request_msg_desc,
+			       &msg.common, DECT_MM_ACCESS_RIGHTS_TERMINATE_REQUEST);
+	if (err < 0)
+		goto err2;
+
+	mp->type = DECT_MMP_ACCESS_RIGHTS_TERMINATE;
+	return 0;
+
+err2:
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+err1:
+	return err;
+}
+
+static int dect_mm_send_access_rights_terminate_accept(const struct dect_handle *dh,
+						       struct dect_mm_endpoint *mme,
+						       const struct dect_mm_access_rights_terminate_param *param)
+{
+	struct dect_mm_access_rights_terminate_accept_msg msg = {
+		.escape_to_proprietary	= param->escape_to_proprietary,
+	};
+
+	return dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
+				&mm_access_rights_terminate_accept_msg_desc,
+				&msg.common, DECT_MM_ACCESS_RIGHTS_TERMINATE_ACCEPT);
+}
+
+static int dect_mm_send_access_rights_terminate_reject(const struct dect_handle *dh,
+						       struct dect_mm_endpoint *mme,
+						       const struct dect_mm_access_rights_terminate_param *param)
+{
+	struct dect_mm_access_rights_terminate_reject_msg msg = {
+		.reject_reason		= param->reject_reason,
+		.duration		= param->duration,
+		.escape_to_proprietary	= param->escape_to_proprietary,
+	};
+
+	return dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
+				&mm_access_rights_terminate_reject_msg_desc,
+				&msg.common, DECT_MM_ACCESS_RIGHTS_TERMINATE_REJECT);
+}
+
+/**
+ * dect_mm_access_rights_terminate_res - MM_ACCESS_RUGHTS_TERMINATE-res primitive
+ *
+ * @dh:		libdect DECT handle
+ * @mme:	Mobility Management Endpoint
+ * @accept:	accept/reject access rights termination
+ * @param:	access rights terminate response parameters
+ */
+int dect_mm_access_rights_terminate_res(struct dect_handle *dh,
+					struct dect_mm_endpoint *mme, bool accept,
+					const struct dect_mm_access_rights_terminate_param *param)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	int err;
+
+	mm_debug_entry(mme, "MM_ACCESS_RIGHTS_TERMINATE-res: accept: %u", accept);
+	if (mp->type != DECT_MMP_ACCESS_RIGHTS_TERMINATE)
+		return -1;
+
+	if (accept)
+		err = dect_mm_send_access_rights_terminate_accept(dh, mme, param);
+	else
+		err = dect_mm_send_access_rights_terminate_reject(dh, mme, param);
+
+	if (err < 0)
+		return err;
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+	return 0;
+}
+
+static void dect_mm_rcv_access_rights_terminate_request(struct dect_handle *dh,
+							struct dect_mm_endpoint *mme,
+							struct dect_msg_buf *mb)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_access_rights_terminate_request_msg msg;
+	struct dect_mm_access_rights_terminate_param *param;
+	enum dect_sfmt_error err;
+
+	mm_debug(mme, "ACCESS-RIGHTS-TERMINATE-REQUEST");
+	if (mp->type != DECT_MMP_NONE)
+		return;
+
+	err = dect_parse_sfmt_msg(dh, &mm_access_rights_terminate_request_msg_desc,
+				  &msg.common, mb);
+	if (err < 0)
+		return dect_mm_send_reject(dh, mme, access_rights_terminate, err);
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->portable_identity	= dect_ie_hold(msg.portable_identity);
+	param->fixed_identity		= *dect_ie_list_hold(&msg.fixed_identity);
+	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	mp->type = DECT_MMP_ACCESS_RIGHTS_TERMINATE;
+
+	mm_debug(mme, "MM_ACCESS_RIGHTS_TERMINATE-ind");
+	dh->ops->mm_ops->mm_access_rights_terminate_ind(dh, mme, param);
+	dect_ie_collection_put(dh, param);
+err1:
+	dect_msg_free(dh, &mm_access_rights_terminate_request_msg_desc, &msg.common);
+}
+
 static int dect_mm_send_locate_accept(const struct dect_handle *dh,
 				      struct dect_mm_endpoint *mme,
 				      const struct dect_mm_locate_param *param)
@@ -1826,6 +1967,7 @@ static void dect_mm_open(struct dect_handle *dh,
 	case DECT_MM_CIPHER_REQUEST:
 	case DECT_MM_CIPHER_SUGGEST:
 	case DECT_MM_ACCESS_RIGHTS_REQUEST:
+	case DECT_MM_ACCESS_RIGHTS_TERMINATE_REQUEST:
 	case DECT_MM_LOCATE_REQUEST:
 	case DECT_MM_KEY_ALLOCATE:
 	case DECT_MM_INFO_REQUEST:
@@ -1857,6 +1999,8 @@ static void dect_mm_open(struct dect_handle *dh,
 		return dect_mm_rcv_cipher_suggest(dh, mme, mb);
 	case DECT_MM_ACCESS_RIGHTS_REQUEST:
 		return dect_mm_rcv_access_rights_request(dh, mme, mb);
+	case DECT_MM_ACCESS_RIGHTS_TERMINATE_REQUEST:
+		return dect_mm_rcv_access_rights_terminate_request(dh, mme, mb);
 	case DECT_MM_LOCATE_REQUEST:
 		return dect_mm_rcv_locate_request(dh, mme, mb);
 	case DECT_MM_KEY_ALLOCATE:

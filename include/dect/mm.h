@@ -26,6 +26,16 @@ struct dect_mm_access_rights_param {
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
+struct dect_mm_access_rights_terminate_param {
+	struct dect_ie_collection		common;
+	struct dect_ie_portable_identity	*portable_identity;
+	struct dect_ie_list			fixed_identity;
+	struct dect_ie_reject_reason		*reject_reason;
+	struct dect_ie_duration			*duration;
+	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+};
+
 struct dect_mm_key_allocate_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_allocation_type		*allocation_type;
@@ -130,6 +140,13 @@ struct dect_mm_ops {
 					struct dect_mm_endpoint *mme, bool accept,
 					struct dect_mm_access_rights_param *param);
 
+	void	(*mm_access_rights_terminate_ind)(struct dect_handle *dh,
+						  struct dect_mm_endpoint *mme,
+						  struct dect_mm_access_rights_terminate_param *param);
+	void	(*mm_access_rights_terminate_cfm)(struct dect_handle *dh,
+						  struct dect_mm_endpoint *mme, bool accept,
+						  struct dect_mm_access_rights_terminate_param *param);
+
 	void	(*mm_key_allocate_ind)(struct dect_handle *dh,
 				       struct dect_mm_endpoint *mme,
 				       struct dect_mm_key_allocate_param *param);
@@ -185,6 +202,11 @@ extern int dect_mm_access_rights_req(struct dect_handle *dh, struct dect_mm_endp
 				     const struct dect_mm_access_rights_param *param);
 extern int dect_mm_access_rights_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 				     bool accept, const struct dect_mm_access_rights_param *param);
+
+extern int dect_mm_access_rights_terminate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+					       const struct dect_mm_access_rights_terminate_param *param);
+extern int dect_mm_access_rights_terminate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+					       bool accept, const struct dect_mm_access_rights_terminate_param *param);
 
 extern int dect_mm_key_allocate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 				    const struct dect_mm_key_allocate_param *param);
