@@ -49,13 +49,15 @@ void dect_hexdump(const char *prefix, const uint8_t *buf, size_t size)
 const char *__dect_flags2str(const struct dect_trans_tbl *tbl, unsigned int nelem,
 			     char *buf, size_t size, uint64_t val)
 {
+	char tmp[sizeof("unknown (0xffffffffffffffff)")];
 	const char *delim = NULL;
+	uint64_t flags = val;
 	unsigned int i;
 
 	buf[0] = '\0';
-	for (i = 0; i < nelem && val ; i++) {
-		if (tbl[i].val & val) {
-			val &= ~tbl[i].val;
+	for (i = 0; i < nelem && flags ; i++) {
+		if (tbl[i].val & flags) {
+			flags &= ~tbl[i].val;
 			if (delim)
 				strncat(buf, delim, size - strlen(buf) - 1);
 			strncat(buf, tbl[i].str, size - strlen(buf) - 1);
@@ -63,12 +65,15 @@ const char *__dect_flags2str(const struct dect_trans_tbl *tbl, unsigned int nele
 		}
 	}
 
-	if (val) {
-		snprintf(buf, size - strlen(buf), "unknown (%" PRIx64 ")", val);
+	if (flags) {
+		snprintf(tmp, size - strlen(buf), "unknown (%" PRIx64 ")", flags);
 		if (delim)
-			strncat(buf, delim, size - strlen(buf) - 1);
-		strncat(buf, tbl[i].str, size - strlen(buf) - 1);
+			strncat(tmp, delim, size - strlen(buf) - 1);
+		strncat(buf, tmp, size - strlen(buf) - 1);
 	}
+
+	snprintf(tmp, size - strlen(buf), " (%" PRIx64 ")", val);
+	strncat(buf, tmp, size - strlen(buf) - 1);
 
 	return buf;
 }
@@ -79,8 +84,10 @@ const char *__dect_val2str(const struct dect_trans_tbl *tbl, unsigned int nelem,
 	unsigned int i;
 
 	for (i = 0; i < nelem; i++) {
-		if (tbl[i].val == val)
-			return tbl[i].str;
+		if (tbl[i].val == val) {
+			snprintf(buf, size, "%s (%" PRIx64 ")", tbl[i].str, val);
+			return buf;
+		}
 	}
 
 	snprintf(buf, size, "unknown (%" PRIx64 ")", val);
