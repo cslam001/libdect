@@ -792,6 +792,12 @@ static void dect_cc_rcv_alerting(struct dect_handle *dh, struct dect_call *call,
 	if (dect_parse_sfmt_msg(dh, &cc_alerting_msg_desc, &msg.common, mb) < 0)
 		return;
 
+	if (call->setup_timer != NULL) {
+		dect_stop_timer(dh, call->setup_timer);
+		dect_free(dh, call->setup_timer);
+		call->setup_timer = NULL;
+	}
+
 	dect_mncc_alert_ind(dh, call, &msg);
 	dect_msg_free(dh, &cc_alerting_msg_desc, &msg.common);
 	call->state = DECT_CC_CALL_RECEIVED;
