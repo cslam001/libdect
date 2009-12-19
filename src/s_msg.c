@@ -1225,6 +1225,119 @@ static int dect_sfmt_parse_escape_to_proprietary(const struct dect_handle *dh,
 	return 0;
 }
 
+static const struct dect_trans_tbl dect_negotiation_indicators[] = {
+	TRANS_TBL(DECT_NEGOTIATION_NOT_POSSIBLE,	"negotiation not possible"),
+	TRANS_TBL(DECT_NEGOTIATION_CODEC,		"codec negotiation"),
+};
+
+static const struct dect_trans_tbl dect_codecs[] = {
+	TRANS_TBL(DECT_CODEC_USER_SPECIFIC_32KBIT,	"user specific (32kbit)"),
+	TRANS_TBL(DECT_CODEC_G726_32KBIT,		"G.726 (32kbit)"),
+	TRANS_TBL(DECT_CODEC_G722_64KBIT,		"G.722 (64kbit)"),
+	TRANS_TBL(DECT_CODEC_G711_ALAW_64KBIT,		"G.711 A-law (64kbit)"),
+	TRANS_TBL(DECT_CODEC_G711_ULAW_64KBIT,		"G.711 U-law (64kbit)"),
+	TRANS_TBL(DECT_CODEC_G729_1_32KBIT,		"G.729.1 (32kbit)"),
+	TRANS_TBL(DECT_CODEC_MPEG4_ER_AAC_LD_32KBIT,	"MPEG4 ER AAC-LD (32kbit)"),
+	TRANS_TBL(DECT_CODEC_MPEG4_ER_AAC_LD_64KBIT,	"MPEG4 ER AAC-LD (64kbit)"),
+	TRANS_TBL(DECT_CODEC_USER_SPECIFIC_64KBIT,	"User specific (64kbit)"),
+};
+
+static const struct dect_trans_tbl dect_mac_dlc_services[] = {
+	TRANS_TBL(DECT_MAC_DLC_SERVICE_LU1_INA,		"DLC service: LU1, MAC service: I_NA"),
+	TRANS_TBL(DECT_MAC_DLC_SERVICE_LU1_INB,		"DLC service: LU1, MAC service: I_NB"),
+	TRANS_TBL(DECT_MAC_DLC_SERVICE_LU1_IPM,		"DLC service: LU1, MAC service: I_PM"),
+	TRANS_TBL(DECT_MAC_DLC_SERVICE_LU1_IPQ,		"DLC service: LU1, MAC service: I_PQ"),
+	TRANS_TBL(DECT_MAC_DLC_SERVICE_LU7_INB,		"DLC service: LU7, MAC service: I_N"),
+	TRANS_TBL(DECT_MAC_DLC_SERVICE_LU12_INB,	"DLC service: LU12, MAC service: I_NB"),
+};
+
+static const struct dect_trans_tbl dect_slot_sizes[] = {
+	TRANS_TBL(DECT_HALF_SLOT,			"half slot"),
+	TRANS_TBL(DECT_LONG_SLOT_640,			"long slot j=640"),
+	TRANS_TBL(DECT_LONG_SLOT_672,			"long slot j=672"),
+	TRANS_TBL(DECT_FULL_SLOT,			"full slot"),
+	TRANS_TBL(DECT_DOUBLE_SLOT,			"double slot"),
+};
+
+static const struct dect_trans_tbl dect_cplane_routing[] = {
+	TRANS_TBL(DECT_CPLANE_CS_ONLY,			"C_S only"),
+	TRANS_TBL(DECT_CPLANE_CS_PREFERRED,		"C_S preferred, C_F accepted"),
+	TRANS_TBL(DECT_CPLANE_CF_PREFERRED,		"C_F preferred, C_S accepted"),
+	TRANS_TBL(DECT_CPLANE_CF_ONLY,			"C_F only"),
+};
+
+static void dect_sfmt_dump_codec_list(const struct dect_ie_common *_ie)
+{
+	struct dect_ie_codec_list *ie = dect_ie_container(ie, _ie);
+	unsigned int i;
+	char buf[64];
+
+	dect_debug("\tNegotiation Indicator: %s\n",
+		   dect_val2str(dect_negotiation_indicators, buf, ie->negotiation));
+
+	for (i = 0; i < ie->num; i++) {
+		dect_debug("\tCodec %u:\n", i + 1);
+		dect_debug("\t Codec: %s\n",
+			   dect_val2str(dect_codecs, buf, ie->entry[i].codec));
+		dect_debug("\t MAC/DLC Service: %s\n",
+			   dect_val2str(dect_mac_dlc_services, buf, ie->entry[i].service));
+		dect_debug("\t Slot size: %s\n",
+			   dect_val2str(dect_slot_sizes, buf, ie->entry[i].slot));
+		dect_debug("\t C-Plane routing: %s\n",
+			   dect_val2str(dect_cplane_routing, buf, ie->entry[i].cplane));
+	}
+}
+
+static int dect_sfmt_parse_codec_list(const struct dect_handle *dh,
+				      struct dect_ie_common **ie,
+				      const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_codec_list *dst = dect_ie_container(dst, *ie);
+	unsigned int n = 2;
+
+	dst->negotiation = (src->data[n] & ~DECT_OCTET_GROUP_END) >> 4;
+	n++;
+
+	while (src->len - n >= 3) {
+		dst->entry[dst->num].codec = src->data[n];
+		n++;
+		dst->entry[dst->num].service = src->data[n] & 0x0f;
+		n++;
+		dst->entry[dst->num].cplane = (src->data[n] & 0x70) >> 4;
+		dst->entry[dst->num].slot = src->data[n] & 0x0f;
+		n++;
+
+		dst->num++;
+		if (dst->num == array_size(dst->entry))
+			break;
+	}
+	return 0;
+}
+
+static int dect_sfmt_build_codec_list(struct dect_sfmt_ie *dst,
+				      const struct dect_ie_common *ie)
+{
+	struct dect_ie_codec_list *src = dect_ie_container(src, ie);
+	unsigned int n = 2, i;
+
+	dst->data[n] = (src->negotiation << 4) | DECT_OCTET_GROUP_END;
+	n++;
+
+	for (i = 0; i < src->num; i++) {
+		dst->data[n]  = src->entry[i].codec;
+		n++;
+		dst->data[n]  = src->entry[i].service;
+		n++;
+		dst->data[n]  = src->entry[i].cplane;
+		dst->data[n] |= src->entry[i].slot;
+		n++;
+	}
+	dst->data[n - 1] |= DECT_OCTET_GROUP_END;
+
+	dst->len = n;
+	return 0;
+}
+
 static const struct dect_ie_handler {
 	const char	*name;
 	size_t		size;
@@ -1557,6 +1670,9 @@ static const struct dect_ie_handler {
 	[S_VL_IE_CODEC_LIST]			= {
 		.name	= "codec list",
 		.size	= sizeof(struct dect_ie_codec_list),
+		.parse	= dect_sfmt_parse_codec_list,
+		.build	= dect_sfmt_build_codec_list,
+		.dump	= dect_sfmt_dump_codec_list,
 	},
 	[S_VL_IE_EVENTS_NOTIFICATION]		= {
 		.name	= "events notification",

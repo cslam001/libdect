@@ -973,8 +973,57 @@ struct dect_ie_calling_party_name {
 
 /* Codec List IE */
 
+enum dect_negotiation_indicator {
+	DECT_NEGOTIATION_NOT_POSSIBLE		= 0x0,
+	DECT_NEGOTIATION_CODEC			= 0x1,
+};
+
+enum dect_codec_identifier {
+	DECT_CODEC_USER_SPECIFIC_32KBIT		= 0x1,
+	DECT_CODEC_G726_32KBIT			= 0x2,
+	DECT_CODEC_G722_64KBIT			= 0x3,
+	DECT_CODEC_G711_ALAW_64KBIT		= 0x4,
+	DECT_CODEC_G711_ULAW_64KBIT		= 0x5,
+	DECT_CODEC_G729_1_32KBIT		= 0x6,
+	DECT_CODEC_MPEG4_ER_AAC_LD_32KBIT	= 0x7,
+	DECT_CODEC_MPEG4_ER_AAC_LD_64KBIT	= 0x8,
+	DECT_CODEC_USER_SPECIFIC_64KBIT		= 0x9,
+};
+
+enum dect_mac_dlc_service {
+	DECT_MAC_DLC_SERVICE_LU1_INA		= 0x0,
+	DECT_MAC_DLC_SERVICE_LU1_INB		= 0x1,
+	DECT_MAC_DLC_SERVICE_LU1_IPM		= 0x2,
+	DECT_MAC_DLC_SERVICE_LU1_IPQ		= 0x3,
+	DECT_MAC_DLC_SERVICE_LU7_INB		= 0x4,
+	DECT_MAC_DLC_SERVICE_LU12_INB		= 0x5,
+};
+
+enum dect_slot_size {
+	DECT_HALF_SLOT				= 0x0,
+	DECT_LONG_SLOT_640			= 0x1,
+	DECT_LONG_SLOT_672			= 0x2,
+	DECT_FULL_SLOT				= 0x4,
+	DECT_DOUBLE_SLOT			= 0x5,
+};
+
+enum dect_cplane_routing {
+	DECT_CPLANE_CS_ONLY			= 0x0,
+	DECT_CPLANE_CS_PREFERRED		= 0x1,
+	DECT_CPLANE_CF_PREFERRED		= 0x2,
+	DECT_CPLANE_CF_ONLY			= 0x4,
+};
+
 struct dect_ie_codec_list {
 	struct dect_ie_common		common;
+	enum dect_negotiation_indicator	negotiation;
+	unsigned int			num;
+	struct {
+		enum dect_codec_identifier	codec;
+		enum dect_mac_dlc_service	service;
+		enum dect_slot_size		slot;
+		enum dect_cplane_routing	cplane;
+	} entry[8];
 };
 
 /* Events notification IE */
