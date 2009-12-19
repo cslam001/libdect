@@ -150,11 +150,18 @@ static int dect_sfmt_build_single_display(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
-static void dect_sfmt_dump_single_keypad(const struct dect_ie_common *_ie)
+static void dect_sfmt_dump_keypad(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_keypad *ie = dect_ie_container(ie, _ie);
+	char info[ie->len + 1];
+	unsigned int i;
 
-	dect_debug("single keypad: '%c'\n", ie->info[0]);
+	for (i = 0; i < ie->len; i++)
+		info[i] = isascii(ie->info[i]) && isprint(ie->info[i]) ?
+				ie->info[i] : '.';
+	info[ie->len] = '\0';
+
+	dect_debug("\tinfo: '%s'\n", info);
 }
 
 static int dect_sfmt_parse_single_keypad(const struct dect_handle *dh,
@@ -166,6 +173,15 @@ static int dect_sfmt_parse_single_keypad(const struct dect_handle *dh,
 	dst->info[0] = src->data[1];
 	dst->len = 1;
 	dect_debug("single keypad: '%c'\n", dst->info[0]);
+	return 0;
+}
+
+static int dect_sfmt_build_single_keypad(struct dect_sfmt_ie *dst,
+					 const struct dect_ie_common *src)
+{
+	struct dect_ie_keypad *ie = dect_ie_container(ie, src);
+
+	dst->data[1] = ie->info[0];
 	return 0;
 }
 
@@ -794,6 +810,16 @@ static int dect_sfmt_parse_multi_keypad(const struct dect_handle *dh,
 	return 0;
 }
 
+static int dect_sfmt_build_multi_keypad(struct dect_sfmt_ie *dst,
+					const struct dect_ie_common *ie)
+{
+	struct dect_ie_keypad *src = dect_ie_container(src, ie);
+
+	memcpy(dst->data + 2, src->info, src->len);
+	dst->len = src->len + 2;
+	return 0;
+}
+
 static const struct dect_trans_tbl dect_reject_reasons[] = {
 	TRANS_TBL(DECT_REJECT_TPUI_UNKNOWN,				"TPUI unknown"),
 	TRANS_TBL(DECT_REJECT_IPUI_UNKNOWN,				"IPUI unknown"),
@@ -1271,7 +1297,8 @@ static const struct dect_ie_handler {
 		.name	= "single keypad",
 		.size	= sizeof(struct dect_ie_keypad),
 		.parse	= dect_sfmt_parse_single_keypad,
-		.dump	= dect_sfmt_dump_single_keypad,
+		.build	= dect_sfmt_build_single_keypad,
+		.dump	= dect_sfmt_dump_keypad,
 	},
 	[S_VL_IE_INFO_TYPE]			= {
 		.name	= "info type",
@@ -1411,6 +1438,8 @@ static const struct dect_ie_handler {
 		.name	= "multi keypad",
 		.size	= sizeof(struct dect_ie_keypad),
 		.parse	= dect_sfmt_parse_multi_keypad,
+		.build	= dect_sfmt_build_multi_keypad,
+		.dump	= dect_sfmt_dump_keypad,
 	},
 	[S_VL_IE_FEATURE_ACTIVATE]		= {
 		.name	= "feature activate",
