@@ -826,6 +826,30 @@ static void dect_cc_rcv_alerting(struct dect_handle *dh, struct dect_call *call,
 	call->state = DECT_CC_CALL_RECEIVED;
 }
 
+static void dect_mncc_call_proc_ind(struct dect_handle *dh, struct dect_call *call,
+				    struct dect_cc_call_proc_msg *msg)
+{
+	struct dect_mncc_call_proc_param *param;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		return;
+
+	param->facility			= *dect_ie_list_hold(&msg->facility),
+	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator),
+	param->display			= dect_ie_hold(msg->display),
+	param->signal			= dect_ie_hold(msg->signal),
+	param->feature_indicate		= dect_ie_hold(msg->feature_indicate),
+	param->transit_delay		= dect_ie_hold(msg->transit_delay),
+	param->window_size		= dect_ie_hold(msg->window_size),
+	param->iwu_to_iwu		= *dect_ie_list_hold(&msg->iwu_to_iwu),
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet),
+
+	cc_debug(call, "MNCC_CALL_PROC-ind");
+	dh->ops->cc_ops->mncc_call_proc_ind(dh, call, param);
+	dect_ie_collection_put(dh, param);
+}
+
 static void dect_cc_rcv_call_proc(struct dect_handle *dh, struct dect_call *call,
 				  struct dect_msg_buf *mb)
 {
@@ -834,6 +858,16 @@ static void dect_cc_rcv_call_proc(struct dect_handle *dh, struct dect_call *call
 	cc_debug(call, "CC-CALL_PROC");
 	if (dect_parse_sfmt_msg(dh, &cc_call_proc_msg_desc, &msg.common, mb) < 0)
 		return;
+
+	if (call->setup_timer != NULL) {
+		dect_stop_timer(dh, call->setup_timer);
+		dect_free(dh, call->setup_timer);
+		call->setup_timer = NULL;
+	}
+
+	dect_mncc_call_proc_ind(dh, call, &msg);
+	dect_msg_free(dh, &cc_call_proc_msg_desc, &msg.common);
+	call->state = DECT_CC_CALL_PROCEEDING;
 }
 
 static void dect_mncc_connect_ind(struct dect_handle *dh, struct dect_call *call,
