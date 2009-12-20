@@ -1243,7 +1243,7 @@ static void dect_cc_rcv_setup(struct dect_handle *dh,
 	struct dect_cc_setup_msg msg;
 	struct dect_call *call;
 
-	dect_debug("CC-SETUP");
+	dect_debug("CC-SETUP\n");
 	if (dect_parse_sfmt_msg(dh, &cc_setup_msg_desc, &msg.common, mb) < 0)
 		return;
 
