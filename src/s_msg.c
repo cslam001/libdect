@@ -87,7 +87,7 @@ static const struct dect_trans_tbl dect_basic_services[] = {
 static void dect_sfmt_dump_basic_service(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_basic_service *ie = dect_ie_container(ie, _ie);
-	char buf[32];
+	char buf[64];
 
 	dect_debug("\tcall class: %s\n",
 		   dect_val2str(dect_call_classes, buf, ie->class));
@@ -219,7 +219,7 @@ static void dect_sfmt_dump_info_type(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_info_type *ie = dect_ie_container(ie, _ie);
 	unsigned int i;
-	char buf[32];
+	char buf[64];
 
 	for (i = 0; i < ie->num; i++)
 		dect_debug("\tparameter type[%u]: %x (%s)\n", i, ie->type[i],
@@ -290,7 +290,7 @@ static const struct dect_trans_tbl dect_release_reasons[] = {
 static void dect_sfmt_dump_release_reason(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_release_reason *ie = dect_ie_container(ie, _ie);
-	char buf[32];
+	char buf[64];
 
 	dect_debug("\trelease reason: %x (%s)\n", ie->reason,
 		   dect_val2str(dect_release_reasons, buf, ie->reason));
@@ -582,7 +582,7 @@ static const struct dect_trans_tbl dect_auth_key_types[] = {
 static void dect_sfmt_dump_auth_type(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_auth_type *ie = dect_ie_container(ie, _ie);
-	char buf[32];
+	char buf[64];
 
 	dect_debug("\tauthentication algorithm: %s\n",
 		   dect_val2str(dect_auth_algs, buf, ie->auth_id));
@@ -716,10 +716,10 @@ static const struct dect_trans_tbl dect_cipher_key_types[] = {
 static void dect_sfmt_dump_cipher_info(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_cipher_info *ie = dect_ie_container(ie, _ie);
-	char buf[32];
+	char buf[64];
 
 	dect_debug("\tenable: %u\n", ie->enable);
-	dect_debug("\tcipher algorithm identifier: %s\n",
+	dect_debug("\tcipher algorithm: %s\n",
 		   dect_val2str(dect_cipher_algs, buf, ie->cipher_alg_id));
 	dect_debug("\tcipher key type: %s\n",
 		   dect_val2str(dect_cipher_key_types, buf, ie->cipher_key_type));
@@ -857,7 +857,7 @@ static const struct dect_trans_tbl dect_reject_reasons[] = {
 static void dect_sfmt_dump_reject_reason(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_reject_reason *ie = dect_ie_container(ie, _ie);
-	char buf[32];
+	char buf[64];
 
 	dect_debug("\treject reason: %s (%x)\n",
 		   dect_val2str(dect_reject_reasons, buf, ie->reason),
@@ -1006,7 +1006,7 @@ static const struct dect_trans_tbl dect_profile_indicators[] = {
 static void dect_sfmt_dump_terminal_capability(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_terminal_capability *ie = dect_ie_container(ie, _ie);
-	char buf[32];
+	char buf[64];
 
 	dect_debug("\tdisplay capability: %s\n",
 		   dect_val2str(dect_display_capabilities, buf, ie->display));
@@ -1179,7 +1179,7 @@ static void dect_sfmt_dump_called_party_number(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_called_party_number *ie = dect_ie_container(ie, _ie);
 	char address[ie->len + 1];
-	char buf[32];
+	char buf[64];
 
 	memcpy(address, ie->address, ie->len);
 	address[ie->len] = '\0';
@@ -1231,7 +1231,7 @@ static const struct dect_trans_tbl dect_time_limits[] = {
 static void dect_sfmt_dump_duration(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_duration *ie = dect_ie_container(ie, _ie);
-	char buf[32];
+	char buf[64];
 
 	dect_debug("\tlock: %s\n", dect_val2str(dect_lock_limits, buf, ie->lock));
 	dect_debug("\ttime: %s\n", dect_val2str(dect_time_limits, buf, ie->time));
