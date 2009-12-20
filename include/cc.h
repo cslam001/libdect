@@ -61,9 +61,9 @@ struct dect_cc_setup_msg {
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
 	struct dect_ie_calling_party_name	*calling_party_name;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 	struct dect_ie_codec_list		*codec_list;
 	struct dect_ie_call_information		*call_information;
-	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_cc_info_msg {
@@ -87,9 +87,9 @@ struct dect_cc_info_msg {
 	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
 	struct dect_ie_calling_party_name	*calling_party_name;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 	struct dect_ie_codec_list		*codec_list;
 	struct dect_ie_call_information		*call_information;
-	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_cc_setup_ack_msg {
@@ -114,8 +114,8 @@ struct dect_cc_setup_ack_msg {
 	struct dect_ie_delimiter_request	*delimiter_request;
 	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
-	struct dect_ie_codec_list		*codec_list;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_cc_call_proc_msg {
@@ -133,8 +133,8 @@ struct dect_cc_call_proc_msg {
 	struct dect_ie_window_size		*window_size;
 	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
-	struct dect_ie_codec_list		*codec_list;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_cc_alerting_msg {
@@ -153,8 +153,8 @@ struct dect_cc_alerting_msg {
 	struct dect_ie_window_size		*window_size;
 	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
-	struct dect_ie_codec_list		*codec_list;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_cc_connect_msg {
@@ -176,8 +176,8 @@ struct dect_cc_connect_msg {
 	struct dect_ie_list			segmented_info;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
-	struct dect_ie_codec_list		*codec_list;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_cc_connect_ack_msg {
