@@ -2,16 +2,18 @@ LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect
 PROGRAMS	+= cc mm-fp discover hijack
 
 cc-destdir	:= usr/bin
-
 cc-obj		+= event_ops.o
 cc-obj		+= audio.o
 cc-obj		+= cc.o
 
+mm-fp-destdir	:= usr/bin
 mm-fp-obj	+= event_ops.o
 mm-fp-obj	+= mm-fp.o
 
+discover-destdir:= usr/bin
 discover-obj	+= event_ops.o
 discover-obj	+= discover.o
 
+hijack-destdir	:= usr/bin
 hijack-obj	+= event_ops.o
 hijack-obj	+= hijack.o
