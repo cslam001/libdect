@@ -487,6 +487,7 @@ int dect_mncc_setup_req(struct dect_handle *dh, struct dect_call *call,
 		.sending_complete		= param->sending_complete,
 		.iwu_to_iwu			= param->iwu_to_iwu,
 		.iwu_packet			= param->iwu_packet,
+		.codec_list			= param->codec_list,
 	};
 
 	cc_debug_entry(call, "MNCC_SETUP-req");
@@ -529,6 +530,7 @@ int dect_mncc_setup_ack_req(struct dect_handle *dh, struct dect_call *call,
 		.delimiter_request	= param->delimiter_request,
 		.iwu_to_iwu		= param->iwu_to_iwu,
 		.iwu_packet		= param->iwu_packet,
+		.codec_list		= param->codec_list,
 	};
 
 	cc_debug_entry(call, "MNCC_SETUP_ACK-req");
@@ -574,6 +576,7 @@ int dect_mncc_call_proc_req(struct dect_handle *dh, struct dect_call *call,
 		.window_size		= param->window_size,
 		.iwu_to_iwu		= param->iwu_to_iwu,
 		.iwu_packet		= param->iwu_packet,
+		.codec_list		= param->codec_list,
 	};
 
 	cc_debug_entry(call, "MNCC_CALL_PROC-req");
@@ -595,6 +598,7 @@ int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 		.window_size		= param->window_size,
 		.iwu_to_iwu		= param->iwu_to_iwu,
 		.iwu_packet		= param->iwu_packet,
+		.codec_list		= param->codec_list,
 	};
 
 	cc_debug_entry(call, "MNCC_ALERT-req");
@@ -616,6 +620,7 @@ int dect_mncc_connect_req(struct dect_handle *dh, struct dect_call *call,
 		.window_size		= param->window_size,
 		.iwu_to_iwu		= param->iwu_to_iwu,
 		.iwu_packet		= param->iwu_packet,
+		.codec_list		= param->codec_list,
 	};
 
 	cc_debug_entry(call, "MNCC_CONNECT-req");
@@ -722,6 +727,7 @@ int dect_mncc_info_req(struct dect_handle *dh, struct dect_call *call,
 		.sending_complete		= param->sending_complete,
 		.iwu_to_iwu			= param->iwu_to_iwu,
 		.iwu_packet			= param->iwu_packet,
+		.codec_list			= param->codec_list,
 	};
 
 	cc_debug_entry(call, "MNCC_INFO-req");
@@ -787,16 +793,17 @@ static void dect_mncc_alert_ind(struct dect_handle *dh, struct dect_call *call,
 	if (param == NULL)
 		return;
 
-	param->facility			= *dect_ie_list_hold(&msg->facility),
-	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator),
-	param->display			= dect_ie_hold(msg->display),
-	param->signal			= dect_ie_hold(msg->signal),
-	param->feature_indicate		= dect_ie_hold(msg->feature_indicate),
-	param->terminal_capability	= dect_ie_hold(msg->terminal_capability),
-	param->transit_delay		= dect_ie_hold(msg->transit_delay),
-	param->window_size		= dect_ie_hold(msg->window_size),
-	param->iwu_to_iwu		= *dect_ie_list_hold(&msg->iwu_to_iwu),
-	param->iwu_packet		= dect_ie_hold(msg->iwu_packet),
+	param->facility			= *dect_ie_list_hold(&msg->facility);
+	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator);
+	param->display			= dect_ie_hold(msg->display);
+	param->signal			= dect_ie_hold(msg->signal);
+	param->feature_indicate		= dect_ie_hold(msg->feature_indicate);
+	param->terminal_capability	= dect_ie_hold(msg->terminal_capability);
+	param->transit_delay		= dect_ie_hold(msg->transit_delay);
+	param->window_size		= dect_ie_hold(msg->window_size);
+	param->iwu_to_iwu		= *dect_ie_list_hold(&msg->iwu_to_iwu);
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
+	param->codec_list		= dect_ie_hold(msg->codec_list);
 
 	cc_debug(call, "MNCC_ALERT-ind");
 	dh->ops->cc_ops->mncc_alert_ind(dh, call, param);
@@ -835,15 +842,16 @@ static void dect_mncc_call_proc_ind(struct dect_handle *dh, struct dect_call *ca
 	if (param == NULL)
 		return;
 
-	param->facility			= *dect_ie_list_hold(&msg->facility),
-	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator),
-	param->display			= dect_ie_hold(msg->display),
-	param->signal			= dect_ie_hold(msg->signal),
-	param->feature_indicate		= dect_ie_hold(msg->feature_indicate),
-	param->transit_delay		= dect_ie_hold(msg->transit_delay),
-	param->window_size		= dect_ie_hold(msg->window_size),
-	param->iwu_to_iwu		= *dect_ie_list_hold(&msg->iwu_to_iwu),
-	param->iwu_packet		= dect_ie_hold(msg->iwu_packet),
+	param->facility			= *dect_ie_list_hold(&msg->facility);
+	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator);
+	param->display			= dect_ie_hold(msg->display);
+	param->signal			= dect_ie_hold(msg->signal);
+	param->feature_indicate		= dect_ie_hold(msg->feature_indicate);
+	param->transit_delay		= dect_ie_hold(msg->transit_delay);
+	param->window_size		= dect_ie_hold(msg->window_size);
+	param->iwu_to_iwu		= *dect_ie_list_hold(&msg->iwu_to_iwu);
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
+	param->codec_list		= dect_ie_hold(msg->codec_list);
 
 	cc_debug(call, "MNCC_CALL_PROC-ind");
 	dh->ops->cc_ops->mncc_call_proc_ind(dh, call, param);
@@ -879,16 +887,17 @@ static void dect_mncc_connect_ind(struct dect_handle *dh, struct dect_call *call
 	if (param == NULL)
 		return;
 
-	param->facility			= *dect_ie_list_hold(&msg->facility),
-	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator),
-	param->display			= dect_ie_hold(msg->display),
-	param->signal			= dect_ie_hold(msg->signal),
-	param->feature_indicate		= dect_ie_hold(msg->feature_indicate),
-	param->terminal_capability	= dect_ie_hold(msg->terminal_capability),
-	param->transit_delay		= dect_ie_hold(msg->transit_delay),
-	param->window_size		= dect_ie_hold(msg->window_size),
-	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu),
-	param->iwu_packet		= dect_ie_hold(msg->iwu_packet),
+	param->facility			= *dect_ie_list_hold(&msg->facility);
+	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator);
+	param->display			= dect_ie_hold(msg->display);
+	param->signal			= dect_ie_hold(msg->signal);
+	param->feature_indicate		= dect_ie_hold(msg->feature_indicate);
+	param->terminal_capability	= dect_ie_hold(msg->terminal_capability);
+	param->transit_delay		= dect_ie_hold(msg->transit_delay);
+	param->window_size		= dect_ie_hold(msg->window_size);
+	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu);
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
+	param->codec_list		= dect_ie_hold(msg->codec_list);
 
 	cc_debug(call, "MNCC_CONNECT-ind");
 	dh->ops->cc_ops->mncc_connect_ind(dh, call, param);
@@ -990,12 +999,12 @@ static void dect_mncc_release_ind(struct dect_handle *dh, struct dect_call *call
 	if (param == NULL)
 		return;
 
-	param->release_reason		= dect_ie_hold(msg->release_reason),
-	param->facility			= *dect_ie_list_hold(&msg->facility),
-	param->display			= dect_ie_hold(msg->display),
-	param->feature_indicate		= dect_ie_hold(msg->feature_indicate),
-	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu),
-	param->iwu_packet		= dect_ie_hold(msg->iwu_packet),
+	param->release_reason		= dect_ie_hold(msg->release_reason);
+	param->facility			= *dect_ie_list_hold(&msg->facility);
+	param->display			= dect_ie_hold(msg->display);
+	param->feature_indicate		= dect_ie_hold(msg->feature_indicate);
+	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu);
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
 
 	cc_debug(call, "MNCC_RELEASE-ind");
 	dh->ops->cc_ops->mncc_release_ind(dh, call, param);
@@ -1024,16 +1033,16 @@ static void dect_mncc_release_cfm(struct dect_handle *dh, struct dect_call *call
 	if (param == NULL)
 		return;
 
-	param->release_reason		= dect_ie_hold(msg->release_reason),
-	param->identity_type		= dect_ie_hold(msg->identity_type),
-	param->location_area		= dect_ie_hold(msg->location_area),
-	param->iwu_attributes		= dect_ie_hold(msg->iwu_attributes),
-	param->facility			= *dect_ie_list_hold(&msg->facility),
-	param->display			= dect_ie_hold(msg->display),
-	param->feature_indicate		= dect_ie_hold(msg->feature_indicate),
-	param->network_parameter	= dect_ie_hold(msg->network_parameter),
-	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu),
-	param->iwu_packet		= dect_ie_hold(msg->iwu_packet),
+	param->release_reason		= dect_ie_hold(msg->release_reason);
+	param->identity_type		= dect_ie_hold(msg->identity_type);
+	param->location_area		= dect_ie_hold(msg->location_area);
+	param->iwu_attributes		= dect_ie_hold(msg->iwu_attributes);
+	param->facility			= *dect_ie_list_hold(&msg->facility);
+	param->display			= dect_ie_hold(msg->display);
+	param->feature_indicate		= dect_ie_hold(msg->feature_indicate);
+	param->network_parameter	= dect_ie_hold(msg->network_parameter);
+	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu);
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
 
 	cc_debug(call, "MNCC_RELEASE-cfm");
 	dh->ops->cc_ops->mncc_release_cfm(dh, call, param);
@@ -1058,10 +1067,10 @@ static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *ca
 		if (param == NULL)
 			goto out;
 
-		param->release_reason	= dect_ie_hold(msg.release_reason),
-		param->facility		= *dect_ie_list_hold(&msg.facility),
-		param->iwu_to_iwu	= dect_ie_hold(msg.iwu_to_iwu),
-		param->iwu_packet	= dect_ie_hold(msg.iwu_packet),
+		param->release_reason	= dect_ie_hold(msg.release_reason);
+		param->facility		= *dect_ie_list_hold(&msg.facility);
+		param->iwu_to_iwu	= dect_ie_hold(msg.iwu_to_iwu);
+		param->iwu_packet	= dect_ie_hold(msg.iwu_packet);
 
 		cc_debug(call, "MNCC_RELEASE-ind");
 		dh->ops->cc_ops->mncc_release_ind(dh, call, param);
@@ -1108,23 +1117,24 @@ static void dect_mncc_info_ind(struct dect_handle *dh, struct dect_call *call,
 	if (param == NULL)
 		return;
 
-	param->location_area		= dect_ie_hold(msg->location_area),
-	param->nwk_assigned_identity	= dect_ie_hold(msg->nwk_assigned_identity),
-	param->facility			= *dect_ie_list_hold(&msg->facility),
-	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator),
-	param->display			= dect_ie_hold(msg->display),
-	param->keypad			= dect_ie_hold(msg->keypad),
-	param->signal			= dect_ie_hold(msg->signal),
-	param->feature_activate		= dect_ie_hold(msg->feature_activate),
-	param->feature_indicate		= dect_ie_hold(msg->feature_indicate),
-	param->network_parameter	= dect_ie_hold(msg->network_parameter),
-	param->called_party_number	= dect_ie_hold(msg->called_party_number),
-	param->called_party_subaddress	= dect_ie_hold(msg->called_party_subaddress),
-	param->calling_party_number	= dect_ie_hold(msg->calling_party_number),
-	param->calling_party_name	= dect_ie_hold(msg->calling_party_name),
-	param->sending_complete		= dect_ie_hold(msg->sending_complete),
-	param->iwu_to_iwu		= *dect_ie_list_hold(&msg->iwu_to_iwu),
-	param->iwu_packet		= dect_ie_hold(msg->iwu_packet),
+	param->location_area		= dect_ie_hold(msg->location_area);
+	param->nwk_assigned_identity	= dect_ie_hold(msg->nwk_assigned_identity);
+	param->facility			= *dect_ie_list_hold(&msg->facility);
+	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator);
+	param->display			= dect_ie_hold(msg->display);
+	param->keypad			= dect_ie_hold(msg->keypad);
+	param->signal			= dect_ie_hold(msg->signal);
+	param->feature_activate		= dect_ie_hold(msg->feature_activate);
+	param->feature_indicate		= dect_ie_hold(msg->feature_indicate);
+	param->network_parameter	= dect_ie_hold(msg->network_parameter);
+	param->called_party_number	= dect_ie_hold(msg->called_party_number);
+	param->called_party_subaddress	= dect_ie_hold(msg->called_party_subaddress);
+	param->calling_party_number	= dect_ie_hold(msg->calling_party_number);
+	param->calling_party_name	= dect_ie_hold(msg->calling_party_name);
+	param->sending_complete		= dect_ie_hold(msg->sending_complete);
+	param->iwu_to_iwu		= *dect_ie_list_hold(&msg->iwu_to_iwu);
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
+	param->codec_list		= dect_ie_hold(msg->codec_list);
 
 	cc_debug(call, "MNCC_INFO-ind");
 	dh->ops->cc_ops->mncc_info_ind(dh, call, param);
@@ -1194,29 +1204,30 @@ static void dect_mncc_setup_ind(struct dect_handle *dh,
 	if (param == NULL)
 		return;
 
-	param->basic_service		= dect_ie_hold(msg->basic_service),
-	param->iwu_attributes		= *dect_ie_list_hold(&msg->iwu_attributes),
-	param->cipher_info		= dect_ie_hold(msg->cipher_info),
-	param->facility			= *dect_ie_list_hold(&msg->facility),
-	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator),
-	param->display			= dect_ie_hold(msg->display),
-	param->keypad			= dect_ie_hold(msg->keypad),
-	param->signal			= dect_ie_hold(msg->signal),
-	param->feature_activate       	= dect_ie_hold(msg->feature_activate),
-	param->feature_indicate       	= dect_ie_hold(msg->feature_indicate),
-	param->network_parameter	= dect_ie_hold(msg->network_parameter),
-	param->terminal_capability	= dect_ie_hold(msg->terminal_capability),
-	param->end_to_end_compatibility	= dect_ie_hold(msg->end_to_end_compatibility),
-	param->rate_parameters		= dect_ie_hold(msg->rate_parameters),
-	param->transit_delay		= dect_ie_hold(msg->transit_delay),
-	param->window_size		= dect_ie_hold(msg->window_size),
-	param->called_party_number	= dect_ie_hold(msg->called_party_number),
-	param->called_party_subaddress	= dect_ie_hold(msg->called_party_subaddress),
-	param->calling_party_number	= dect_ie_hold(msg->calling_party_number),
-	param->calling_party_name	= dect_ie_hold(msg->calling_party_name),
-	param->sending_complete		= dect_ie_hold(msg->sending_complete),
-	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu),
-	param->iwu_packet		= dect_ie_hold(msg->iwu_packet),
+	param->basic_service		= dect_ie_hold(msg->basic_service);
+	param->iwu_attributes		= *dect_ie_list_hold(&msg->iwu_attributes);
+	param->cipher_info		= dect_ie_hold(msg->cipher_info);
+	param->facility			= *dect_ie_list_hold(&msg->facility);
+	param->progress_indicator	= *dect_ie_list_hold(&msg->progress_indicator);
+	param->display			= dect_ie_hold(msg->display);
+	param->keypad			= dect_ie_hold(msg->keypad);
+	param->signal			= dect_ie_hold(msg->signal);
+	param->feature_activate       	= dect_ie_hold(msg->feature_activate);
+	param->feature_indicate       	= dect_ie_hold(msg->feature_indicate);
+	param->network_parameter	= dect_ie_hold(msg->network_parameter);
+	param->terminal_capability	= dect_ie_hold(msg->terminal_capability);
+	param->end_to_end_compatibility	= dect_ie_hold(msg->end_to_end_compatibility);
+	param->rate_parameters		= dect_ie_hold(msg->rate_parameters);
+	param->transit_delay		= dect_ie_hold(msg->transit_delay);
+	param->window_size		= dect_ie_hold(msg->window_size);
+	param->called_party_number	= dect_ie_hold(msg->called_party_number);
+	param->called_party_subaddress	= dect_ie_hold(msg->called_party_subaddress);
+	param->calling_party_number	= dect_ie_hold(msg->calling_party_number);
+	param->calling_party_name	= dect_ie_hold(msg->calling_party_name);
+	param->sending_complete		= dect_ie_hold(msg->sending_complete);
+	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu);
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
+	param->codec_list		= dect_ie_hold(msg->codec_list);
 
 	cc_debug(call, "MNCC_SETUP-ind");
 	dh->ops->cc_ops->mncc_setup_ind(dh, call, param);

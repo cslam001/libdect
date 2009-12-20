@@ -37,6 +37,7 @@ struct dect_mncc_setup_param {
 	struct dect_ie_sending_complete		*sending_complete;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_mncc_setup_ack_param {
@@ -53,6 +54,7 @@ struct dect_mncc_setup_ack_param {
 	struct dect_ie_delimiter_request	*delimiter_request;
 	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_mncc_release_param {
@@ -80,6 +82,7 @@ struct dect_mncc_call_proc_param {
 	struct dect_ie_window_size		*window_size;
 	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_mncc_alert_param {
@@ -94,6 +97,7 @@ struct dect_mncc_alert_param {
 	struct dect_ie_window_size		*window_size;
 	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_mncc_connect_param {
@@ -108,6 +112,7 @@ struct dect_mncc_connect_param {
 	struct dect_ie_window_size		*window_size;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_mncc_facility_param {
@@ -139,6 +144,7 @@ struct dect_mncc_info_param {
 	struct dect_ie_sending_complete		*sending_complete;
 	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_mncc_modify_param {
