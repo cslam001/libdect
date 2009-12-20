@@ -366,33 +366,37 @@ struct dect_ie_call_identity {
 
 /* Called party number IE */
 
-enum number_type {
-	NUMBER_TYPE_UNKNOWN		= 0x0,
-	NUMBER_TYPE_INTERNATIONAL	= 0x1,
-	NUMBER_TYPE_NATIONAL		= 0x2,
-	NUMBER_TYPE_NETWORK_SPECIFIC	= 0x3,
-	NUMBER_TYPE_SUBSCRIBER		= 0x4,
-	NUMBER_TYPE_ABBREVIATED		= 0x6,
-	NUMBER_TYPE_RESERVED		= 0x7,
+enum dect_number_type {
+	DECT_NUMBER_TYPE_UNKNOWN		= 0x0,
+	DECT_NUMBER_TYPE_INTERNATIONAL		= 0x1,
+	DECT_NUMBER_TYPE_NATIONAL		= 0x2,
+	DECT_NUMBER_TYPE_NETWORK_SPECIFIC	= 0x3,
+	DECT_NUMBER_TYPE_SUBSCRIBER		= 0x4,
+	DECT_NUMBER_TYPE_ABBREVIATED		= 0x6,
+	DECT_NUMBER_TYPE_RESERVED		= 0x7,
 };
 
-enum numbering_plan_identification {
-	NPI_UNKNOWN			= 0x0,
-	NPI_ISDN_E164			= 0x1,
-	NPI_DATA_PLAN_X121		= 0x3,
-	NPI_TCP_IP			= 0x7,
-	NPI_NATIONAL_STANDARD		= 0x8,
-	NPI_PRIVATE			= 0x9,
-	NPI_SIP				= 0xa,
-	NPI_INTERNET_CHARACTER_FORMAT	= 0xb,
-	NPI_LAN_MAC_ADDRESS		= 0xc,
-	NPI_X400			= 0xd,
-	NPI_PROFILE_SPECIFIC		= 0xe,
-	NPI_RESERVED			= 0xf,
+enum dect_numbering_plan_identification {
+	DECT_NPI_UNKNOWN			= 0x0,
+	DECT_NPI_ISDN_E164			= 0x1,
+	DECT_NPI_DATA_PLAN_X121			= 0x3,
+	DECT_NPI_TCP_IP				= 0x7,
+	DECT_NPI_NATIONAL_STANDARD		= 0x8,
+	DECT_NPI_PRIVATE			= 0x9,
+	DECT_NPI_SIP				= 0xa,
+	DECT_NPI_INTERNET_CHARACTER_FORMAT	= 0xb,
+	DECT_NPI_LAN_MAC_ADDRESS		= 0xc,
+	DECT_NPI_X400				= 0xd,
+	DECT_NPI_PROFILE_SPECIFIC		= 0xe,
+	DECT_NPI_RESERVED			= 0xf,
 };
 
 struct dect_ie_called_party_number {
-	struct dect_ie_common		common;
+	struct dect_ie_common			common;
+	enum dect_number_type			type;
+	enum dect_numbering_plan_identification	npi;
+	unsigned int				len;
+	uint8_t					address[64];
 };
 
 /* Called party subaddress IE */

@@ -1150,6 +1150,70 @@ static int dect_sfmt_build_terminal_capability(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static const struct dect_trans_tbl dect_number_types[] = {
+	TRANS_TBL(DECT_NUMBER_TYPE_UNKNOWN,		"unknown"),
+	TRANS_TBL(DECT_NUMBER_TYPE_INTERNATIONAL,	"international number"),
+	TRANS_TBL(DECT_NUMBER_TYPE_NATIONAL,		"national number"),
+	TRANS_TBL(DECT_NUMBER_TYPE_NETWORK_SPECIFIC,	"network specific number"),
+	TRANS_TBL(DECT_NUMBER_TYPE_SUBSCRIBER,		"subscriber number"),
+	TRANS_TBL(DECT_NUMBER_TYPE_ABBREVIATED,		"abbreviated number"),
+	TRANS_TBL(DECT_NUMBER_TYPE_RESERVED,		"reserved"),
+};
+
+static const struct dect_trans_tbl dect_npis[] = {
+	TRANS_TBL(DECT_NPI_UNKNOWN,			"unknown"),
+	TRANS_TBL(DECT_NPI_ISDN_E164,			"ISDN/telephony plan E.164"),
+	TRANS_TBL(DECT_NPI_DATA_PLAN_X121,		"data plan X.121"),
+	TRANS_TBL(DECT_NPI_TCP_IP,			"TCP/IP address"),
+	TRANS_TBL(DECT_NPI_NATIONAL_STANDARD,		"national standard plan"),
+	TRANS_TBL(DECT_NPI_PRIVATE,			"private plan"),
+	TRANS_TBL(DECT_NPI_SIP,				"SIP"),
+	TRANS_TBL(DECT_NPI_INTERNET_CHARACTER_FORMAT,	"internet character format"),
+	TRANS_TBL(DECT_NPI_LAN_MAC_ADDRESS,		"LAN MAC address"),
+	TRANS_TBL(DECT_NPI_X400,			"X.400 address"),
+	TRANS_TBL(DECT_NPI_PROFILE_SPECIFIC,		"profile specific identifier"),
+	TRANS_TBL(DECT_NPI_RESERVED,			"reserved"),
+};
+
+static void dect_sfmt_dump_called_party_number(const struct dect_ie_common *_ie)
+{
+	struct dect_ie_called_party_number *ie = dect_ie_container(ie, _ie);
+	char address[ie->len + 1];
+	char buf[32];
+
+	memcpy(address, ie->address, ie->len);
+	address[ie->len] = '\0';
+
+	dect_debug("\tNumber type: %s\n", dect_val2str(dect_number_types, buf, ie->type));
+	dect_debug("\tNumbering Plan: %s\n", dect_val2str(dect_npis, buf, ie->npi));
+	dect_debug("\tAddress: %s\n", address);
+}
+
+static int dect_sfmt_parse_called_party_number(const struct dect_handle *dh,
+					       struct dect_ie_common **ie,
+					       const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_called_party_number *dst = dect_ie_container(dst, *ie);
+
+	dst->type = (src->data[2] & 0x70) >> 4;
+	dst->npi  = (src->data[2] & 0x0f);
+	memcpy(dst->address, &src->data[3], src->len - 2);
+	return 0;
+}
+
+static int dect_sfmt_build_called_party_number(struct dect_sfmt_ie *dst,
+					       const struct dect_ie_common *ie)
+{
+	struct dect_ie_called_party_number *src = dect_ie_container(src, ie);
+
+	dst->data[2]  = src->type << 4;
+	dst->data[2] |= src->npi;
+	dst->data[2] |= DECT_OCTET_GROUP_END;
+	memcpy(&dst->data[3], src->address, src->len);
+	dst->len = src->len + 3;
+	return 0;
+}
+
 static const struct dect_trans_tbl dect_lock_limits[] = {
 	TRANS_TBL(DECT_LOCK_TEMPORARY_USER_LIMIT_1,	"temporary user limit 1"),
 	TRANS_TBL(DECT_LOCK_NO_LIMITS,			"no limits"),
@@ -1629,6 +1693,9 @@ static const struct dect_ie_handler {
 	[S_VL_IE_CALLED_PARTY_NUMBER]		= {
 		.name	= "called party number",
 		.size	= sizeof(struct dect_ie_called_party_number),
+		.parse	= dect_sfmt_parse_called_party_number,
+		.build	= dect_sfmt_build_called_party_number,
+		.dump	= dect_sfmt_dump_called_party_number,
 	},
 	[S_VL_IE_CALLED_PARTY_SUBADDR]		= {
 		.name	= "called party subaddress",
