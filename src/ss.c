@@ -24,11 +24,13 @@
 
 
 static DECT_SFMT_MSG_DESC(ciss_facility,
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_FACILITY,			IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
 	DECT_SFMT_IE(S_DO_IE_SINGLE_DISPLAY,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_DO_IE_SINGLE_KEYPAD,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_FEATURE_ACTIVATE,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_FEATURE_INDICATE,      	IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_TIME_DATE,			IE_OPTIONAL,  IE_OPTIONAL,  0),
@@ -46,4 +48,6 @@ void dect_clss_rcv(struct dect_handle *dh, struct dect_msg_buf *mb)
 
 	if (dect_parse_sfmt_msg(dh, &ciss_facility_msg_desc, &msg.common, mb) < 0)
 		return;
+
+	dect_msg_free(dh, &ciss_facility_msg_desc, &msg.common);
 }
