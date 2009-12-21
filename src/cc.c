@@ -487,6 +487,7 @@ int dect_mncc_setup_req(struct dect_handle *dh, struct dect_call *call,
 		.sending_complete		= param->sending_complete,
 		.iwu_to_iwu			= param->iwu_to_iwu,
 		.iwu_packet			= param->iwu_packet,
+		.escape_to_proprietary		= param->escape_to_proprietary,
 		.codec_list			= param->codec_list,
 	};
 
@@ -530,6 +531,7 @@ int dect_mncc_setup_ack_req(struct dect_handle *dh, struct dect_call *call,
 		.delimiter_request	= param->delimiter_request,
 		.iwu_to_iwu		= param->iwu_to_iwu,
 		.iwu_packet		= param->iwu_packet,
+		.escape_to_proprietary	= param->escape_to_proprietary,
 		.codec_list		= param->codec_list,
 	};
 
@@ -552,6 +554,7 @@ int dect_mncc_reject_req(struct dect_handle *dh, struct dect_call *call,
 		.network_parameter		= param->network_parameter,
 		.iwu_to_iwu			= param->iwu_to_iwu,
 		.iwu_packet			= param->iwu_packet,
+		.escape_to_proprietary		= param->escape_to_proprietary,
 	};
 
 	cc_debug_entry(call, "MNCC_REJECT-req");
@@ -576,6 +579,7 @@ int dect_mncc_call_proc_req(struct dect_handle *dh, struct dect_call *call,
 		.window_size		= param->window_size,
 		.iwu_to_iwu		= param->iwu_to_iwu,
 		.iwu_packet		= param->iwu_packet,
+		.escape_to_proprietary	= param->escape_to_proprietary,
 		.codec_list		= param->codec_list,
 	};
 
@@ -598,6 +602,7 @@ int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 		.window_size		= param->window_size,
 		.iwu_to_iwu		= param->iwu_to_iwu,
 		.iwu_packet		= param->iwu_packet,
+		.escape_to_proprietary	= param->escape_to_proprietary,
 		.codec_list		= param->codec_list,
 	};
 
@@ -620,6 +625,7 @@ int dect_mncc_connect_req(struct dect_handle *dh, struct dect_call *call,
 		.window_size		= param->window_size,
 		.iwu_to_iwu		= param->iwu_to_iwu,
 		.iwu_packet		= param->iwu_packet,
+		.escape_to_proprietary	= param->escape_to_proprietary,
 		.codec_list		= param->codec_list,
 	};
 
@@ -638,6 +644,7 @@ int dect_mncc_connect_res(struct dect_handle *dh, struct dect_call *call,
 		.feature_indicate	= param->feature_indicate,
 		//.iwu_to_iwu		= param->iwu_to_iwu,
 		.iwu_packet		= param->iwu_packet,
+		.escape_to_proprietary	= param->escape_to_proprietary,
 	};
 
 	cc_debug_entry(call, "MNCC_CONNECT-res");
@@ -664,6 +671,7 @@ int dect_mncc_release_req(struct dect_handle *dh, struct dect_call *call,
 		.feature_indicate		= param->feature_indicate,
 		.iwu_to_iwu			= param->iwu_to_iwu,
 		.iwu_packet			= param->iwu_packet,
+		.escape_to_proprietary	= param->escape_to_proprietary,
 	};
 
 	cc_debug_entry(call, "MNCC_RELEASE-req");
@@ -687,6 +695,7 @@ int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
 		.network_parameter		= param->network_parameter,
 		.iwu_to_iwu			= param->iwu_to_iwu,
 		.iwu_packet			= param->iwu_packet,
+		.escape_to_proprietary		= param->escape_to_proprietary,
 	};
 
 	cc_debug_entry(call, "MNCC_RELEASE-res");
@@ -727,6 +736,7 @@ int dect_mncc_info_req(struct dect_handle *dh, struct dect_call *call,
 		.sending_complete		= param->sending_complete,
 		.iwu_to_iwu			= param->iwu_to_iwu,
 		.iwu_packet			= param->iwu_packet,
+		.escape_to_proprietary		= param->escape_to_proprietary,
 		.codec_list			= param->codec_list,
 	};
 
@@ -803,6 +813,7 @@ static void dect_mncc_alert_ind(struct dect_handle *dh, struct dect_call *call,
 	param->window_size		= dect_ie_hold(msg->window_size);
 	param->iwu_to_iwu		= *dect_ie_list_hold(&msg->iwu_to_iwu);
 	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
+	param->escape_to_proprietary	= dect_ie_hold(msg->escape_to_proprietary);
 	param->codec_list		= dect_ie_hold(msg->codec_list);
 
 	cc_debug(call, "MNCC_ALERT-ind");
@@ -851,6 +862,7 @@ static void dect_mncc_call_proc_ind(struct dect_handle *dh, struct dect_call *ca
 	param->window_size		= dect_ie_hold(msg->window_size);
 	param->iwu_to_iwu		= *dect_ie_list_hold(&msg->iwu_to_iwu);
 	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
+	param->escape_to_proprietary	= dect_ie_hold(msg->escape_to_proprietary);
 	param->codec_list		= dect_ie_hold(msg->codec_list);
 
 	cc_debug(call, "MNCC_CALL_PROC-ind");
@@ -897,6 +909,7 @@ static void dect_mncc_connect_ind(struct dect_handle *dh, struct dect_call *call
 	param->window_size		= dect_ie_hold(msg->window_size);
 	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu);
 	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
+	param->escape_to_proprietary	= dect_ie_hold(msg->escape_to_proprietary);
 	param->codec_list		= dect_ie_hold(msg->codec_list);
 
 	cc_debug(call, "MNCC_CONNECT-ind");
@@ -1005,6 +1018,7 @@ static void dect_mncc_release_ind(struct dect_handle *dh, struct dect_call *call
 	param->feature_indicate		= dect_ie_hold(msg->feature_indicate);
 	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu);
 	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
+	param->escape_to_proprietary	= dect_ie_hold(msg->escape_to_proprietary);
 
 	cc_debug(call, "MNCC_RELEASE-ind");
 	dh->ops->cc_ops->mncc_release_ind(dh, call, param);
@@ -1043,6 +1057,7 @@ static void dect_mncc_release_cfm(struct dect_handle *dh, struct dect_call *call
 	param->network_parameter	= dect_ie_hold(msg->network_parameter);
 	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu);
 	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
+	param->escape_to_proprietary	= dect_ie_hold(msg->escape_to_proprietary);
 
 	cc_debug(call, "MNCC_RELEASE-cfm");
 	dh->ops->cc_ops->mncc_release_cfm(dh, call, param);
@@ -1067,10 +1082,11 @@ static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *ca
 		if (param == NULL)
 			goto out;
 
-		param->release_reason	= dect_ie_hold(msg.release_reason);
-		param->facility		= *dect_ie_list_hold(&msg.facility);
-		param->iwu_to_iwu	= dect_ie_hold(msg.iwu_to_iwu);
-		param->iwu_packet	= dect_ie_hold(msg.iwu_packet);
+		param->release_reason		= dect_ie_hold(msg.release_reason);
+		param->facility			= *dect_ie_list_hold(&msg.facility);
+		param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+		param->iwu_packet		= dect_ie_hold(msg.iwu_packet);
+		param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
 		cc_debug(call, "MNCC_RELEASE-ind");
 		dh->ops->cc_ops->mncc_release_ind(dh, call, param);
@@ -1134,6 +1150,7 @@ static void dect_mncc_info_ind(struct dect_handle *dh, struct dect_call *call,
 	param->sending_complete		= dect_ie_hold(msg->sending_complete);
 	param->iwu_to_iwu		= *dect_ie_list_hold(&msg->iwu_to_iwu);
 	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
+	param->escape_to_proprietary	= dect_ie_hold(msg->escape_to_proprietary);
 	param->codec_list		= dect_ie_hold(msg->codec_list);
 
 	cc_debug(call, "MNCC_INFO-ind");
@@ -1227,6 +1244,7 @@ static void dect_mncc_setup_ind(struct dect_handle *dh,
 	param->sending_complete		= dect_ie_hold(msg->sending_complete);
 	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu);
 	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
+	param->escape_to_proprietary	= dect_ie_hold(msg->escape_to_proprietary);
 	param->codec_list		= dect_ie_hold(msg->codec_list);
 
 	cc_debug(call, "MNCC_SETUP-ind");
