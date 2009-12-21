@@ -1306,6 +1306,59 @@ err1:
 	dect_msg_free(dh, &mm_access_rights_terminate_request_msg_desc, &msg.common);
 }
 
+/**
+ * dect_mm_locate_req - MM_LOCATE-req primitive
+ *
+ * @dh:		libdect DECT handle
+ * @mme:	Mobility Management Endpoint
+ * @param:	locate request parameters
+ */
+int dect_mm_locate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+		       const struct dect_mm_locate_param *param)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_ie_fixed_identity fixed_identity;
+	struct dect_mm_locate_request_msg msg;
+	int err;
+
+	mm_debug_entry(mme, "MM_LOCATE-req");
+	if (mp->type != DECT_MMP_NONE)
+		return -1;
+
+	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
+					DECT_PD_MM);
+	if (err < 0)
+		goto err1;
+
+	fixed_identity.type = DECT_FIXED_ID_TYPE_PARK;
+	memcpy(&fixed_identity.ari, &dh->pari, sizeof(fixed_identity.ari));
+
+	memset(&msg, 0, sizeof(msg));
+	msg.portable_identity		= param->portable_identity;
+	msg.fixed_identity		= &fixed_identity;
+	msg.location_area		= param->location_area;
+	msg.nwk_assigned_identity	= param->nwk_assigned_identity;
+	msg.cipher_info			= param->cipher_info;
+	msg.setup_capability		= param->setup_capability;
+	msg.terminal_capability		= param->terminal_capability;
+	msg.iwu_to_iwu			= param->iwu_to_iwu;
+	msg.model_identifier		= param->model_identifier;
+
+	err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_INITIATOR,
+			       &mm_locate_request_msg_desc,
+			       &msg.common, DECT_MM_LOCATE_REQUEST);
+	if (err < 0)
+		goto err2;
+
+	mp->type = DECT_MMP_LOCATION_REGISTRATION;
+	return 0;
+
+err2:
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+err1:
+	return err;
+}
+
 static int dect_mm_send_locate_accept(const struct dect_handle *dh,
 				      struct dect_mm_endpoint *mme,
 				      const struct dect_mm_locate_param *param)
