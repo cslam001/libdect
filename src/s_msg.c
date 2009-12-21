@@ -315,6 +315,38 @@ static int dect_sfmt_build_release_reason(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static const struct dect_trans_tbl dect_signal_codes[] = {
+	TRANS_TBL(DECT_SIGNAL_DIAL_TONE_ON,				"ring tone on"),
+	TRANS_TBL(DECT_SIGNAL_RING_BACK_TONE_ON,			"ring-back tone on"),
+	TRANS_TBL(DECT_SIGNAL_INTERCEPT_TONE_ON,			"intercept tone on"),
+	TRANS_TBL(DECT_SIGNAL_NETWORK_CONGESTION_TONE_ON,		"network congestion tone on"),
+	TRANS_TBL(DECT_SIGNAL_BUSY_TONE_ON,				"busy tone on"),
+	TRANS_TBL(DECT_SIGNAL_CONFIRM_TONE_ON,				"confirm tone on"),
+	TRANS_TBL(DECT_SIGNAL_ANSWER_TONE_ON,				"answer tone on"),
+	TRANS_TBL(DECT_SIGNAL_CALL_WAITING_TONE_ON,			"call waiting tone on"),
+	TRANS_TBL(DECT_SIGNAL_OFF_HOOK_WARNING_TONE_ON,			"off-hook warning tone on"),
+	TRANS_TBL(DECT_SIGNAL_NEGATIVE_ACKNOWLEDGEMENT_TONE,		"negative acknowledgement tone"),
+	TRANS_TBL(DECT_SIGNAL_TONES_OFF,				"tones off"),
+	TRANS_TBL(DECT_SIGNAL_ALERTING_BASE + DECT_RING_PATTERN_0,	"ring pattern 0"),
+	TRANS_TBL(DECT_SIGNAL_ALERTING_BASE + DECT_RING_PATTERN_1,	"ring pattern 1"),
+	TRANS_TBL(DECT_SIGNAL_ALERTING_BASE + DECT_RING_PATTERN_2,	"ring pattern 2"),
+	TRANS_TBL(DECT_SIGNAL_ALERTING_BASE + DECT_RING_PATTERN_3,	"ring pattern 3"),
+	TRANS_TBL(DECT_SIGNAL_ALERTING_BASE + DECT_RING_PATTERN_4,	"ring pattern 4"),
+	TRANS_TBL(DECT_SIGNAL_ALERTING_BASE + DECT_RING_PATTERN_5,	"ring pattern 5"),
+	TRANS_TBL(DECT_SIGNAL_ALERTING_BASE + DECT_RING_PATTERN_6,	"ring pattern 6"),
+	TRANS_TBL(DECT_SIGNAL_ALERTING_BASE + DECT_RING_PATTERN_7,	"ring pattern 7"),
+	TRANS_TBL(DECT_SIGNAL_ALERTING_BASE + DECT_RING_CONTINUOUS,	"ring continuous"),
+	TRANS_TBL(DECT_SIGNAL_ALERTING_BASE + DECT_RING_OFF,		"ring off"),
+};
+
+static void dect_sfmt_dump_signal(const struct dect_ie_common *_ie)
+{
+	struct dect_ie_signal *ie = dect_ie_container(ie, _ie);
+	char buf[64];
+
+	dect_debug("\tsignal: %s\n", dect_val2str(dect_signal_codes, buf, ie->code));
+}
+
 static int dect_sfmt_parse_signal(const struct dect_handle *dh,
 				  struct dect_ie_common **ie,
 				  const struct dect_sfmt_ie *src)
@@ -1474,6 +1506,7 @@ static const struct dect_ie_handler {
 		.size	= sizeof(struct dect_ie_signal),
 		.parse	= dect_sfmt_parse_signal,
 		.build	= dect_sfmt_build_signal,
+		.dump	= dect_sfmt_dump_signal,
 	},
 	[S_DO_IE_TIMER_RESTART]			= {
 		.name	= "timer restart",
