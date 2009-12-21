@@ -41,6 +41,7 @@ struct dect_mm_key_allocate_param {
 	struct dect_ie_allocation_type		*allocation_type;
 	struct dect_ie_auth_value		*rand;
 	struct dect_ie_auth_value		*rs;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_authenticate_param {
@@ -89,6 +90,7 @@ struct dect_mm_detach_param {
 	struct dect_ie_portable_identity	*portable_identity;
 	struct dect_ie_nwk_assigned_identity	*nwk_assigned_identity;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_identity_param {
@@ -99,6 +101,7 @@ struct dect_mm_identity_param {
 	struct dect_ie_nwk_assigned_identity	*nwk_assigned_identity;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_model_identifier		*model_identifier;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_identity_assign_param {

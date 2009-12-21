@@ -164,6 +164,7 @@ static DECT_SFMT_MSG_DESC(mm_identity_reply,
 	DECT_SFMT_IE(S_VL_IE_MODEL_IDENTIFIER,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_NONE,      IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
+	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
 );
 
@@ -428,9 +429,10 @@ int dect_mm_key_allocate_req(struct dect_handle *dh,
 		goto err1;
 
 	memset(&msg, 0, sizeof(msg));
-	msg.allocation_type	= param->allocation_type;
-	msg.rand		= param->rand;
-	msg.rs			= param->rs;
+	msg.allocation_type		= param->allocation_type;
+	msg.rand			= param->rand;
+	msg.rs				= param->rs;
+	msg.escape_to_proprietary	= param->escape_to_proprietary;
 
 	err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_INITIATOR,
 			       &mm_key_allocate_msg_desc,
@@ -467,9 +469,10 @@ static void dect_mm_rcv_key_allocate(struct dect_handle *dh,
 	if (param == NULL)
 		goto err1;
 
-	param->allocation_type	= dect_ie_hold(msg.allocation_type);
-	param->rand		= dect_ie_hold(msg.rand);
-	param->rs		= dect_ie_hold(msg.rs);
+	param->allocation_type		= dect_ie_hold(msg.allocation_type);
+	param->rand			= dect_ie_hold(msg.rand);
+	param->rs			= dect_ie_hold(msg.rs);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
 	mm_debug(mme, "MM_KEY_ALLOCATE-ind");
 	dh->ops->mm_ops->mm_key_allocate_ind(dh, mme, param);
@@ -531,12 +534,13 @@ static int dect_mm_send_authenticate_reply(const struct dect_handle *dh,
 					   const struct dect_mm_authenticate_param *param)
 {
 	struct dect_mm_authentication_reply_msg msg = {
-		.res		= param->res,
-		.rs		= param->rs,
-		.zap_field	= param->zap_field,
-		.service_class	= param->service_class,
-		.key		= param->key,
-		.iwu_to_iwu	= param->iwu_to_iwu,
+		.res			= param->res,
+		.rs			= param->rs,
+		.zap_field		= param->zap_field,
+		.service_class		= param->service_class,
+		.key			= param->key,
+		.iwu_to_iwu		= param->iwu_to_iwu,
+		.escape_to_proprietary	= param->escape_to_proprietary,
 	};
 
 	return dect_mm_send_msg(dh, mme, DECT_TRANSACTION_RESPONDER,
@@ -1347,6 +1351,7 @@ int dect_mm_locate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	msg.terminal_capability		= param->terminal_capability;
 	msg.iwu_to_iwu			= param->iwu_to_iwu;
 	msg.model_identifier		= param->model_identifier;
+	msg.escape_to_proprietary	= param->escape_to_proprietary;
 
 	err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_INITIATOR,
 			       &mm_locate_request_msg_desc,
@@ -1469,15 +1474,16 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 	if (param == NULL)
 		goto err1;
 
-	param->portable_identity	= dect_ie_hold(msg.portable_identity),
-	param->fixed_identity		= dect_ie_hold(msg.fixed_identity),
-	param->location_area		= dect_ie_hold(msg.location_area),
-	param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity),
-	param->cipher_info		= dect_ie_hold(msg.cipher_info),
-	param->setup_capability		= dect_ie_hold(msg.setup_capability),
-	param->terminal_capability	= dect_ie_hold(msg.terminal_capability),
-	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu),
-	param->model_identifier		= dect_ie_hold(msg.model_identifier),
+	param->portable_identity	= dect_ie_hold(msg.portable_identity);
+	param->fixed_identity		= dect_ie_hold(msg.fixed_identity);
+	param->location_area		= dect_ie_hold(msg.location_area);
+	param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity);
+	param->cipher_info		= dect_ie_hold(msg.cipher_info);
+	param->setup_capability		= dect_ie_hold(msg.setup_capability);
+	param->terminal_capability	= dect_ie_hold(msg.terminal_capability);
+	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->model_identifier		= dect_ie_hold(msg.model_identifier);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
 	mp->type = DECT_MMP_LOCATION_REGISTRATION;
 
@@ -1543,6 +1549,7 @@ int dect_mm_detach_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	msg.portable_identity		= param->portable_identity;
 	msg.nwk_assigned_identity	= param->nwk_assigned_identity;
 	msg.iwu_to_iwu			= param->iwu_to_iwu;
+	msg.escape_to_proprietary	= param->escape_to_proprietary;
 
 	err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_INITIATOR,
 			       &mm_detach_msg_desc,
@@ -1576,6 +1583,7 @@ static void dect_mm_rcv_detach(struct dect_handle *dh,
 	param->portable_identity	= dect_ie_hold(msg.portable_identity);
 	param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity);
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 
@@ -1923,6 +1931,7 @@ static void dect_mm_rcv_info_reject(struct dect_handle *dh,
 	param->call_identity		= dect_ie_hold(msg.call_identity);
 	param->reject_reason		= dect_ie_hold(msg.reject_reason);
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
@@ -1958,6 +1967,7 @@ static void dect_mm_rcv_info_suggest(struct dect_handle *dh,
 	param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity);
 	param->network_parameter	= dect_ie_hold(msg.network_parameter);
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
 	mm_debug(mme, "MM_INFO-ind");
 	dh->ops->mm_ops->mm_info_ind(dh, mme, param);
