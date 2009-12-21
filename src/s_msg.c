@@ -516,7 +516,7 @@ static void dect_sfmt_dump_location_area(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_location_area *ie = dect_ie_container(ie, _ie);
 
-	dect_debug("\ttype: %x level: %x\n", ie->type, ie->level);
+	dect_debug("\ttype: %x level: %u\n", ie->type, ie->level);
 }
 
 static int dect_sfmt_parse_location_area(const struct dect_handle *dh,
