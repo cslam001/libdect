@@ -652,11 +652,15 @@ static void dect_lce_rcv_page_response(struct dect_handle *dh,
 {
 	struct dect_lce_page_response msg;
 	struct dect_data_link *i, *req = NULL;
+	enum dect_sfmt_error err;
 
 	ddl_debug(ta->link, "LCE-PAGE-RESPONSE");
-	if (dect_parse_sfmt_msg(dh, &lce_page_response_msg_desc,
-				&msg.common, mb) < 0)
-		return;
+	err = dect_parse_sfmt_msg(dh, &lce_page_response_msg_desc,
+				  &msg.common, mb);
+	if (err < 0) {
+		dect_send_reject(dh, ta, dect_sfmt_reject_reason(err));
+		return dect_ddl_release(dh, ta->link);
+	}
 
 	list_for_each_entry(i, &dh->links, list) {
 		if (dect_ipui_cmp(&i->ipui, &msg.portable_identity->ipui))
