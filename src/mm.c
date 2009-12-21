@@ -622,7 +622,7 @@ static void dect_mm_rcv_authentication_request(struct dect_handle *dh,
 	param->iwu_to_iwu		= *dect_ie_list_hold(&msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	mp->type = DECT_MMP_CIPHER;
+	mp->type = DECT_MMP_AUTHENTICATE;
 
 	mm_debug(mme, "MM_AUTHENTICATE-ind");
 	dh->ops->mm_ops->mm_authenticate_ind(dh, mme, param);
@@ -839,6 +839,8 @@ static void dect_mm_rcv_cipher_request(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
+	mp->type = DECT_MMP_CIPHER;
+
 	mm_debug(mme, "MM_CIPHER-ind");
 	dh->ops->mm_ops->mm_cipher_ind(dh, mme, param);
 err1:
@@ -870,6 +872,8 @@ static void dect_mm_rcv_cipher_suggest(struct dect_handle *dh,
 	param->connection_identity	= dect_ie_hold(msg.connection_identity);
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	mp->type = DECT_MMP_CIPHER;
 
 	mm_debug(mme, "MM_CIPHER-ind");
 	dh->ops->mm_ops->mm_cipher_ind(dh, mme, param);
