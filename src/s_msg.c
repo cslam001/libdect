@@ -1271,8 +1271,26 @@ static int dect_sfmt_build_duration(struct dect_sfmt_ie *dst,
 static void dect_sfmt_dump_escape_to_proprietary(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_escape_to_proprietary *ie = dect_ie_container(ie, _ie);
+	unsigned int i;
 
-	dect_debug("\tEMC %x\n", ie->emc);
+	dect_debug("\tEMC: %x\n", ie->emc);
+	dect_debug("\tContent: ");
+	for (i = 0; i < ie->len; i++)
+		dect_debug("%.2x ", ie->content[i]);
+	dect_debug("\n");
+}
+
+static int dect_sfmt_build_escape_to_proprietary(struct dect_sfmt_ie *dst,
+						 const struct dect_ie_common *ie)
+{
+	struct dect_ie_escape_to_proprietary *src = dect_ie_container(src, ie);
+
+	dst->data[2]  = DECT_ESC_TO_PROPRIETARY_IE_DESC_EMC;
+	dst->data[2] |= DECT_OCTET_GROUP_END;
+	*(uint16_t *)&dst->data[3] = __cpu_to_be16(src->emc);
+	memcpy(&dst->data[5], src->content, src->len);
+	dst->len = 5 + src->len;
+	return 0;
 }
 
 static int dect_sfmt_parse_escape_to_proprietary(const struct dect_handle *dh,
@@ -1286,6 +1304,8 @@ static int dect_sfmt_parse_escape_to_proprietary(const struct dect_handle *dh,
 	if (dtype != DECT_ESC_TO_PROPRIETARY_IE_DESC_EMC)
 		return -1;
 	dst->emc = __be16_to_cpu(*(__be16 *)&src->data[3]);
+	dst->len = src->len - 5;
+	memcpy(dst->content, src->data + 5, dst->len);
 	return 0;
 }
 
@@ -1732,6 +1752,7 @@ static const struct dect_ie_handler {
 		.name	= "escape to proprietary",
 		.size	= sizeof(struct dect_ie_escape_to_proprietary),
 		.parse	= dect_sfmt_parse_escape_to_proprietary,
+		.build	= dect_sfmt_build_escape_to_proprietary,
 		.dump	= dect_sfmt_dump_escape_to_proprietary,
 	},
 	[S_VL_IE_CODEC_LIST]			= {

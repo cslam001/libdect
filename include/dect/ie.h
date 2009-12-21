@@ -924,7 +924,8 @@ struct dect_ie_zap_field {
 struct dect_ie_escape_to_proprietary {
 	struct dect_ie_common		common;
 	uint16_t			emc;
-	uint8_t				content[];
+	uint8_t				len;
+	uint8_t				content[64];
 };
 
 /* Model identifier IE */
