@@ -129,6 +129,13 @@ struct dect_mm_info_param {
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
+struct dect_mm_iwu_param {
+	struct dect_ie_collection		common;
+	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
+	struct dect_ie_iwu_packet		*iwu_packet;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+};
+
 struct dect_mm_endpoint;
 
 extern struct dect_mm_endpoint *dect_mm_endpoint_alloc(struct dect_handle *dh);
@@ -199,6 +206,10 @@ struct dect_mm_ops {
 	void	(*mm_info_cfm)(struct dect_handle *dh,
 			       struct dect_mm_endpoint *mme, bool accept,
 			       struct dect_mm_info_param *param);
+
+	void	(*mm_iwu_ind)(struct dect_handle *dh,
+			      struct dect_mm_endpoint *mme,
+			      struct dect_mm_iwu_param *param);
 };
 
 extern int dect_mm_access_rights_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
@@ -248,5 +259,8 @@ extern int dect_mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme
 			    struct dect_mm_info_param *param);
 extern int dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			    bool accept, struct dect_mm_info_param *param);
+
+extern int dect_mm_iwu_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+			   const struct dect_mm_iwu_param *param);
 
 #endif /* _LIBDECT_DECT_MM_H */

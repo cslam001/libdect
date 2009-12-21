@@ -309,6 +309,15 @@ static DECT_SFMT_MSG_DESC(mm_temporary_identity_assign_rej,
 	DECT_SFMT_IE_END_MSG
 );
 
+static DECT_SFMT_MSG_DESC(mm_iwu,
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
+	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_IWU_PACKET,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE_END_MSG
+);
+
 static DECT_SFMT_MSG_DESC(mm_notify_msg,
 	DECT_SFMT_IE(S_DO_IE_TIMER_RESTART,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
@@ -1976,6 +1985,79 @@ err1:
 	dect_msg_free(dh, &mm_info_suggest_msg_desc, &msg.common);
 }
 
+/**
+ * dect_mm_iwu_req - MM_IWU-req primitive
+ *
+ * @dh:		libdect DECT handle
+ * @mme:	Mobility Management Endpoint
+ * @param:	IWU request parameters
+ */
+int dect_mm_iwu_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+		    const struct dect_mm_iwu_param *param)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_iwu_msg msg;
+	int err;
+
+	mm_debug_entry(mme, "MM_IWU-req");
+	if (mp->type != DECT_MMP_NONE)
+		return -1;
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+
+	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
+					DECT_PD_MM);
+	if (err < 0)
+		goto err1;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.iwu_to_iwu			= param->iwu_to_iwu;
+	msg.iwu_packet			= param->iwu_packet;
+	msg.escape_to_proprietary	= param->escape_to_proprietary;
+
+	err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_INITIATOR,
+			       &mm_iwu_msg_desc,
+			       &msg.common, DECT_MM_IWU);
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+err1:
+	return err;
+}
+
+static void dect_mm_rcv_iwu(struct dect_handle *dh,
+			    struct dect_mm_endpoint *mme,
+			    struct dect_msg_buf *mb)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_iwu_param *param;
+	struct dect_mm_iwu_msg msg;
+
+	mm_debug(mme, "MM_IWU");
+	if (mp->type != DECT_MMP_NONE)
+		return;
+
+	if (dect_parse_sfmt_msg(dh, &mm_iwu_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->iwu_packet		= dect_ie_hold(msg.iwu_packet);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+
+	mm_debug(mme, "MM_IWU-ind");
+	dh->ops->mm_ops->mm_iwu_ind(dh, mme, param);
+
+	dect_ie_collection_put(dh, param);
+err1:
+	dect_msg_free(dh, &mm_iwu_msg_desc, &msg.common);
+}
+
 static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 			struct dect_msg_buf *mb)
 {
@@ -2080,6 +2162,8 @@ static void dect_mm_open(struct dect_handle *dh,
 		return dect_mm_rcv_identity_request(dh, mme, mb);
 	case DECT_MM_DETACH:
 		return dect_mm_rcv_detach(dh, mme, mb);
+	case DECT_MM_IWU:
+		return dect_mm_rcv_iwu(dh, mme, mb);
 	default:
 		BUG();
 	}

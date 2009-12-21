@@ -34,6 +34,7 @@ enum dect_mm_msg_types {
 	DECT_MM_LOCATE_REJECT			= 0x57,
 	DECT_MM_IDENTITY_REQUEST		= 0x58,
 	DECT_MM_IDENTITY_REPLY			= 0x59,
+	DECT_MM_IWU				= 0x5b,
 	DECT_MM_TEMPORARY_IDENTITY_ASSIGN	= 0x5c,
 	DECT_MM_TEMPORARY_IDENTITY_ASSIGN_ACK	= 0x5d,
 	DECT_MM_TEMPORARY_IDENTITY_ASSIGN_REJ	= 0x5f,
@@ -308,6 +309,10 @@ struct dect_mm_temporary_identity_assign_rej_msg {
 
 struct dect_mm_iwu_msg {
 	struct dect_msg_common			common;
+	struct dect_ie_list			segmented_info;
+	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
+	struct dect_ie_iwu_packet		*iwu_packet;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
 struct dect_mm_notify_msg {
