@@ -652,6 +652,7 @@ static void dect_lce_rcv_page_response(struct dect_handle *dh,
 	struct dect_lce_page_response msg;
 	struct dect_data_link *i, *req = NULL;
 	enum dect_sfmt_error err;
+	bool reject = true;
 
 	ddl_debug(ta->link, "LCE-PAGE-RESPONSE");
 	err = dect_parse_sfmt_msg(dh, &lce_page_response_msg_desc,
@@ -670,9 +671,29 @@ static void dect_lce_rcv_page_response(struct dect_handle *dh,
 		break;
 	}
 
+	ta->link->ipui = msg.portable_identity->ipui;
+
+	if (req == NULL && dh->ops->lce_ops &&
+	    dh->ops->lce_ops->lce_page_response) {
+		struct dect_lce_page_param *param;
+
+		param = dect_ie_collection_alloc(dh, sizeof(*param));
+		if (param == NULL)
+			goto err;
+
+		param->portable_identity	= dect_ie_hold(msg.portable_identity);
+		param->fixed_identity		= dect_ie_hold(msg.fixed_identity);
+		param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity);
+		param->cipher_info		= dect_ie_hold(msg.cipher_info);
+		param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+		reject = !dh->ops->lce_ops->lce_page_response(dh, param);
+		dect_ie_collection_put(dh, param);
+	}
+err:
 	if (req != NULL)
 		dect_ddl_complete_indirect_establish(dh, ta->link, req);
-	else {
+	else if (reject) {
 		dect_send_reject(dh, ta, DECT_REJECT_IPUI_UNKNOWN);
 		dect_ddl_release(dh, ta->link);
 	}

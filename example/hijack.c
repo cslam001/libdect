@@ -20,6 +20,39 @@ static void pexit(const char *str)
 	exit(1);
 }
 
+static void mm_locate_ind(struct dect_handle *dh,
+                          struct dect_mm_endpoint *mme,
+                          struct dect_mm_locate_param *param)
+{
+	struct dect_mm_locate_param reply = {};
+
+	dect_mm_locate_res(dh, mme, false, &reply);
+}
+
+static struct dect_mm_ops mm_ops = {
+	.mm_locate_ind		= mm_locate_ind,
+};
+
+static bool lce_page_response(struct dect_handle *dh, struct dect_lce_page_param *param)
+{
+	struct dect_ie_info_type info_type;
+	struct dect_mm_info_param req = { .info_type = &info_type };
+	struct dect_mm_endpoint *mme;
+
+	mme = dect_mm_endpoint_alloc(dh, &param->portable_identity->ipui);
+	if (mme == NULL)
+		return false;
+
+	info_type.num = 1;
+	info_type.type[0] = DECT_INFO_LOCATE_SUGGEST;
+	dect_mm_info_req(dh, mme, &req);
+	return true;
+}
+
+static struct dect_lce_ops lce_ops = {
+	.lce_page_response	= lce_page_response,
+};
+
 static void raw_sock_event(struct dect_handle *dh, struct dect_fd *dfd,
 			   uint32_t events)
 {
@@ -61,7 +94,10 @@ static void page_timer(struct dect_handle *dh, struct dect_timer *timer)
 	dect_start_timer(dh, timer, 1);
 }
 
-static struct dect_ops ops;
+static struct dect_ops ops = {
+	.lce_ops	= &lce_ops,
+	.mm_ops		= &mm_ops,
+};
 
 int main(int argc, char **argv)
 {

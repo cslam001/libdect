@@ -14,6 +14,7 @@
 
 #include <dect/identities.h>
 #include <dect/auth.h>
+#include <dect/lce.h>
 #include <dect/cc.h>
 #include <dect/mm.h>
 #include <dect/ss.h>
@@ -126,6 +127,7 @@ struct dect_ops {
 	void				(*free)(void *ptr);
 
 	const struct dect_event_ops	*event_ops;
+	const struct dect_lce_ops	*lce_ops;
 	const struct dect_cc_ops	*cc_ops;
 	const struct dect_mm_ops	*mm_ops;
 	const struct dect_ss_ops	*ss_ops;
