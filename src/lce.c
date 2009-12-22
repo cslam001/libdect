@@ -168,8 +168,7 @@ static int dect_lce_page(const struct dect_handle *dh,
 	struct dect_tpui tpui;
 	uint16_t page;
 
-	tpui.type = DECT_TPUI_INDIVIDUAL_DEFAULT;
-	tpui.id.ipui = ipui;
+	dect_ipui_to_tpui(&tpui, ipui);
 
 	msg.hdr = DECT_LCE_PAGE_GENERAL_VOICE;
 	page = dect_build_tpui(&tpui) & DECT_LCE_SHORT_PAGE_TPUI_MASK;

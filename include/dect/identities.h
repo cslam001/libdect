@@ -142,7 +142,11 @@ extern bool dect_ipui_cmp(const struct dect_ipui *u1,
 			  const struct dect_ipui *u2);
 
 /**
- *
+ * @DECT_TPUI_INDIVIDUAL_ASSIGNED:	Assigned individual TPUI
+ * @DECT_TPUI_CONNECTIONLESS_GROUP:	Connectionless group TPUI
+ * @DECT_TPUI_CALL_GROUP:		Call group TPUI
+ * @DECT_TPUI_INDIVIDUAL_DEFAULT:	Default individual TPUI
+ * @DECT_TPUI_EMERGENCY:		Emergency TPUI
  */
 enum dect_tpui_types {
 	DECT_TPUI_INDIVIDUAL_ASSIGNED,
@@ -154,7 +158,7 @@ enum dect_tpui_types {
 
 /**
  * @type:	TPUI type
- * @tpui:	type specific value (20 bits)
+ * @tpui:	type specific value (12/16/20 bits)
  */
 struct dect_tpui {
 	enum dect_tpui_types	type;
@@ -166,13 +170,14 @@ struct dect_tpui {
 			uint16_t group;
 		} cg;
 		struct {
-			const struct dect_ipui *ipui;
+			uint16_t ipui;
 		} id;
 	};
 };
 
-extern void dect_default_individual_tpui(struct dect_tpui *tpui,
-					 const struct dect_ipui *ipui);
+extern void dect_ipui_to_tpui(struct dect_tpui *tpui,
+			      const struct dect_ipui *ipui);
+extern void dect_dump_tpui(const struct dect_tpui *tpui);
 
 /* Collective broadcast identifier */
 #define DECT_TPUI_CBI		0xcfff

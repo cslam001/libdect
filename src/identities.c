@@ -205,15 +205,13 @@ bool dect_ipui_cmp(const struct dect_ipui *i1, const struct dect_ipui *i2)
 	return memcmp(i1, i2, sizeof(*i1));
 }
 
-static uint32_t dect_build_default_individual_tpui(const struct dect_tpui *tpui)
+void dect_ipui_to_tpui(struct dect_tpui *tpui, const struct dect_ipui *ipui)
 {
-	const struct dect_ipui *ipui = tpui->id.ipui;
-	uint32_t t;
+	tpui->type = DECT_TPUI_INDIVIDUAL_DEFAULT;
 
-	t = DECT_TPUI_DEFAULT_INDIVIDUAL_ID;
 	switch (ipui->put) {
 	case DECT_IPUI_N:
-		t |= ipui->pun.n.ipei.psn & DECT_TPUI_DEFAULT_INDIVIDUAL_IPUI_MASK;
+		tpui->id.ipui = ipui->pun.n.ipei.psn & DECT_TPUI_DEFAULT_INDIVIDUAL_IPUI_MASK;
 		break;
 	case DECT_IPUI_O:
 	case DECT_IPUI_P:
@@ -224,7 +222,36 @@ static uint32_t dect_build_default_individual_tpui(const struct dect_tpui *tpui)
 	case DECT_IPUI_U:
 		break;
 	}
-	return t;
+}
+
+void dect_dump_tpui(const struct dect_tpui *tpui)
+{
+	unsigned int i;
+
+	switch (tpui->type) {
+	case DECT_TPUI_INDIVIDUAL_ASSIGNED:
+		dect_debug("\ttype: individual assigned\n");
+		dect_debug("\tdigits: ");
+		for (i = 0; i < 5; i++) {
+			if (tpui->ia.digits[i] != 0xb)
+				dect_debug("%u", tpui->ia.digits[i]);
+		}
+		dect_debug("\n");
+		return;
+	case DECT_TPUI_CONNECTIONLESS_GROUP:
+		dect_debug("\ttype: connectionless group\n");
+		return;
+	case DECT_TPUI_CALL_GROUP:
+		dect_debug("\ttype: call group\n");
+		return;
+	case DECT_TPUI_INDIVIDUAL_DEFAULT:
+		dect_debug("\ttype: individual default\n");
+		dect_debug("\tIPUI: %.4x\n", tpui->id.ipui);
+		return;
+	case DECT_TPUI_EMERGENCY:
+		dect_debug("\ttype: emergency\n");
+		return;
+	}
 }
 
 uint32_t dect_build_tpui(const struct dect_tpui *tpui)
@@ -246,7 +273,8 @@ uint32_t dect_build_tpui(const struct dect_tpui *tpui)
 		t  = DECT_TPUI_CALL_GROUP_ID;
 		break;
 	case DECT_TPUI_INDIVIDUAL_DEFAULT:
-		t  = dect_build_default_individual_tpui(tpui);
+		t  = DECT_TPUI_DEFAULT_INDIVIDUAL_ID;
+		t |= tpui->id.ipui;
 		break;
 	case DECT_TPUI_EMERGENCY:
 		t  = DECT_TPUI_EMERGENCY_ID;
@@ -254,4 +282,58 @@ uint32_t dect_build_tpui(const struct dect_tpui *tpui)
 	}
 
 	return t;
+}
+
+void dect_tpui_to_pmid(struct dect_pmid *pmid, const struct dect_tpui *tpui)
+{
+	uint32_t t;
+
+	t = dect_build_tpui(tpui);
+
+	switch (tpui->type) {
+	case DECT_TPUI_INDIVIDUAL_ASSIGNED:
+		pmid->type = DECT_PMID_ASSIGNED;
+		pmid->tpui = t & DECT_PMID_ASSIGNED_TPUI_MASK;
+		break;
+	case DECT_TPUI_EMERGENCY:
+		pmid->type = DECT_PMID_EMERGENCY;
+		pmid->tpui = t & DECT_PMID_EMERGENCY_TPUI_MASK;
+		break;
+	default:
+		BUG();
+	}
+}
+
+void dect_parse_pmid(struct dect_pmid *pmid, uint32_t p)
+{
+	if ((p & DECT_PMID_DEFAULT_ID_MASK) == DECT_PMID_DEFAULT_ID) {
+		pmid->type = DECT_PMID_DEFAULT;
+		pmid->num  = p & DECT_PMID_DEFAULT_NUM_MASK;
+	} else if ((p & DECT_PMID_EMERGENCY_ID_MASK) == DECT_PMID_EMERGENCY_ID) {
+		pmid->type = DECT_PMID_EMERGENCY;
+		pmid->tpui = p & DECT_PMID_EMERGENCY_TPUI_MASK;
+	} else {
+		pmid->type = DECT_PMID_ASSIGNED;
+		pmid->tpui = p & DECT_PMID_ASSIGNED_TPUI_MASK;
+	}
+}
+
+uint32_t dect_build_pmid(const struct dect_pmid *pmid)
+{
+	uint32_t p = 0;
+
+	switch (pmid->type) {
+	case DECT_PMID_DEFAULT:
+		p |= DECT_PMID_DEFAULT_ID;
+		p |= pmid->num;
+		break;
+	case DECT_PMID_EMERGENCY:
+		p |= DECT_PMID_EMERGENCY_ID;
+		p |= pmid->tpui;
+		break;
+	case DECT_PMID_ASSIGNED:
+		p |= pmid->tpui;
+		break;
+	}
+	return p;
 }

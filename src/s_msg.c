@@ -395,7 +395,7 @@ static void dect_sfmt_dump_portable_identity(const struct dect_ie_common *_ie)
 		break;
 	case DECT_PORTABLE_ID_TYPE_TPUI:
 		dect_debug("\ttype: TPUI\n");
-		break;
+		return dect_dump_tpui(&ie->tpui);
 	}
 }
 
