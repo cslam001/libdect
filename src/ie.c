@@ -47,6 +47,19 @@ void dect_ie_destroy(const struct dect_handle *dh, struct dect_ie_common *ie)
 	dect_free(dh, ie);
 }
 
+struct dect_ie_common *__dect_ie_clone(const struct dect_handle *dh,
+				       const struct dect_ie_common *ie,
+				       size_t size)
+{
+	struct dect_ie_common *clone;
+
+	clone = dect_ie_alloc(dh, size);
+	if (clone == NULL)
+		return NULL;
+	memcpy(clone + 1, ie + 1, size - sizeof(*ie));
+	return clone;
+}
+
 struct dect_ie_common *__dect_ie_hold(struct dect_ie_common *ie)
 {
 	if (ie == NULL)

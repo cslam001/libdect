@@ -55,13 +55,18 @@ static inline struct dect_ie_common *__dect_ie_init(struct dect_ie_common *ie)
 
 #define dect_ie_init(ie)		dect_ie_container(ie, __dect_ie_init(&(ie)->common))
 
+extern struct dect_ie_common *__dect_ie_clone(const struct dect_handle *dh,
+					      const struct dect_ie_common *ie, size_t size);
+
+#define dect_ie_clone(dh, ie)		dect_ie_container(ie, __dect_ie_clone(dh, &(ie)->common, sizeof(*(ie))))
+
 extern struct dect_ie_common *__dect_ie_hold(struct dect_ie_common *ie);
 
 #define dect_ie_hold(ie)		dect_ie_container(ie, __dect_ie_hold(&(ie)->common))
 
 extern void __dect_ie_put(const struct dect_handle *dh, struct dect_ie_common *ie);
 
-#define dect_ie_put(ie)			dect_ie_put(&(ie)->common)
+#define dect_ie_put(dh, ie)		__dect_ie_put(dh, &(ie)->common)
 
 
 /* Repeat indicator */
