@@ -1660,6 +1660,7 @@ static void dect_mm_rcv_temporary_identity_assign_ack(struct dect_handle *dh,
 
 	mm_debug(mme, "MM_IDENTITY_ASSIGN-cfm: accept: 1");
 	dh->ops->mm_ops->mm_identity_assign_cfm(dh, mme, true, param);
+	dect_ie_collection_put(dh, param);
 err1:
 	dect_msg_free(dh, &mm_temporary_identity_assign_ack_msg_desc, &msg.common);
 }
