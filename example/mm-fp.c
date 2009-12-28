@@ -169,7 +169,7 @@ static void mm_access_rights_ind(struct dect_handle *dh,
 	dect_mm_access_rights_res(dh, mme, true, param);
 }
 
-static const struct dect_mm_ops mm_ops = {
+static struct dect_mm_ops mm_ops = {
 	.priv_size		= sizeof(struct mm_priv),
 	.mm_authenticate_ind	= mm_authenticate_ind,
 	.mm_authenticate_cfm	= mm_authenticate_cfm,
@@ -188,6 +188,8 @@ int main(int argc, char **argv)
 	rand_fd = open("/dev/urandom", O_RDONLY);
 	if (rand_fd < 0)
 		exit(1);
+
+	dummy_ops_init(&ops);
 
 	if (dect_event_ops_init(&ops) < 0)
 		exit(1);

@@ -244,7 +244,7 @@ static void dect_dl_u_data_ind(struct dect_handle *dh, struct dect_call *call,
 	dect_audio_queue(priv->audio, mb);
 }
 
-static const struct dect_cc_ops cc_ops = {
+static struct dect_cc_ops cc_ops = {
 	.priv_size		= sizeof(struct call),
 	.mncc_connect_ind	= dect_mncc_connect_ind,
 	.mncc_setup_ind		= dect_mncc_setup_ind,
@@ -256,18 +256,14 @@ static const struct dect_cc_ops cc_ops = {
 	.dl_u_data_ind		= dect_dl_u_data_ind,
 };
 
-static const struct dect_mm_ops mm_ops = {
-	.mm_access_rights_ind	= 0,
-	.mm_access_rights_cfm	= 0,
-};
-
 static struct dect_ops ops = {
 	.cc_ops			= &cc_ops,
-	.mm_ops			= &mm_ops,
 };
 
 int main(int argc, char **argv)
 {
+	dummy_ops_init(&ops);
+
 	if (dect_event_ops_init(&ops) < 0)
 		exit(1);
 

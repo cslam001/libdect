@@ -76,6 +76,8 @@ int main(int argc, char **argv)
 	slot = atoi(argv[1]);
 	dect_build_msg(&msg, atoi(argv[2]), atoi(argv[3]));
 
+	dummy_ops_init(&ops);
+
 	if (dect_event_ops_init(&ops) < 0)
 		pexit("dect_event_ops_init");
 

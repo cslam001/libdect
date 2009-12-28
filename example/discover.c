@@ -9,6 +9,8 @@ static struct dect_ops ops;
 
 int main(int argc, char **argv)
 {
+	dummy_ops_init(&ops);
+
 	if (dect_event_ops_init(&ops) < 0)
 		exit(1);
 

@@ -10,6 +10,8 @@ extern int dect_event_ops_init(struct dect_ops *ops);
 extern void dect_event_loop(void);
 extern void dect_event_ops_cleanup(void);
 
+extern void dummy_ops_init(struct dect_ops *ops);
+
 #include "../src/ccitt-adpcm/g72x.h"
 
 struct dect_audio_handle {
