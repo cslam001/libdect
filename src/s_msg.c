@@ -574,6 +574,30 @@ static int dect_sfmt_build_location_area(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static const struct dect_trans_tbl dect_auth_algs[] = {
+	TRANS_TBL(DECT_AUTH_DSAA,			"DSAA"),
+	TRANS_TBL(DECT_AUTH_GSM,			"GSM"),
+	TRANS_TBL(DECT_AUTH_UMTS,			"UMTS"),
+	TRANS_TBL(DECT_AUTH_PROPRIETARY,		"proprietary"),
+};
+
+static const struct dect_trans_tbl dect_auth_key_types[] = {
+	TRANS_TBL(DECT_KEY_USER_AUTHENTICATION_KEY,	"User authentication key"),
+	TRANS_TBL(DECT_KEY_USER_PERSONAL_IDENTITY,	"User personal identity"),
+	TRANS_TBL(DECT_KEY_AUTHENTICATION_CODE,		"Authentication code"),
+};
+
+static void dect_sfmt_dump_allocation_type(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_allocation_type *ie = dect_ie_container(ie, _ie);
+	char buf[64];
+
+	dect_debug("\tauthentication algorithm: %s\n",
+		   dect_val2str(dect_auth_algs, buf, ie->auth_id));
+	dect_debug("\tauthentication key number: %u\n", ie->auth_key_num);
+	dect_debug("\tauthentication code number: %u\n", ie->auth_code_num);
+}
+
 static int dect_sfmt_parse_allocation_type(const struct dect_handle *dh,
 					   struct dect_ie_common **ie,
 					   const struct dect_sfmt_ie *src)
@@ -597,19 +621,6 @@ static int dect_sfmt_build_allocation_type(struct dect_sfmt_ie *dst,
 	dst->len = 4;
 	return 0;
 }
-
-static const struct dect_trans_tbl dect_auth_algs[] = {
-	TRANS_TBL(DECT_AUTH_DSAA,			"DSAA"),
-	TRANS_TBL(DECT_AUTH_GSM,			"GSM"),
-	TRANS_TBL(DECT_AUTH_UMTS,			"UMTS"),
-	TRANS_TBL(DECT_AUTH_PROPRIETARY,		"proprietary"),
-};
-
-static const struct dect_trans_tbl dect_auth_key_types[] = {
-	TRANS_TBL(DECT_KEY_USER_AUTHENTICATION_KEY,	"User authentication key"),
-	TRANS_TBL(DECT_KEY_USER_PERSONAL_IDENTITY,	"User personal identity"),
-	TRANS_TBL(DECT_KEY_AUTHENTICATION_CODE,		"Authentication code"),
-};
 
 static void dect_sfmt_dump_auth_type(const struct dect_ie_common *_ie)
 {
@@ -1571,6 +1582,7 @@ static const struct dect_ie_handler {
 		.size	= sizeof(struct dect_ie_allocation_type),
 		.parse	= dect_sfmt_parse_allocation_type,
 		.build	= dect_sfmt_build_allocation_type,
+		.dump	= dect_sfmt_dump_allocation_type,
 	},
 	[S_VL_IE_AUTH_TYPE]			= {
 		.name	= "auth type",
