@@ -753,6 +753,7 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 			}
 		case ETIMEDOUT:
 		case ECONNRESET:
+		case EHOSTUNREACH:
 			ddl->state = DECT_DATA_LINK_RELEASED;
 			return dect_ddl_shutdown(dh, ddl);
 		default:
