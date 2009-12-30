@@ -483,6 +483,8 @@ static void dect_mm_rcv_key_allocate(struct dect_handle *dh,
 	param->rs			= dect_ie_hold(msg.rs);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
+	mp->type = DECT_MMP_KEY_ALLOCATION;
+
 	mm_debug(mme, "MM_KEY_ALLOCATE-ind");
 	dh->ops->mm_ops->mm_key_allocate_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
@@ -641,7 +643,7 @@ static void dect_mm_rcv_authentication_request(struct dect_handle *dh,
 	dh->ops->mm_ops->mm_authenticate_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
 err1:
-	dect_msg_free(dh, &mm_key_allocate_msg_desc, &msg.common);
+	dect_msg_free(dh, &mm_authentication_request_msg_desc, &msg.common);
 }
 
 static void dect_mm_rcv_authentication_reply(struct dect_handle *dh,
