@@ -779,7 +779,7 @@ static int dect_sfmt_parse_cipher_info(const struct dect_handle *dh,
 		return -1;
 
 	dst->enable		= src->data[2] & 0x80;
-	dst->cipher_alg_id	= src->data[2] = 0x7f;
+	dst->cipher_alg_id	= src->data[2] & 0x7f;
 	dst->cipher_key_type	= (src->data[3] & 0xf0) >> 4;
 	dst->cipher_key_num	= src->data[3] & 0x0f;
 	return 0;
