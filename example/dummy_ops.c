@@ -297,18 +297,6 @@ void dummy_ops_init(struct dect_ops *ops)
 	if (!mm_ops->mm_locate_cfm)
 		mm_ops->mm_locate_cfm = mm_locate_cfm;
 	if (!mm_ops->mm_authenticate_ind)
-		mm_ops->mm_authenticate_ind = mm_authenticate_ind;
-	if (!mm_ops->mm_authenticate_cfm)
-		mm_ops->mm_authenticate_cfm = mm_authenticate_cfm;
-	if (!mm_ops->mm_cipher_ind)
-		mm_ops->mm_cipher_ind = mm_cipher_ind;
-	if (!mm_ops->mm_cipher_cfm)
-		mm_ops->mm_cipher_cfm = mm_cipher_cfm;
-	if (!mm_ops->mm_locate_ind)
-		mm_ops->mm_locate_ind = mm_locate_ind;
-	if (!mm_ops->mm_locate_cfm)
-		mm_ops->mm_locate_cfm = mm_locate_cfm;
-	if (!mm_ops->mm_detach_ind)
 		mm_ops->mm_detach_ind = mm_detach_ind;
 	if (!mm_ops->mm_identity_ind)
 		mm_ops->mm_identity_ind = mm_identity_ind;
