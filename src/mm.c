@@ -1509,13 +1509,39 @@ static void dect_mm_rcv_locate_accept(struct dect_handle *dh,
 				      struct dect_mm_endpoint *mme,
 				      struct dect_msg_buf *mb)
 {
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_locate_accept_msg msg;
+	struct dect_mm_locate_param *param;
 
 	mm_debug(mme, "LOCATE-ACCEPT");
+	if (mp->type != DECT_MMP_LOCATION_REGISTRATION)
+		return;
+
 	if (dect_parse_sfmt_msg(dh, &mm_locate_accept_msg_desc,
 				&msg.common, mb) < 0)
 		return;
 
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->portable_identity	= dect_ie_hold(msg.portable_identity);
+	param->location_area		= dect_ie_hold(msg.location_area);
+	param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity);
+	param->setup_capability		= dect_ie_hold(msg.setup_capability);
+	param->duration			= dect_ie_hold(msg.duration);
+	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->model_identifier		= dect_ie_hold(msg.model_identifier);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+	param->codec_list		= dect_ie_hold(msg.codec_list);
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+
+	mm_debug(mme, "MM_LOCATE-cfm: accept: 1");
+	dh->ops->mm_ops->mm_locate_cfm(dh, mme, true, param);
+	dect_ie_collection_put(dh, param);
+err1:
 	dect_msg_free(dh, &mm_locate_accept_msg_desc, &msg.common);
 }
 
@@ -1523,13 +1549,34 @@ static void dect_mm_rcv_locate_reject(struct dect_handle *dh,
 				      struct dect_mm_endpoint *mme,
 				      struct dect_msg_buf *mb)
 {
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_locate_reject_msg msg;
+	struct dect_mm_locate_param *param;
 
 	mm_debug(mme, "LOCATE-REJECT");
+	if (mp->type != DECT_MMP_LOCATION_REGISTRATION)
+		return;
+
 	if (dect_parse_sfmt_msg(dh, &mm_locate_reject_msg_desc,
 				&msg.common, mb) < 0)
 		return;
 
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->reject_reason		= dect_ie_hold(msg.reject_reason);
+	param->duration			= dect_ie_hold(msg.duration);
+	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+
+	mm_debug(mme, "MM_LOCATE-cfm: accept: 0");
+	dh->ops->mm_ops->mm_locate_cfm(dh, mme, false, param);
+	dect_ie_collection_put(dh, param);
+err1:
 	dect_msg_free(dh, &mm_locate_reject_msg_desc, &msg.common);
 }
 

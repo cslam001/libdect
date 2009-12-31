@@ -166,8 +166,8 @@ static void mm_locate_ind(struct dect_handle *dh,
 {
 }
 
-static void mm_locate_res(struct dect_handle *dh,
-			  struct dect_mm_endpoint *mme,
+static void mm_locate_cfm(struct dect_handle *dh,
+			  struct dect_mm_endpoint *mme, bool accept,
 			  struct dect_mm_locate_param *param)
 {
 }
@@ -294,8 +294,8 @@ void dummy_ops_init(struct dect_ops *ops)
 		mm_ops->mm_cipher_cfm = mm_cipher_cfm;
 	if (!mm_ops->mm_locate_ind)
 		mm_ops->mm_locate_ind = mm_locate_ind;
-	if (!mm_ops->mm_locate_res)
-		mm_ops->mm_locate_res = mm_locate_res;
+	if (!mm_ops->mm_locate_cfm)
+		mm_ops->mm_locate_cfm = mm_locate_cfm;
 	if (!mm_ops->mm_authenticate_ind)
 		mm_ops->mm_authenticate_ind = mm_authenticate_ind;
 	if (!mm_ops->mm_authenticate_cfm)
@@ -306,8 +306,8 @@ void dummy_ops_init(struct dect_ops *ops)
 		mm_ops->mm_cipher_cfm = mm_cipher_cfm;
 	if (!mm_ops->mm_locate_ind)
 		mm_ops->mm_locate_ind = mm_locate_ind;
-	if (!mm_ops->mm_locate_res)
-		mm_ops->mm_locate_res = mm_locate_res;
+	if (!mm_ops->mm_locate_cfm)
+		mm_ops->mm_locate_cfm = mm_locate_cfm;
 	if (!mm_ops->mm_detach_ind)
 		mm_ops->mm_detach_ind = mm_detach_ind;
 	if (!mm_ops->mm_identity_ind)

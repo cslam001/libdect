@@ -180,8 +180,8 @@ struct dect_mm_ops {
 	void	(*mm_locate_ind)(struct dect_handle *dh,
 				 struct dect_mm_endpoint *mme,
 				 struct dect_mm_locate_param *param);
-	void	(*mm_locate_res)(struct dect_handle *dh,
-				 struct dect_mm_endpoint *mme,
+	void	(*mm_locate_cfm)(struct dect_handle *dh,
+				 struct dect_mm_endpoint *mme, bool accept,
 				 struct dect_mm_locate_param *param);
 
 	void	(*mm_detach_ind)(struct dect_handle *dh,
