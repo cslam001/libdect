@@ -24,6 +24,7 @@ struct dect_mm_access_rights_param {
 	struct dect_ie_duration			*duration;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_mm_access_rights_terminate_param {
@@ -83,6 +84,7 @@ struct dect_mm_locate_param {
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_model_identifier		*model_identifier;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_mm_detach_param {

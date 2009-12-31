@@ -35,8 +35,8 @@ static DECT_SFMT_MSG_DESC(mm_access_rights_accept,
 	DECT_SFMT_IE(S_VL_IE_SETUP_CAPABILITY,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_MODEL_IDENTIFIER,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_NONE,      0),
-	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE_END_MSG
 );
 
@@ -48,8 +48,8 @@ static DECT_SFMT_MSG_DESC(mm_access_rights_request,
 	DECT_SFMT_IE(S_VL_IE_TERMINAL_CAPABILITY,	IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_MODEL_IDENTIFIER,		IE_NONE,      IE_OPTIONAL,  0),
-	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_NONE,      IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
 );
 
@@ -196,8 +196,8 @@ static DECT_SFMT_MSG_DESC(mm_locate_accept,
 	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
 	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_MODEL_IDENTIFIER,		IE_OPTIONAL,  IE_NONE,      0),
-	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE_END_MSG
 );
 
@@ -224,8 +224,8 @@ static DECT_SFMT_MSG_DESC(mm_locate_request,
 	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
 	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_MODEL_IDENTIFIER,		IE_NONE,      IE_OPTIONAL,  0),
-	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_NONE,      IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
 );
 
@@ -980,8 +980,8 @@ int dect_mm_access_rights_req(struct dect_handle *dh,
 	msg.setup_capability		= NULL;
 	msg.terminal_capability		= param->terminal_capability;
 	msg.model_identifier		= param->model_identifier;
-	msg.codec_list			= NULL;
 	msg.escape_to_proprietary	= param->escape_to_proprietary;
+	msg.codec_list			= param->codec_list;
 
 	err = dect_mm_send_msg(dh, mme, DECT_TRANSACTION_INITIATOR,
 			       &mm_access_rights_request_msg_desc,
@@ -1012,8 +1012,8 @@ static int dect_mm_send_access_rights_accept(const struct dect_handle *dh,
 		.setup_capability	= NULL,
 		.model_identifier	= param->model_identifier,
 		//.iwu_to_iwu		= param->iwu_to_iwu,
-		//.codec_list		= param->codec_list,
 		.escape_to_proprietary	= param->escape_to_proprietary,
+		.codec_list		= param->codec_list,
 	};
 
 	if (param->fixed_identity.list == NULL) {
@@ -1139,8 +1139,8 @@ static void dect_mm_rcv_access_rights_accept(struct dect_handle *dh,
 	param->service_class		= dect_ie_hold(msg.service_class);
 	//param->setup_capability	= dect_ie_hold(msg.setup_capability);
 	param->model_identifier		= dect_ie_hold(msg.model_identifier);
-	//param->codec_list		= dect_ie_hold(msg.codec_list);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+	param->codec_list		= dect_ie_hold(msg.codec_list);
 
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
