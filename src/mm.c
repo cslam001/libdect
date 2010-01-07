@@ -1071,9 +1071,9 @@ int dect_mm_access_rights_res(struct dect_handle *dh,
 	if (err < 0)
 		return err;
 
+	mp->type = DECT_MMP_NONE;
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	dect_mm_endpoint_destroy(dh, mme);
-	return err;
+	return 0;
 }
 
 static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
