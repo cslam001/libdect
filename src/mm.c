@@ -326,7 +326,8 @@ static DECT_SFMT_MSG_DESC(mm_notify_msg,
 
 #define __mm_debug(mme, pfx, fmt, args...) \
 	dect_debug("%sMM (link %d): " fmt "\n", (pfx), \
-		   (mme)->link->dfd->fd, ## args)
+		   (mme)->link->dfd ? (mme)->link->dfd->fd : -1, \
+		   ## args)
 
 #define mm_debug(mme, fmt, args...) \
 	__mm_debug(mme, "", fmt, ## args)
@@ -1083,6 +1084,9 @@ static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
 	if (err < 0)
 		return dect_mm_send_reject(dh, mp, access_rights, err);
 
+	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
+		return;
+
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		goto err1;
@@ -1113,6 +1117,9 @@ static void dect_mm_rcv_access_rights_accept(struct dect_handle *dh,
 	mm_debug(mme, "ACCESS-RIGHTS-ACCEPT");
 	if (dect_parse_sfmt_msg(dh, &mm_access_rights_accept_msg_desc,
 				&msg.common, mb) < 0)
+		return;
+
+	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
 		return;
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
@@ -1463,6 +1470,9 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 	if (err < 0)
 		return dect_mm_send_reject(dh, mp, locate, err);
 
+	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
+		goto err1;
+
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		goto err1;
@@ -1613,6 +1623,9 @@ static void dect_mm_rcv_detach(struct dect_handle *dh,
 
 	if (dect_parse_sfmt_msg(dh, &mm_detach_msg_desc,
 				&msg.common, mb) < 0)
+		return;
+
+	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
 		return;
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));

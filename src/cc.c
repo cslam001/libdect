@@ -1265,6 +1265,10 @@ static void dect_cc_rcv_setup(struct dect_handle *dh,
 	if (dect_parse_sfmt_msg(dh, &cc_setup_msg_desc, &msg.common, mb) < 0)
 		return;
 
+	/* Validate portable_identity type */
+	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
+		goto out;
+
 	dect_foreach_ie(call_attributes, &msg.call_attributes)
 		dect_debug("call attributes\n");
 
