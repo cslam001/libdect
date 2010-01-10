@@ -863,6 +863,57 @@ static int dect_sfmt_build_multi_keypad(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static const struct dect_trans_tbl dect_features[] = {
+	TRANS_TBL(DECT_FEATURE_REGISTER_RECALL,			"register recall"),
+	TRANS_TBL(DECT_FEATURE_EXTERNAL_HO_SWITCH,		"external handover switch"),
+	TRANS_TBL(DECT_FEATURE_QUEUE_ENTRY_REQUEST,		"queue entry request"),
+	TRANS_TBL(DECT_FEATURE_INDICATION_OF_SUBSCRIBER_NUMBER,	"indication of subscriber number"),
+	TRANS_TBL(DECT_FEATURE_FEATURE_KEY,			"feature key"),
+	TRANS_TBL(DECT_FEATURE_SPECIFIC_LINE_SELECTION,		"specific line selection"),
+	TRANS_TBL(DECT_FEATURE_SPECIFIC_TRUNK_SELECTION,	"specific trunk carrier selection"),
+	TRANS_TBL(DECT_FEATURE_ECHO_CONTROL,			"echo control"),
+	TRANS_TBL(DECT_FEATURE_COST_INFORMATION,		"cost information"),
+};
+
+static void dect_sfmt_dump_feature_activate(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_feature_activate *ie = dect_ie_container(ie, _ie);
+	char buf[64];
+
+	dect_debug("\tfeature: %s\n", dect_val2str(dect_features, buf, ie->feature));
+}
+
+static int dect_sfmt_build_feature_activate(struct dect_sfmt_ie *dst,
+					    const struct dect_ie_common *ie)
+{
+	struct dect_ie_feature_activate *src = dect_ie_container(src, ie);
+
+	dst->data[2]  = src->feature;
+	dst->data[2] |= DECT_OCTET_GROUP_END;
+	dst->len = 3;
+	return 0;
+}
+
+static void dect_sfmt_dump_feature_indicate(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_feature_indicate *ie = dect_ie_container(ie, _ie);
+	char buf[64];
+
+	dect_debug("\tfeature: %s\n", dect_val2str(dect_features, buf, ie->feature));
+	dect_debug("\tstatus: %x\n", ie->status);
+}
+
+static int dect_sfmt_parse_feature_indicate(const struct dect_handle *dh,
+					    struct dect_ie_common **ie,
+					    const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_feature_indicate *dst = dect_ie_container(dst, *ie);
+
+	dst->feature = src->data[2] & ~DECT_OCTET_GROUP_END;
+	dst->status  = src->data[3];
+	return 0;
+}
+
 static const struct dect_trans_tbl dect_reject_reasons[] = {
 	TRANS_TBL(DECT_REJECT_TPUI_UNKNOWN,				"TPUI unknown"),
 	TRANS_TBL(DECT_REJECT_IPUI_UNKNOWN,				"IPUI unknown"),
@@ -1686,10 +1737,14 @@ static const struct dect_ie_handler {
 	[S_VL_IE_FEATURE_ACTIVATE]		= {
 		.name	= "feature activate",
 		.size	= sizeof(struct dect_ie_feature_activate),
+		.build	= dect_sfmt_build_feature_activate,
+		.dump	= dect_sfmt_dump_feature_activate,
 	},
 	[S_VL_IE_FEATURE_INDICATE]		= {
 		.name	= "feature indicate",
 		.size	= sizeof(struct dect_ie_feature_indicate),
+		.parse	= dect_sfmt_parse_feature_indicate,
+		.dump	= dect_sfmt_dump_feature_indicate,
 	},
 	[S_VL_IE_NETWORK_PARAMETER]		= {
 		.name	= "network parameter",

@@ -222,10 +222,32 @@ static void mm_iwu_ind(struct dect_handle *dh,
 
 static struct dect_mm_ops dummy_mm_ops;
 
+static void mnss_setup_ind(struct dect_handle *dh, struct dect_ss_endpoint *sse,
+			   struct dect_mnss_param *param)
+{
+
+}
+
+static void mnss_facility_ind(struct dect_handle *dh, struct dect_ss_endpoint *sse,
+			      struct dect_mnss_param *param)
+{
+
+}
+
+static void mnss_release_ind(struct dect_handle *dh, struct dect_ss_endpoint *sse,
+			     struct dect_mnss_param *param)
+
+{
+
+}
+
+static struct dect_ss_ops dummy_ss_ops;
+
 void dummy_ops_init(struct dect_ops *ops)
 {
 	struct dect_cc_ops *cc_ops;
 	struct dect_mm_ops *mm_ops;
+	struct dect_ss_ops *ss_ops;
 
 	if (!ops->cc_ops)
 		ops->cc_ops = &dummy_cc_ops;
@@ -312,4 +334,15 @@ void dummy_ops_init(struct dect_ops *ops)
 		mm_ops->mm_info_cfm = mm_info_cfm;
 	if (!mm_ops->mm_iwu_ind)
 		mm_ops->mm_iwu_ind = mm_iwu_ind;
+
+	if (!ops->ss_ops)
+		ops->ss_ops = &dummy_ss_ops;
+	ss_ops = (void *)ops->ss_ops;
+
+	if (!ss_ops->mnss_setup_ind)
+		ss_ops->mnss_setup_ind = mnss_setup_ind;
+	if (!ss_ops->mnss_facility_ind)
+		ss_ops->mnss_facility_ind = mnss_facility_ind;
+	if (!ss_ops->mnss_release_ind)
+		ss_ops->mnss_release_ind = mnss_release_ind;
 }

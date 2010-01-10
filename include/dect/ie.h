@@ -486,20 +486,48 @@ struct dect_ie_end_to_end_compatibility {
 
 /* Facility IE */
 
+enum dect_facility_discriminators {
+	DECT_FACILITY_SS			= 0x17,
+};
+
 struct dect_ie_facility {
-	struct dect_ie_common		common;
+	struct dect_ie_common			common;
+	enum dect_facility_discriminators	service;
 };
 
 /* Feature activate IE */
 
+enum dect_feature {
+	DECT_FEATURE_REGISTER_RECALL			= 0x1,
+	DECT_FEATURE_EXTERNAL_HO_SWITCH			= 0xf,
+	DECT_FEATURE_QUEUE_ENTRY_REQUEST		= 0x20,
+	DECT_FEATURE_INDICATION_OF_SUBSCRIBER_NUMBER	= 0x30,
+	DECT_FEATURE_FEATURE_KEY			= 0x42,
+	DECT_FEATURE_SPECIFIC_LINE_SELECTION		= 0x44,
+	DECT_FEATURE_SPECIFIC_TRUNK_SELECTION		= 0x47,
+	DECT_FEATURE_ECHO_CONTROL			= 0x48,
+	DECT_FEATURE_COST_INFORMATION			= 0x60,
+};
+
 struct dect_ie_feature_activate {
 	struct dect_ie_common		common;
+	enum dect_feature		feature;
 };
 
 /* Feature indicate IE */
 
+enum dect_feature_status {
+	DECT_FEATURE_SERVICE_REQUEST_REJECTED		= 0x80,
+	DECT_FEATURE_SERVICE_REQUEST_ACCEPTED		= 0x81,
+	DECT_FEATURE_SERVICE_REQUEST_PENDING		= 0x83,
+	DECT_FEATURE_SERVICE_BUSY			= 0x84,
+	DECT_FEATURE_SERVICE_UNOBTAINABLE		= 0x86,
+};
+
 struct dect_ie_feature_indicate {
 	struct dect_ie_common		common;
+	enum dect_feature		feature;
+	enum dect_feature_status	status;
 };
 
 /* Fixed identity IE */

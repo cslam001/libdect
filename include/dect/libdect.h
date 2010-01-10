@@ -16,6 +16,7 @@
 #include <dect/auth.h>
 #include <dect/cc.h>
 #include <dect/mm.h>
+#include <dect/ss.h>
 #include <list.h>
 
 struct dect_handle;
@@ -127,6 +128,7 @@ struct dect_ops {
 	const struct dect_event_ops	*event_ops;
 	const struct dect_cc_ops	*cc_ops;
 	const struct dect_mm_ops	*mm_ops;
+	const struct dect_ss_ops	*ss_ops;
 };
 
 extern struct dect_handle *dect_alloc_handle(struct dect_ops *ops);

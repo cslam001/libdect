@@ -52,6 +52,17 @@ struct dect_ciss_register_msg {
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
+/**
+ * struct dect_ss_endpoint - Supplementary Services Endpoint
+ *
+ * @transaction:	LCE link transaction
+ * @priv:		libdect user private storage
+ */
+struct dect_ss_endpoint {
+	struct dect_transaction			transaction;
+	uint8_t					priv[];
+};
+
 extern void dect_clss_rcv(struct dect_handle *dh, struct dect_msg_buf *mb);
 
 /**
