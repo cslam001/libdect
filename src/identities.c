@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 #include <asm/byteorder.h>
 
 #include <libdect.h>
@@ -36,6 +37,10 @@ void dect_dump_ari(const struct dect_ari *ari)
 		dect_debug("\tFPN: %.5x\n", ari->fpn);
 		break;
 	case DECT_ARC_B:
+		dect_debug("\tEIC: %x\n", ari->eic);
+		dect_debug("\tFPN: %x\n", ari->fpn);
+		dect_debug("\tFPS: %x\n", ari->fps);
+		break;
 	case DECT_ARC_C:
 	case DECT_ARC_D:
 	case DECT_ARC_E:
@@ -135,6 +140,9 @@ void dect_dump_ipui(const struct dect_ipui *ipui)
 		dect_debug("\tPUT: N (IPEI)\n");
 		return dect_dump_ipei(&ipui->pun.n.ipei);
 	case DECT_IPUI_O:
+		dect_debug("\tPUT: O (private)\n");
+		dect_debug("\tNumber: %" PRIx64 "\n", ipui->pun.o.number);
+		return;
 	case DECT_IPUI_P:
 	case DECT_IPUI_Q:
 	case DECT_IPUI_R:
@@ -150,15 +158,25 @@ bool dect_parse_ipui(struct dect_ipui *ipui, const uint8_t *ptr, uint8_t len)
 {
 	uint64_t tmp;
 
-	tmp = __be64_to_cpu(*(__be64 *)&ptr[0]) >> 24;
+	if (len < 4)
+		return false;
+
+	tmp = __be64_to_cpu(*(__be64 *)&ptr[0]);
 
 	ipui->put = ptr[0] & DECT_IPUI_PUT_MASK;
 	switch (ipui->put) {
 	case DECT_IPUI_N:
 		if (len != 40)
 			return false;
-		return dect_parse_ipei(&ipui->pun.n.ipei, tmp);
+		return dect_parse_ipei(&ipui->pun.n.ipei, tmp >> 24);
 	case DECT_IPUI_O:
+		/* Shift away trailing bits */
+		tmp >>= 64 - len;
+		/* Clear PUT */
+		tmp &= ~(0xfULL << (len - 4));
+
+		ipui->pun.o.number = tmp;
+		return true;
 	case DECT_IPUI_P:
 	case DECT_IPUI_Q:
 	case DECT_IPUI_R:
@@ -173,13 +191,18 @@ bool dect_parse_ipui(struct dect_ipui *ipui, const uint8_t *ptr, uint8_t len)
 
 uint8_t dect_build_ipui(uint8_t *ptr, const struct dect_ipui *ipui)
 {
+	unsigned int i, len;
 	uint64_t tmp;
 
 	switch (ipui->put) {
 	case DECT_IPUI_N:
 		tmp = dect_build_ipei(&ipui->pun.n.ipei);
+		len = 36;
 		break;
 	case DECT_IPUI_O:
+		tmp = ipui->pun.o.number;
+		len = fls(tmp);
+		break;
 	case DECT_IPUI_P:
 	case DECT_IPUI_Q:
 	case DECT_IPUI_R:
@@ -191,13 +214,16 @@ uint8_t dect_build_ipui(uint8_t *ptr, const struct dect_ipui *ipui)
 		return 0;
 	}
 
-	ptr[0]  = ipui->put;
-	ptr[0] |= (tmp >> 32) & ~DECT_IPUI_PUT_MASK;
-	ptr[1]  = tmp >> 24;
-	ptr[2]  = tmp >> 16;
-	ptr[3]  = tmp >> 8;
-	ptr[4]  = tmp >> 0;
-	return 40;
+	if (len < 4)
+		tmp <<= 4 - len;
+
+	memset(ptr, 0, div_round_up(4 + len, 8));
+	ptr[0] = ipui->put;
+
+	for (i = 0; i < div_round_up(len, 8U); i++)
+		ptr[i] |= tmp >> (max(len, 4U) - 4 - 8 * i);
+
+	return 4 + len;
 }
 
 bool dect_ipui_cmp(const struct dect_ipui *i1, const struct dect_ipui *i2)

@@ -108,6 +108,7 @@ enum dect_ipui_types {
  */
 struct dect_ipui {
 	enum dect_ipui_types	put;
+	unsigned int		len;
 	union {
 		struct {
 			struct dect_ipei	ipei;

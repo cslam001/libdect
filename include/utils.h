@@ -101,4 +101,15 @@ extern void dect_unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd
 	(void) (&_max1 == &_max2);		\
 	_max1 > _max2 ? _max1 : _max2; })
 
+static inline unsigned int fls(uint64_t v)
+{
+	unsigned int len = 0;
+
+	while (v) {
+		v >>= 1;
+		len++;
+	}
+	return len;
+}
+
 #endif /* _UTILS_H */
