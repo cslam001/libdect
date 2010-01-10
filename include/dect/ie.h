@@ -46,6 +46,9 @@ struct dect_ie_common {
 
 #define dect_ie_container(res, ie)	container_of(ie, typeof(*res), common)
 
+extern struct dect_ie_common *dect_ie_alloc(const struct dect_handle *dh, size_t size);
+extern void dect_ie_destroy(const struct dect_handle *dh, struct dect_ie_common *ie);
+
 static inline struct dect_ie_common *__dect_ie_init(struct dect_ie_common *ie)
 {
 	ie->refcnt = 1;

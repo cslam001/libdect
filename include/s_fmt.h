@@ -400,10 +400,6 @@ struct dect_msg_common {
 	struct dect_ie_common		*ie[0];
 };
 
-extern struct dect_ie_common *dect_ie_alloc(const struct dect_handle *dh,
-					    unsigned int size);
-extern void dect_ie_destroy(const struct dect_handle *dh, struct dect_ie_common *ie);
-
 extern void *dect_ie_collection_alloc(const struct dect_handle *dh, unsigned int size);
 
 struct dect_msg_buf;
