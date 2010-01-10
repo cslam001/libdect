@@ -222,7 +222,7 @@ static void dect_sfmt_dump_info_type(const struct dect_ie_common *_ie)
 	char buf[64];
 
 	for (i = 0; i < ie->num; i++)
-		dect_debug("\tparameter type[%u]: %x (%s)\n", i, ie->type[i],
+		dect_debug("\tparameter type[%u]: %s\n", i,
 			   dect_val2str(dect_info_type_parameters, buf, ie->type[i]));
 }
 
@@ -246,7 +246,7 @@ static int dect_sfmt_parse_info_type(const struct dect_handle *dh,
 	struct dect_ie_info_type *dst = dect_ie_container(dst, *ie);
 	unsigned int n = 2;
 
-	while (dst->num < array_size(dst->type)) {
+	while (dst->num < array_size(dst->type) && n < src->len) {
 		dst->type[dst->num++] = src->data[n] & ~DECT_OCTET_GROUP_END;
 		if (src->data[n] & DECT_OCTET_GROUP_END)
 			break;
@@ -278,7 +278,7 @@ static const struct dect_trans_tbl dect_release_reasons[] = {
 	TRANS_TBL(DECT_RELEASE_USER_BUSY,			"user busy"),
 	TRANS_TBL(DECT_RELEASE_USER_REJECTION,			"user rejection"),
 	TRANS_TBL(DECT_RELEASE_USER_CALL_MODIFY,		"user call modify"),
-	TRANS_TBL(DECT_RELEASE_EXTERNAL_HANDOVER_NOT_SUPPORTED,"external HO not supported"),
+	TRANS_TBL(DECT_RELEASE_EXTERNAL_HANDOVER_NOT_SUPPORTED,	"external HO not supported"),
 	TRANS_TBL(DECT_RELEASE_NETWORK_PARAMETERS_MISSING,	"network parameters missing"),
 	TRANS_TBL(DECT_RELEASE_EXTERNAL_HANDOVER_RELEASE,	"external HO release"),
 	TRANS_TBL(DECT_RELEASE_OVERLOAD,			"overload"),
@@ -292,7 +292,7 @@ static void dect_sfmt_dump_release_reason(const struct dect_ie_common *_ie)
 	const struct dect_ie_release_reason *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\trelease reason: %x (%s)\n", ie->reason,
+	dect_debug("\trelease reason: %s\n",
 		   dect_val2str(dect_release_reasons, buf, ie->reason));
 }
 
