@@ -1997,10 +1997,14 @@ static void dect_mm_rcv_info_suggest(struct dect_handle *dh,
 				     struct dect_mm_endpoint *mme,
 				     struct dect_msg_buf *mb)
 {
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_info_suggest_msg msg;
 	struct dect_mm_info_param *param;
 
 	mm_debug(mme, "INFO-SUGGEST");
+	if (mp->type != DECT_MMP_NONE)
+		return;
+
 	if (dect_parse_sfmt_msg(dh, &mm_info_suggest_msg_desc,
 				&msg.common, mb) < 0)
 		return;
@@ -2017,6 +2021,8 @@ static void dect_mm_rcv_info_suggest(struct dect_handle *dh,
 	param->network_parameter	= dect_ie_hold(msg.network_parameter);
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 
 	mm_debug(mme, "MM_INFO-ind");
 	dh->ops->mm_ops->mm_info_ind(dh, mme, param);
@@ -2042,8 +2048,6 @@ int dect_mm_iwu_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	mm_debug_entry(mme, "MM_IWU-req");
 	if (mp->type != DECT_MMP_NONE)
 		return -1;
-
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 
 	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
 					DECT_PD_MM);
