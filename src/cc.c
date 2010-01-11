@@ -333,8 +333,8 @@ int dect_dl_u_data_req(const struct dect_handle *dh, struct dect_call *call,
 	//dect_mbuf_dump(mb, "LU1");
 	size = send(call->lu_sap->fd, mb->data, mb->len, 0);
 	if (size != ((ssize_t)mb->len))
-		cc_debug(call, "sending %u bytes failed: err=%d",
-			 mb->len, errno);
+		cc_debug(call, "sending %u bytes failed: %s",
+			 mb->len, strerror(errno));
 	return 0;
 }
 
