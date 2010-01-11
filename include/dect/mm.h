@@ -140,7 +140,8 @@ struct dect_mm_iwu_param {
 
 struct dect_mm_endpoint;
 
-extern struct dect_mm_endpoint *dect_mm_endpoint_alloc(struct dect_handle *dh);
+extern struct dect_mm_endpoint *dect_mm_endpoint_alloc(struct dect_handle *dh,
+						       const struct dect_ipui *ipui);
 extern void *dect_mm_priv(struct dect_mm_endpoint *mme);
 
 struct dect_mm_ops {

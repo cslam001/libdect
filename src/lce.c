@@ -873,17 +873,25 @@ int dect_ddl_open_transaction(struct dect_handle *dh, struct dect_transaction *t
 	return 0;
 }
 
+struct dect_data_link *dect_ddl_connect(struct dect_handle *dh,
+					const struct dect_ipui *ipui)
+{
+	struct dect_data_link *ddl;
+
+	ddl = dect_ddl_get_by_ipui(dh, ipui);
+	if (ddl == NULL)
+		ddl = dect_ddl_establish(dh, ipui);
+	return ddl;
+}
+
 int dect_open_transaction(struct dect_handle *dh, struct dect_transaction *ta,
 			  const struct dect_ipui *ipui, enum dect_pds pd)
 {
 	struct dect_data_link *ddl;
 
-	ddl = dect_ddl_get_by_ipui(dh, ipui);
-	if (ddl == NULL) {
-		ddl = dect_ddl_establish(dh, ipui);
-		if (ddl == NULL)
-			return -1;
-	}
+	ddl = dect_ddl_connect(dh, ipui);
+	if (ddl == NULL)
+		return -1;
 
 	return dect_ddl_open_transaction(dh, ta, ddl, pd);
 }

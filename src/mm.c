@@ -352,7 +352,8 @@ dect_mm_endpoint_get_by_link(const struct dect_handle *dh,
 	return NULL;
 }
 
-struct dect_mm_endpoint *dect_mm_endpoint_alloc(struct dect_handle *dh)
+struct dect_mm_endpoint *dect_mm_endpoint_alloc(struct dect_handle *dh,
+						const struct dect_ipui *ipui)
 {
 	struct dect_mm_endpoint *mme;
 
@@ -367,6 +368,9 @@ struct dect_mm_endpoint *dect_mm_endpoint_alloc(struct dect_handle *dh)
 	mme->procedure[DECT_TRANSACTION_RESPONDER].timer = dect_alloc_timer(dh);
 	if (mme->procedure[DECT_TRANSACTION_RESPONDER].timer == NULL)
 		goto err3;
+
+	if (ipui != NULL)
+		mme->link = dect_ddl_connect(dh, ipui);
 
 	list_add_tail(&mme->list, &dh->mme_list);
 	return mme;
@@ -2173,7 +2177,7 @@ static void dect_mm_open(struct dect_handle *dh,
 
 	mme = dect_mm_endpoint_get_by_link(dh, req->link);
 	if (mme == NULL) {
-		mme = dect_mm_endpoint_alloc(dh);
+		mme = dect_mm_endpoint_alloc(dh, NULL);
 		if (mme == NULL)
 			return;
 		mme->link = req->link;

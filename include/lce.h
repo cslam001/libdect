@@ -62,6 +62,8 @@ extern int dect_ddl_open_transaction(struct dect_handle *dh,
 				     struct dect_transaction *ta,
 				     struct dect_data_link *ddl,
 				     enum dect_pds pd);
+extern struct dect_data_link *dect_ddl_connect(struct dect_handle *dh,
+					       const struct dect_ipui *ipui);
 extern int dect_open_transaction(struct dect_handle *dh,
 				 struct dect_transaction *ta,
 				 const struct dect_ipui *ipui,
