@@ -1100,6 +1100,7 @@ static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
 	param->cipher_info		= dect_ie_hold(msg.cipher_info);
 	param->terminal_capability	= dect_ie_hold(msg.terminal_capability);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+	param->codec_list		= dect_ie_hold(msg.codec_list);
 
 	mp->type = DECT_MMP_ACCESS_RIGHTS;
 
@@ -1360,6 +1361,7 @@ int dect_mm_locate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	msg.iwu_to_iwu			= param->iwu_to_iwu;
 	msg.model_identifier		= param->model_identifier;
 	msg.escape_to_proprietary	= param->escape_to_proprietary;
+	msg.codec_list			= param->codec_list;
 
 	err = dect_mm_send_msg(dh, mp, &mm_locate_request_msg_desc,
 			       &msg.common, DECT_MM_LOCATE_REQUEST);
@@ -1386,6 +1388,7 @@ static int dect_mm_send_locate_accept(const struct dect_handle *dh,
 		.duration		= param->duration,
 		.iwu_to_iwu		= param->iwu_to_iwu,
 		.escape_to_proprietary	= param->escape_to_proprietary,
+		.codec_list		= param->codec_list,
 		.model_identifier	= param->model_identifier,
 	};
 	int err;
@@ -1491,6 +1494,7 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->model_identifier		= dect_ie_hold(msg.model_identifier);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+	param->codec_list		= dect_ie_hold(msg.codec_list);
 
 	mp->type = DECT_MMP_LOCATION_REGISTRATION;
 

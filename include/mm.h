@@ -51,8 +51,9 @@ struct dect_mm_access_rights_accept_msg {
 	struct dect_ie_service_class		*service_class;
 	struct dect_ie_setup_capability		*setup_capability;
 	struct dect_ie_model_identifier		*model_identifier;
-	struct dect_ie_codec_list		*codec_list;
+	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_mm_access_rights_reject_msg {
@@ -72,8 +73,8 @@ struct dect_mm_access_rights_request_msg {
 	struct dect_ie_terminal_capability	*terminal_capability;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_model_identifier		*model_identifier;
-	struct dect_ie_codec_list		*codec_list;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_mm_access_rights_terminate_accept_msg {
@@ -200,8 +201,8 @@ struct dect_mm_locate_accept_msg {
 	struct dect_ie_list			segmented_info;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_model_identifier		*model_identifier;
-	struct dect_ie_codec_list		*codec_list;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_mm_locate_reject_msg {
@@ -226,8 +227,8 @@ struct dect_mm_locate_request_msg {
 	struct dect_ie_list			segmented_info;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_model_identifier		*model_identifier;
-	struct dect_ie_codec_list		*codec_list;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_mm_info_accept_msg {
