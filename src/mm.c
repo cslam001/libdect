@@ -1205,6 +1205,7 @@ int dect_mm_access_rights_terminate_req(struct dect_handle *dh,
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_access_rights_terminate_request_msg msg;
+	struct dect_ie_fixed_identity fixed_identity;
 	int err;
 
 	mm_debug_entry(mme, "MM_ACCESS_RIGHTS_TERMINATE-req");
@@ -1221,6 +1222,13 @@ int dect_mm_access_rights_terminate_req(struct dect_handle *dh,
 	msg.fixed_identity		= param->fixed_identity;
 	msg.iwu_to_iwu			= param->iwu_to_iwu;
 	msg.escape_to_proprietary	= param->escape_to_proprietary;
+
+	if (param->fixed_identity.list == NULL) {
+		fixed_identity.type = DECT_FIXED_ID_TYPE_PARK;
+		fixed_identity.ari = dh->pari;
+		fixed_identity.rpn = 0;
+		dect_ie_list_add(&fixed_identity, &msg.fixed_identity);
+	}
 
 	err = dect_mm_send_msg(dh, mp, &mm_access_rights_terminate_request_msg_desc,
 			       &msg.common, DECT_MM_ACCESS_RIGHTS_TERMINATE_REQUEST);
@@ -1328,6 +1336,70 @@ static void dect_mm_rcv_access_rights_terminate_request(struct dect_handle *dh,
 	dect_ie_collection_put(dh, param);
 err1:
 	dect_msg_free(dh, &mm_access_rights_terminate_request_msg_desc, &msg.common);
+}
+
+static void dect_mm_rcv_access_rights_terminate_accept(struct dect_handle *dh,
+						       struct dect_mm_endpoint *mme,
+						       struct dect_msg_buf *mb)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_access_rights_terminate_accept_msg msg;
+	struct dect_mm_access_rights_terminate_param *param;
+
+	mm_debug(mme, "ACCESS-RIGHTS-TERMINATE-ACCEPT");
+	if (mp->type != DECT_MMP_ACCESS_RIGHTS_TERMINATE)
+		return;
+
+	if (dect_parse_sfmt_msg(dh, &mm_access_rights_terminate_accept_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	mp->type = DECT_MMP_ACCESS_RIGHTS_TERMINATE;
+
+	mm_debug(mme, "MM_ACCESS_RIGHTS_TERMINATE-cfm: accept: 1");
+	dh->ops->mm_ops->mm_access_rights_terminate_cfm(dh, mme, true, param);
+	dect_ie_collection_put(dh, param);
+err1:
+	dect_msg_free(dh, &mm_access_rights_terminate_accept_msg_desc, &msg.common);
+}
+
+static void dect_mm_rcv_access_rights_terminate_reject(struct dect_handle *dh,
+						       struct dect_mm_endpoint *mme,
+						       struct dect_msg_buf *mb)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_access_rights_terminate_reject_msg msg;
+	struct dect_mm_access_rights_terminate_param *param;
+
+	mm_debug(mme, "ACCESS-RIGHTS-TERMINATE-REJECT");
+	if (mp->type != DECT_MMP_ACCESS_RIGHTS_TERMINATE)
+		return;
+
+	if (dect_parse_sfmt_msg(dh, &mm_access_rights_terminate_reject_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->reject_reason		= dect_ie_hold(msg.reject_reason);
+	param->duration			= dect_ie_hold(msg.duration);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	mp->type = DECT_MMP_ACCESS_RIGHTS_TERMINATE;
+
+	mm_debug(mme, "MM_ACCESS_RIGHTS_TERMINATE-cfm: accept: 0");
+	dh->ops->mm_ops->mm_access_rights_terminate_cfm(dh, mme, false, param);
+	dect_ie_collection_put(dh, param);
+err1:
+	dect_msg_free(dh, &mm_access_rights_terminate_reject_msg_desc, &msg.common);
 }
 
 /**
@@ -2133,9 +2205,11 @@ static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 	case DECT_MM_ACCESS_RIGHTS_REJECT:
 		return dect_mm_rcv_access_rights_reject(dh, mme, mb);
 	case DECT_MM_ACCESS_RIGHTS_TERMINATE_REQUEST:
-	case DECT_MM_ACCESS_RIGHTS_TERMINATE_ACCEPT:
-	case DECT_MM_ACCESS_RIGHTS_TERMINATE_REJECT:
 		break;
+	case DECT_MM_ACCESS_RIGHTS_TERMINATE_ACCEPT:
+		return dect_mm_rcv_access_rights_terminate_accept(dh, mme, mb);
+	case DECT_MM_ACCESS_RIGHTS_TERMINATE_REJECT:
+		return dect_mm_rcv_access_rights_terminate_reject(dh, mme, mb);
 	case DECT_MM_CIPHER_REQUEST:
 		return dect_mm_rcv_cipher_request(dh, mme, mb);
 	case DECT_MM_CIPHER_SUGGEST:
