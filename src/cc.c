@@ -285,6 +285,28 @@ static DECT_SFMT_MSG_DESC(cc_notify,
 );
 
 static DECT_SFMT_MSG_DESC(cc_iwu_info,
+	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_MMS_GENERIC_HEADER,	IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_MMS_OBJECT_HEADER,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_MMS_EXTENDED_HEADER,	IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_TIME_DATE,			IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_CALLING_PARTY_NUMBER,	IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
+	DECT_SFMT_IE(S_VL_IE_CALLING_PARTY_NAME,	IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_CALLED_PARTY_NUMBER,	IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
+	DECT_SFMT_IE(S_VL_IE_CALLED_PARTY_SUBADDR,	IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_ALPHANUMERIC,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
+	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_SEGMENTED_INFO,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_IWU_PACKET,		IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
+	DECT_SFMT_IE(S_VL_IE_CODEC_LIST,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
 );
 
@@ -824,7 +846,15 @@ EXPORT_SYMBOL(dect_mncc_retrieve_res);
 int dect_mncc_iwu_info_req(struct dect_handle *dh, struct dect_call *call,
 			   const struct dect_mncc_iwu_info_param *param)
 {
+	struct dect_cc_iwu_info_msg msg = {
+		.alphanumeric		= param->alphanumeric,
+		.iwu_to_iwu		= param->iwu_to_iwu,
+		.iwu_packet		= param->iwu_packet,
+		.escape_to_proprietary	= param->escape_to_proprietary,
+	};
+
 	cc_debug_entry(call, "MNCC_IWU_INFO-req");
+	dect_cc_send_msg(dh, call, &cc_iwu_info_msg_desc, &msg.common, CC_IWU_INFO);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mncc_iwu_info_req);
@@ -1135,6 +1165,25 @@ out:
 	dect_call_destroy(dh, call);
 }
 
+static void dect_mncc_iwu_info_ind(struct dect_handle *dh, struct dect_call *call,
+				   struct dect_cc_iwu_info_msg *msg)
+{
+	struct dect_mncc_iwu_info_param *param;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		return;
+
+	param->alphanumeric		= dect_ie_hold(msg->alphanumeric);
+	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu);
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
+	param->escape_to_proprietary	= dect_ie_hold(msg->escape_to_proprietary);
+
+	cc_debug(call, "MNCC_IWU_INFO-ind");
+	dh->ops->cc_ops->mncc_iwu_info_ind(dh, call, param);
+	dect_ie_collection_put(dh, param);
+}
+
 static void dect_cc_rcv_iwu_info(struct dect_handle *dh, struct dect_call *call,
 				 struct dect_msg_buf *mb)
 {
@@ -1144,6 +1193,7 @@ static void dect_cc_rcv_iwu_info(struct dect_handle *dh, struct dect_call *call,
 	if (dect_parse_sfmt_msg(dh, &cc_iwu_info_msg_desc, &msg.common, mb) < 0)
 		return;
 
+	dect_mncc_iwu_info_ind(dh, call, &msg);
 	dect_msg_free(dh, &cc_iwu_info_msg_desc, &msg.common);
 }
 

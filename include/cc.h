@@ -266,6 +266,7 @@ struct dect_cc_iwu_info_msg {
 	struct dect_ie_list			mms_extended_header;
 	struct dect_ie_list			time_date;
 	struct dect_ie_list			calling_party_number;
+	struct dect_ie_calling_party_name	*calling_party_name;
 	struct dect_ie_list			called_party_number;
 	struct dect_ie_called_party_subaddress	*called_party_subaddress;
 	struct dect_ie_segmented_info		*segmented_info;
@@ -274,8 +275,8 @@ struct dect_cc_iwu_info_msg {
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_segmented_info		*segmented_info3;
 	struct dect_ie_iwu_packet		*iwu_packet;
-	struct dect_ie_codec_list		*codec_list;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+	struct dect_ie_codec_list		*codec_list;
 };
 
 struct dect_crss_hold_msg {
