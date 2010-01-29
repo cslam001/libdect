@@ -587,11 +587,14 @@ int dect_mm_authenticate_res(struct dect_handle *dh,
 			     struct dect_mm_endpoint *mme, bool accept,
 			     const struct dect_mm_authenticate_param *param)
 {
+	struct dect_mm_procedure *mpi = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	int err;
 
 	mm_debug_entry(mme, "MM_AUTHENTICATE-res: accept: %u", accept);
-	if (mp->type != DECT_MMP_AUTHENTICATE)
+	if (mpi->type == DECT_MMP_KEY_ALLOCATION)
+		mp = mpi;
+	else if (mp->type != DECT_MMP_AUTHENTICATE)
 		return -1;
 
 	if (accept)
@@ -611,13 +614,16 @@ static void dect_mm_rcv_authentication_request(struct dect_handle *dh,
 					       struct dect_mm_endpoint *mme,
 					       struct dect_msg_buf *mb)
 {
+	struct dect_mm_procedure *mpi = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_authentication_request_msg msg;
 	struct dect_mm_authenticate_param *param;
 	enum dect_sfmt_error err;
 
 	mm_debug(mme, "AUTHENTICATION-REQUEST");
-	if (mp->type != DECT_MMP_NONE)
+	if (mpi->type == DECT_MMP_KEY_ALLOCATION)
+		mp = mpi;
+	else if (mp->type != DECT_MMP_NONE)
 		return;
 
 	err = dect_parse_sfmt_msg(dh, &mm_authentication_request_msg_desc,
@@ -637,7 +643,8 @@ static void dect_mm_rcv_authentication_request(struct dect_handle *dh,
 	param->iwu_to_iwu		= *dect_ie_list_hold(&msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	mp->type = DECT_MMP_AUTHENTICATE;
+	if (mp->type == DECT_MMP_NONE)
+		mp->type = DECT_MMP_AUTHENTICATE;
 
 	mm_debug(mme, "MM_AUTHENTICATE-ind");
 	dh->ops->mm_ops->mm_authenticate_ind(dh, mme, param);
@@ -2115,6 +2122,8 @@ static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 	struct dect_mm_endpoint *mme = dect_mm_endpoint(ta);
 
 	switch (mb->type) {
+	case DECT_MM_AUTHENTICATION_REQUEST:
+		return dect_mm_rcv_authentication_request(dh, mme, mb);
 	case DECT_MM_AUTHENTICATION_REPLY:
 		return dect_mm_rcv_authentication_reply(dh, mme, mb);
 	case DECT_MM_AUTHENTICATION_REJECT:
