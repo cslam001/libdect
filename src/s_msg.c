@@ -1095,6 +1095,11 @@ static const struct dect_trans_tbl dect_profile_indicators[] = {
 	TRANS_TBL(DECT_PROFILE_BASIC_ODAP_SUPPORTED,			"Basic ODAP"),
 	TRANS_TBL(DECT_PROFILE_DECT_UMTS_INTERWORKING_GPRS_SUPPORTED,	"UMTS interworking - GPRS service"),
 	TRANS_TBL(DECT_PROFILE_DECT_UMTS_INTERWORKING_PROFILE_SUPPORTED, "UMTS interworking"),
+	TRANS_TBL(DECT_PROFILE_MULTIPLE_LINES,				"multiple lines"),
+	TRANS_TBL(DECT_PROFILE_COMMON_PARALLEL_CALLS,			"parallel calls"),
+	TRANS_TBL(DECT_PROFILE_CALL_IDENTIFICATION,			"call identification"),
+	TRANS_TBL(DECT_PROFILE_NG_DECT_WIDEBAND_SUPPORTED,		"DECT-NG Wideband"),
+	TRANS_TBL(DECT_PROFILE_64_LEVEL_BZ_FIELD_MODULATION,		"64-level B/Z-field modulation"),
 };
 
 static void dect_sfmt_dump_terminal_capability(const struct dect_ie_common *_ie)
