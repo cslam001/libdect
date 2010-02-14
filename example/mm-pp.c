@@ -17,7 +17,7 @@ struct dect_ipui ipui = {
 	.put		= DECT_IPUI_N,
 	.pun.n.ipei = {
 		.emc    = 0x0ba8,
-		.psn    = 0xa782b,
+		.psn    = 0xa782a,
 	}
 };
 
@@ -256,6 +256,20 @@ static int mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme)
 	return dect_mm_info_req(dh, mme, &param);
 }
 
+static int mm_access_rights_terminate_req(struct dect_handle *dh,
+					  struct dect_mm_endpoint *mme)
+{
+	struct dect_ie_portable_identity portable_identity;
+	struct dect_mm_access_rights_terminate_param param = {
+		.portable_identity	= &portable_identity,
+	};
+
+	portable_identity.type = DECT_PORTABLE_ID_TYPE_IPUI;
+	portable_identity.ipui = ipui;
+
+	return dect_mm_access_rights_terminate_req(dh, mme, &param);
+}
+
 static struct dect_mm_ops mm_ops = {
 	.priv_size			= sizeof(struct mm_priv),
 	.mm_authenticate_ind		= mm_authenticate_ind,
@@ -307,10 +321,11 @@ int main(int argc, char **argv)
 	if (mme == NULL)
 		exit(1);
 
-	mm_locate_req(dh, mme);
+	mm_access_rights_terminate_req(dh, mme);
 	if (0) {
 		mm_access_rights_req(dh, mme);
 		mm_authenticate_req(dh, mme);
+		mm_locate_req(dh, mme);
 		mm_detach_req(dh, mme);
 		mm_info_req(dh, mme);
 	}
