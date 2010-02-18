@@ -212,6 +212,7 @@ static void dect_mncc_release_ind(struct dect_handle *dh, struct dect_call *call
 				  struct dect_mncc_release_param *param)
 {
 	dect_mncc_release_res(dh, call, param);
+	dect_event_loop_stop();
 }
 
 static void dect_open_call(struct dect_handle *dh, const struct dect_ipui *ipui)

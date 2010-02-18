@@ -58,7 +58,7 @@ static void mm_authenticate_cfm(struct dect_handle *dh,
 	uint32_t res2;
 
 	if (!accept)
-		return;
+		goto out;
 
 	dect_pin_to_ac("00000000", ac, sizeof(ac));
 	dect_auth_b1(ac, sizeof(ac), k);
@@ -68,14 +68,17 @@ static void mm_authenticate_cfm(struct dect_handle *dh,
 
 	if (res2 == param->res->value) {
 		debug("authentication success\n");
-		mm_cipher_req(dh, mme, dck);
+		if (0)
+			mm_cipher_req(dh, mme, dck);
 	} else
 		debug("authentication failure: rand: %" PRIx64 " %.8x | %.8x\n",
 		       priv->rand, res2, param->res->value);
+out:
+	dect_event_loop_stop();
 }
 
-static void mm_authenticate_req(struct dect_handle *dh,
-				struct dect_mm_endpoint *mme)
+static int mm_authenticate_req(struct dect_handle *dh,
+			       struct dect_mm_endpoint *mme)
 {
 	struct mm_priv *priv = dect_mm_priv(mme);
 	struct dect_ie_auth_type auth_type;
@@ -86,14 +89,14 @@ static void mm_authenticate_req(struct dect_handle *dh,
 	};
 
 	auth_type.auth_id	 = DECT_AUTH_DSAA;
-	auth_type.auth_key_type	 = DECT_KEY_AUTHENTICATION_CODE;
+	auth_type.auth_key_type	 = DECT_KEY_USER_AUTHENTICATION_KEY;
 	auth_type.auth_key_num   = 0 | DECT_AUTH_KEY_IPUI_PARK;
 	auth_type.cipher_key_num = 0;
 	auth_type.flags		 = 0; //DECT_AUTH_FLAG_UPC;
 	read(rand_fd, &rand.value, sizeof(rand.value));
 	priv->rand = rand.value;
 
-	dect_mm_authenticate_req(dh, mme, &param);
+	return dect_mm_authenticate_req(dh, mme, &param);
 }
 
 static void mm_authenticate_ind(struct dect_handle *dh,
@@ -177,6 +180,13 @@ static void init_terminal_capability(struct dect_ie_terminal_capability *termina
 	terminal_capability->profile_indicator = DECT_PROFILE_GAP_SUPPORTED;
 }
 
+static void mm_access_rights_cfm(struct dect_handle *dh,
+				 struct dect_mm_endpoint *mme, bool accept,
+				 struct dect_mm_access_rights_param *param)
+{
+	dect_event_loop_stop();
+}
+
 static int mm_access_rights_req(struct dect_handle *dh, struct dect_mm_endpoint *mme)
 {
 	struct dect_ie_portable_identity portable_identity;
@@ -205,7 +215,7 @@ static int mm_access_rights_req(struct dect_handle *dh, struct dect_mm_endpoint 
 static void mm_locate_cfm(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			  bool accept, struct dect_mm_locate_param *param)
 {
-	mm_authenticate_req(dh, mme);
+	dect_event_loop_stop();
 }
 
 static int mm_locate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme)
@@ -243,17 +253,36 @@ static int mm_detach_req(struct dect_handle *dh, struct dect_mm_endpoint *mme)
 	return dect_mm_detach_req(dh, mme, &param);
 }
 
+static void mm_info_cfm(struct dect_handle *dh,
+			struct dect_mm_endpoint *mme, bool accept,
+			struct dect_mm_info_param *param)
+{
+	dect_event_loop_stop();
+}
+
 static int mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme)
 {
+	struct dect_ie_portable_identity portable_identity;
 	struct dect_ie_info_type info_type;
 	struct dect_mm_info_param param = {
-		.info_type	= &info_type,
+		.portable_identity	= &portable_identity,
+		.info_type		= &info_type,
 	};
 
+	portable_identity.type	 = DECT_PORTABLE_ID_TYPE_IPUI;
+	portable_identity.ipui	 = ipui;
+
 	info_type.num = 1;
-	info_type.type[0] = DECT_INFO_CK_TRANSFER;
+	info_type.type[0] = DECT_INFO_HANDOVER_REFERENCE;
 
 	return dect_mm_info_req(dh, mme, &param);
+}
+
+static void mm_access_rights_terminate_cfm(struct dect_handle *dh,
+					   struct dect_mm_endpoint *mme, bool accept,
+					   struct dect_mm_access_rights_terminate_param *param)
+{
+	dect_event_loop_stop();
 }
 
 static int mm_access_rights_terminate_req(struct dect_handle *dh,
@@ -274,10 +303,13 @@ static struct dect_mm_ops mm_ops = {
 	.priv_size			= sizeof(struct mm_priv),
 	.mm_authenticate_ind		= mm_authenticate_ind,
 	.mm_authenticate_cfm		= mm_authenticate_cfm,
+	.mm_access_rights_cfm		= mm_access_rights_cfm,
 	.mm_locate_cfm			= mm_locate_cfm,
 	.mm_key_allocate_ind		= mm_key_allocate_ind,
 	.mm_access_rights_terminate_ind	= mm_access_rights_terminate_ind,
+	.mm_access_rights_terminate_cfm	= mm_access_rights_terminate_cfm,
 	.mm_cipher_cfm			= mm_cipher_cfm,
+	.mm_info_cfm			= mm_info_cfm,
 };
 
 static void dect_mncc_setup_ind(struct dect_handle *dh, struct dect_call *call,
@@ -321,16 +353,25 @@ int main(int argc, char **argv)
 	if (mme == NULL)
 		exit(1);
 
+	mm_locate_req(dh, mme);
+	dect_event_loop();
+
+	mm_authenticate_req(dh, mme);
+	dect_event_loop();
+
+	mm_access_rights_req(dh, mme);
+	dect_event_loop();
+
 	mm_access_rights_terminate_req(dh, mme);
+	dect_event_loop();
+
+	mm_info_req(dh, mme);
+	dect_event_loop();
+
 	if (0) {
-		mm_access_rights_req(dh, mme);
-		mm_authenticate_req(dh, mme);
-		mm_locate_req(dh, mme);
 		mm_detach_req(dh, mme);
-		mm_info_req(dh, mme);
 	}
 
-	dect_event_loop();
 	dect_close_handle(dh);
 	dect_event_ops_cleanup();
 	close(rand_fd);
