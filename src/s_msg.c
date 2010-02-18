@@ -2195,7 +2195,6 @@ enum dect_sfmt_error dect_build_sfmt_msg(const struct dect_handle *dh,
 
 			assert(desc->flags & DECT_SFMT_IE_REPEAT);
 			dect_foreach_ie(rsrc, iel) {
-				dect_debug("list elem %p\n", rsrc);
 				err = dect_build_sfmt_ie(dh, desc, mb, rsrc);
 				if (err != DECT_SFMT_OK)
 					return err;
