@@ -2186,19 +2186,26 @@ enum dect_sfmt_error dect_build_sfmt_msg(const struct dect_handle *dh,
 			}
 
 			/* Add repeat indicator if more than one element on the list */
-			if (iel->list->next != NULL)
+			if (iel->list->next != NULL) {
 				err = dect_build_sfmt_ie(dh, desc, mb, &iel->common);
+				if (err != DECT_SFMT_OK)
+					return err;
+			}
 			desc++;
 
 			assert(desc->flags & DECT_SFMT_IE_REPEAT);
 			dect_foreach_ie(rsrc, iel) {
 				dect_debug("list elem %p\n", rsrc);
 				err = dect_build_sfmt_ie(dh, desc, mb, rsrc);
+				if (err != DECT_SFMT_OK)
+					return err;
 			}
 		} else {
 			if (*src == NULL)
 				goto next;
 			err = dect_build_sfmt_ie(dh, desc, mb, *src);
+			if (err != DECT_SFMT_OK)
+				return err;
 		}
 next:
 		src = next;
