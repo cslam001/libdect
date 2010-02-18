@@ -18,8 +18,16 @@
 #define __aligned(x)		__attribute__((aligned(x)))
 #define __packed		__attribute__((packed))
 
-extern void dect_debug(const char *fmt, ...) __fmtstring(1, 2);
-extern void dect_hexdump(const char *prefix, const uint8_t *buf, size_t size);
+extern void __dect_debug(const char *fmt, ...) __fmtstring(1, 2);
+extern void __dect_hexdump(const char *prefix, const uint8_t *buf, size_t size);
+
+#ifdef DEBUG
+#define dect_debug(fmt, ...)		__dect_debug(fmt, ## __VA_ARGS__)
+#define dect_hexdump(pfx, buf, size)	__dect_hexdump(pfx, buf, size)
+#else
+#define dect_debug(fmt, ...)		({ if (0) __dect_debug(fmt, ## __VA_ARGS__); })
+#define dect_hexdump(pfx, buf, size)	({ if (0) __dect_hexdump(pfx, buf, size); })
+#endif
 
 struct dect_trans_tbl {
 	uint64_t	val;

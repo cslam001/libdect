@@ -25,7 +25,8 @@ void dect_set_debug_hook(int (*fn)(const char *fmt, va_list ap))
 	debug_hook = fn;
 }
 
-void __fmtstring(1, 2) dect_debug(const char *fmt, ...)
+#ifdef DEBUG
+void __fmtstring(1, 2) __dect_debug(const char *fmt, ...)
 {
 	va_list ap;
 
@@ -36,6 +37,7 @@ void __fmtstring(1, 2) dect_debug(const char *fmt, ...)
 		vprintf(fmt, ap);
 	va_end(ap);
 }
+#endif
 
 struct dect_handle *dect_alloc_handle(struct dect_ops *ops)
 {

@@ -28,7 +28,8 @@
 
 #define BLOCKSIZE	16
 
-void dect_hexdump(const char *prefix, const uint8_t *buf, size_t size)
+#ifdef DEBUG
+void __dect_hexdump(const char *prefix, const uint8_t *buf, size_t size)
 {
 	unsigned int i, off;
 	char hbuf[3 * BLOCKSIZE + 1], abuf[BLOCKSIZE + 1];
@@ -93,6 +94,7 @@ const char *__dect_val2str(const struct dect_trans_tbl *tbl, unsigned int nelem,
 	snprintf(buf, size, "unknown (%" PRIx64 ")", val);
 	return buf;
 }
+#endif
 
 void *dect_malloc(const struct dect_handle *dh, size_t size)
 {
