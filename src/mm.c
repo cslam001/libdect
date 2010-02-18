@@ -254,7 +254,7 @@ static DECT_SFMT_MSG_DESC(mm_info_reject,
 );
 
 static DECT_SFMT_MSG_DESC(mm_info_request,
-	DECT_SFMT_IE(S_VL_IE_INFO_TYPE,			IE_MANDATORY, IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_INFO_TYPE,			IE_MANDATORY, IE_MANDATORY, 0),
 	DECT_SFMT_IE(S_VL_IE_CALL_IDENTITY,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_NONE,      IE_OPTIONAL,  0),
 	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_NONE,      IE_OPTIONAL,  0),
@@ -1372,7 +1372,8 @@ static void dect_mm_rcv_access_rights_terminate_accept(struct dect_handle *dh,
 
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	mp->type = DECT_MMP_ACCESS_RIGHTS_TERMINATE;
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
 
 	mm_debug(mme, "MM_ACCESS_RIGHTS_TERMINATE-cfm: accept: 1");
 	dh->ops->mm_ops->mm_access_rights_terminate_cfm(dh, mme, true, param);
@@ -1405,7 +1406,8 @@ static void dect_mm_rcv_access_rights_terminate_reject(struct dect_handle *dh,
 	param->duration			= dect_ie_hold(msg.duration);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	mp->type = DECT_MMP_ACCESS_RIGHTS_TERMINATE;
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
 
 	mm_debug(mme, "MM_ACCESS_RIGHTS_TERMINATE-cfm: accept: 0");
 	dh->ops->mm_ops->mm_access_rights_terminate_cfm(dh, mme, false, param);
