@@ -49,6 +49,7 @@ void dect_keypad_append(struct dect_handle *dh, struct dect_keypad_buffer *kb,
 	else if (keypad->len > 0)
 		dect_start_timer(dh, kb->timer, kb->timeout);
 }
+EXPORT_SYMBOL(dect_keypad_append);
 
 struct dect_keypad_buffer *
 dect_keypad_buffer_init(const struct dect_handle *dh, uint8_t timeout,
@@ -77,3 +78,4 @@ err1:
 err2:
 	return NULL;
 }
+EXPORT_SYMBOL(dect_keypad_buffer_init);

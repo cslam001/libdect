@@ -28,6 +28,7 @@ CPPFLAGS	+= @CPPFLAGS@
 
 CFLAGS		+= @CFLAGS@ @DEFS@
 CFLAGS		+= -include config.h -I include
+CFLAGS		+= -fvisibility=hidden
 CFLAGS		+= -fstack-protector-all
 
 CFLAGS		+= -Wall

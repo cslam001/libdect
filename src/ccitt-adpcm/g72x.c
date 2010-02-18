@@ -31,6 +31,7 @@
  */
 
 #include <stdlib.h>
+#include <utils.h>
 #include "g72x.h"
 
 static short power2[15] = {1, 2, 4, 8, 0x10, 0x20, 0x40, 0x80,
@@ -115,6 +116,7 @@ g72x_init_state(
 	}
 	state_ptr->td = 0;
 }
+EXPORT_SYMBOL(g72x_init_state);
 
 /*
  * predictor_zero()

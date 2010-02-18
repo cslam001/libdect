@@ -121,6 +121,7 @@ struct dect_timer *dect_alloc_timer(const struct dect_handle *dh)
 	return dect_zalloc(dh, sizeof(struct dect_timer) +
 			   dh->ops->event_ops->timer_priv_size);
 }
+EXPORT_SYMBOL(dect_alloc_timer);
 
 void dect_setup_timer(struct dect_timer *timer,
 		      void (*cb)(struct dect_handle *, struct dect_timer *),
@@ -130,6 +131,7 @@ void dect_setup_timer(struct dect_timer *timer,
 	timer->data = data;
 	timer->state = DECT_TIMER_STOPPED;
 }
+EXPORT_SYMBOL(dect_setup_timer);
 
 void dect_start_timer(const struct dect_handle *dh,
 		      struct dect_timer *timer, unsigned int timeout)
@@ -145,17 +147,20 @@ void dect_start_timer(const struct dect_handle *dh,
 	timer->state = DECT_TIMER_RUNNING;
 	dh->ops->event_ops->start_timer(dh, timer, &tv);
 }
+EXPORT_SYMBOL(dect_start_timer);
 
 void dect_stop_timer(const struct dect_handle *dh, struct dect_timer *timer)
 {
 	dh->ops->event_ops->stop_timer(dh, timer);
 	timer->state = DECT_TIMER_STOPPED;
 }
+EXPORT_SYMBOL(dect_stop_timer);
 
 bool dect_timer_running(const struct dect_timer *timer)
 {
 	return timer->state == DECT_TIMER_RUNNING;
 }
+EXPORT_SYMBOL(dect_timer_running);
 
 struct dect_fd *dect_alloc_fd(const struct dect_handle *dh)
 {
@@ -168,6 +173,7 @@ struct dect_fd *dect_alloc_fd(const struct dect_handle *dh)
 	dfd->fd = -1;
 	return dfd;
 }
+EXPORT_SYMBOL(dect_alloc_fd);
 
 void dect_setup_fd(struct dect_fd *fd,
 		   void (*cb)(struct dect_handle *, struct dect_fd *, uint32_t),
@@ -176,17 +182,20 @@ void dect_setup_fd(struct dect_fd *fd,
 	fd->callback = cb;
 	fd->data = data;
 }
+EXPORT_SYMBOL(dect_setup_fd);
 
 int dect_register_fd(const struct dect_handle *dh, struct dect_fd *dfd,
 		     uint32_t events)
 {
 	return dh->ops->event_ops->register_fd(dh, dfd, events);
 }
+EXPORT_SYMBOL(dect_register_fd);
 
 void dect_unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd)
 {
 	dh->ops->event_ops->unregister_fd(dh, dfd);
 }
+EXPORT_SYMBOL(dect_unregister_fd);
 
 void dect_close(const struct dect_handle *dh, struct dect_fd *dfd)
 {
@@ -194,6 +203,7 @@ void dect_close(const struct dect_handle *dh, struct dect_fd *dfd)
 		close(dfd->fd);
 	dect_free(dh, dfd);
 }
+EXPORT_SYMBOL(dect_close);
 
 struct dect_fd *dect_socket(const struct dect_handle *dh, int type, int protocol)
 {

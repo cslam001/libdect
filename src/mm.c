@@ -338,6 +338,7 @@ void *dect_mm_priv(struct dect_mm_endpoint *mme)
 {
 	return mme->priv;
 }
+EXPORT_SYMBOL(dect_mm_priv);
 
 static struct dect_mm_endpoint *
 dect_mm_endpoint_get_by_link(const struct dect_handle *dh,
@@ -382,6 +383,7 @@ err2:
 err1:
 	return NULL;
 }
+EXPORT_SYMBOL(dect_mm_endpoint_alloc);
 
 static void dect_mm_endpoint_destroy(struct dect_handle *dh,
 				     struct dect_mm_endpoint *mme)
@@ -460,6 +462,7 @@ err2:
 err1:
 	return err;
 }
+EXPORT_SYMBOL(dect_mm_key_allocate_req);
 
 static void dect_mm_rcv_key_allocate(struct dect_handle *dh,
 				     struct dect_mm_endpoint *mme,
@@ -541,6 +544,7 @@ err2:
 err1:
 	return err;
 }
+EXPORT_SYMBOL(dect_mm_authenticate_req);
 
 static int dect_mm_send_authenticate_reply(const struct dect_handle *dh,
 					   struct dect_mm_procedure *mp,
@@ -609,6 +613,7 @@ int dect_mm_authenticate_res(struct dect_handle *dh,
 	mp->type = DECT_MMP_NONE;
 	return 0;
 }
+EXPORT_SYMBOL(dect_mm_authenticate_res);
 
 static void dect_mm_rcv_authentication_request(struct dect_handle *dh,
 					       struct dect_mm_endpoint *mme,
@@ -778,6 +783,7 @@ err2:
 err1:
 	return err;
 }
+EXPORT_SYMBOL(dect_mm_cipher_req);
 
 static int dect_mm_send_cipher_reject(const struct dect_handle *dh,
 				      struct dect_mm_procedure *mp,
@@ -829,6 +835,7 @@ int dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 err1:
 	return err;
 }
+EXPORT_SYMBOL(dect_mm_cipher_res);
 
 static void dect_mm_rcv_cipher_request(struct dect_handle *dh,
 				       struct dect_mm_endpoint *mme,
@@ -1000,6 +1007,7 @@ err2:
 err1:
 	return -1;
 }
+EXPORT_SYMBOL(dect_mm_access_rights_req);
 
 static int dect_mm_send_access_rights_accept(const struct dect_handle *dh,
 					     struct dect_mm_procedure *mp,
@@ -1076,6 +1084,7 @@ int dect_mm_access_rights_res(struct dect_handle *dh,
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	return 0;
 }
+EXPORT_SYMBOL(dect_mm_access_rights_res);
 
 static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
 					      struct dect_mm_endpoint *mme,
@@ -1243,6 +1252,7 @@ err2:
 err1:
 	return err;
 }
+EXPORT_SYMBOL(dect_mm_access_rights_terminate_req);
 
 static int dect_mm_send_access_rights_terminate_accept(const struct dect_handle *dh,
 						       struct dect_mm_procedure *mp,
@@ -1301,6 +1311,7 @@ int dect_mm_access_rights_terminate_res(struct dect_handle *dh,
 	mp->type = DECT_MMP_NONE;
 	return 0;
 }
+EXPORT_SYMBOL(dect_mm_access_rights_terminate_res);
 
 static void dect_mm_rcv_access_rights_terminate_request(struct dect_handle *dh,
 							struct dect_mm_endpoint *mme,
@@ -1455,6 +1466,7 @@ err2:
 err1:
 	return err;
 }
+EXPORT_SYMBOL(dect_mm_locate_req);
 
 static int dect_mm_send_locate_accept(const struct dect_handle *dh,
 				      struct dect_mm_procedure *mp,
@@ -1537,6 +1549,7 @@ int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	mp->type = DECT_MMP_NONE;
 	return 0;
 }
+EXPORT_SYMBOL(dect_mm_locate_res);
 
 static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 				       struct dect_mm_endpoint *mme,
@@ -1695,6 +1708,7 @@ int dect_mm_detach_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 err1:
 	return err;
 }
+EXPORT_SYMBOL(dect_mm_detach_req);
 
 static void dect_mm_rcv_detach(struct dect_handle *dh,
 			       struct dect_mm_endpoint *mme,
@@ -1897,6 +1911,7 @@ err2:
 err1:
 	return err;
 }
+EXPORT_SYMBOL(dect_mm_info_req);
 
 static int dect_mm_send_info_accept(const struct dect_handle *dh,
 				    struct dect_mm_procedure *mp,
@@ -1962,6 +1977,7 @@ int dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	mp->type = DECT_MMP_NONE;
 	return 0;
 }
+EXPORT_SYMBOL(dect_mm_info_res);
 
 static void dect_mm_rcv_info_request(struct dect_handle *dh,
 				     struct dect_mm_endpoint *mme,
@@ -2153,6 +2169,7 @@ int dect_mm_iwu_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 err1:
 	return err;
 }
+EXPORT_SYMBOL(dect_mm_iwu_req);
 
 static void dect_mm_rcv_iwu(struct dect_handle *dh,
 			    struct dect_mm_endpoint *mme,

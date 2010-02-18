@@ -314,11 +314,13 @@ void *dect_call_priv(struct dect_call *call)
 {
 	return call->priv;
 }
+EXPORT_SYMBOL(dect_call_priv);
 
 const struct dect_ipui *dect_call_portable_identity(const struct dect_call *call)
 {
 	return &call->pt_id->ipui;
 }
+EXPORT_SYMBOL(dect_call_portable_identity);
 
 int dect_dl_u_data_req(const struct dect_handle *dh, struct dect_call *call,
 		       struct dect_msg_buf *mb)
@@ -337,6 +339,7 @@ int dect_dl_u_data_req(const struct dect_handle *dh, struct dect_call *call,
 			 mb->len, strerror(errno));
 	return 0;
 }
+EXPORT_SYMBOL(dect_dl_u_data_req);
 
 static void dect_cc_lu_event(struct dect_handle *dh, struct dect_fd *fd,
 			     uint32_t event)
@@ -418,6 +421,7 @@ err2:
 err1:
 	return NULL;
 }
+EXPORT_SYMBOL(dect_call_alloc);
 
 static void dect_call_destroy(const struct dect_handle *dh,
 			      struct dect_call *call)
@@ -514,6 +518,7 @@ err2:
 err1:
 	return -1;
 }
+EXPORT_SYMBOL(dect_mncc_setup_req);
 
 int dect_mncc_setup_ack_req(struct dect_handle *dh, struct dect_call *call,
 			    const struct dect_mncc_setup_ack_param *param)
@@ -539,6 +544,7 @@ int dect_mncc_setup_ack_req(struct dect_handle *dh, struct dect_call *call,
 	return dect_cc_send_msg(dh, call, &cc_setup_ack_msg_desc,
 				&msg.common, CC_SETUP_ACK);
 }
+EXPORT_SYMBOL(dect_mncc_setup_ack_req);
 
 int dect_mncc_reject_req(struct dect_handle *dh, struct dect_call *call,
 			 const struct dect_mncc_release_param *param)
@@ -565,6 +571,7 @@ int dect_mncc_reject_req(struct dect_handle *dh, struct dect_call *call,
 	dect_call_destroy(dh, call);
 	return 0;
 }
+EXPORT_SYMBOL(dect_mncc_reject_req);
 
 int dect_mncc_call_proc_req(struct dect_handle *dh, struct dect_call *call,
 			    const struct dect_mncc_call_proc_param *param)
@@ -587,6 +594,7 @@ int dect_mncc_call_proc_req(struct dect_handle *dh, struct dect_call *call,
 	return dect_cc_send_msg(dh, call, &cc_call_proc_msg_desc,
 				&msg.common, CC_CALL_PROC);
 }
+EXPORT_SYMBOL(dect_mncc_call_proc_req);
 
 int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 			const struct dect_mncc_alert_param *param)
@@ -610,6 +618,7 @@ int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 	return dect_cc_send_msg(dh, call, &cc_alerting_msg_desc,
 				&msg.common, CC_ALERTING);
 }
+EXPORT_SYMBOL(dect_mncc_alert_req);
 
 int dect_mncc_connect_req(struct dect_handle *dh, struct dect_call *call,
 			  const struct dect_mncc_connect_param *param)
@@ -635,6 +644,7 @@ int dect_mncc_connect_req(struct dect_handle *dh, struct dect_call *call,
 	dect_call_connect_uplane(dh, call);
 	return 0;
 }
+EXPORT_SYMBOL(dect_mncc_connect_req);
 
 int dect_mncc_connect_res(struct dect_handle *dh, struct dect_call *call,
 			  const struct dect_mncc_connect_param *param)
@@ -660,6 +670,7 @@ err1:
 	dect_call_disconnect_uplane(dh, call);
 	return -1;
 }
+EXPORT_SYMBOL(dect_mncc_connect_res);
 
 int dect_mncc_release_req(struct dect_handle *dh, struct dect_call *call,
 			  const struct dect_mncc_release_param *param)
@@ -680,6 +691,7 @@ int dect_mncc_release_req(struct dect_handle *dh, struct dect_call *call,
 	call->state = DECT_CC_RELEASE_PENDING;
 	return 0;
 }
+EXPORT_SYMBOL(dect_mncc_release_req);
 
 int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
 			  const struct dect_mncc_release_param *param)
@@ -707,6 +719,7 @@ int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
 	dect_call_destroy(dh, call);
 	return 0;
 }
+EXPORT_SYMBOL(dect_mncc_release_res);
 
 int dect_mncc_facility_req(struct dect_handle *dh, struct dect_call *call,
 			  const struct dect_mncc_facility_param *param)
@@ -714,6 +727,7 @@ int dect_mncc_facility_req(struct dect_handle *dh, struct dect_call *call,
 	cc_debug_entry(call, "MNCC_FACILITY-req");
 	return 0;
 }
+EXPORT_SYMBOL(dect_mncc_facility_req);
 
 int dect_mncc_info_req(struct dect_handle *dh, struct dect_call *call,
 		       const struct dect_mncc_info_param *param)
@@ -744,6 +758,7 @@ int dect_mncc_info_req(struct dect_handle *dh, struct dect_call *call,
 	dect_cc_send_msg(dh, call, &cc_info_msg_desc, &msg.common, CC_INFO);
 	return 0;
 }
+EXPORT_SYMBOL(dect_mncc_info_req);
 
 int dect_mncc_modify_req(struct dect_handle *dh, struct dect_call *call,
 			 const struct dect_mncc_modify_param *param)
@@ -751,6 +766,7 @@ int dect_mncc_modify_req(struct dect_handle *dh, struct dect_call *call,
 	cc_debug_entry(call, "MNCC_MODIFY-req");
 	return 0;
 }
+EXPORT_SYMBOL(dect_mncc_modify_req);
 
 int dect_mncc_modify_res(struct dect_handle *dh, struct dect_call *call,
 			 const struct dect_mncc_modify_param *param)
@@ -758,6 +774,7 @@ int dect_mncc_modify_res(struct dect_handle *dh, struct dect_call *call,
 	cc_debug_entry(call, "MNCC_MODIFY-res");
 	return 0;
 }
+EXPORT_SYMBOL(dect_mncc_modify_res);
 
 int dect_mncc_hold_req(struct dect_handle *dh, struct dect_call *call,
 		       const struct dect_mncc_hold_param *param)
@@ -765,6 +782,7 @@ int dect_mncc_hold_req(struct dect_handle *dh, struct dect_call *call,
 	cc_debug_entry(call, "MNCC_HOLD-req");
 	return 0;
 }
+EXPORT_SYMBOL(dect_mncc_hold_req);
 
 int dect_mncc_hold_res(struct dect_handle *dh, struct dect_call *call,
 		       const struct dect_mncc_hold_param *param)
@@ -772,6 +790,7 @@ int dect_mncc_hold_res(struct dect_handle *dh, struct dect_call *call,
 	cc_debug_entry(call, "MNCC_HOLD-res");
 	return 0;
 }
+EXPORT_SYMBOL(dect_mncc_hold_res);
 
 int dect_mncc_retrieve_req(struct dect_handle *dh, struct dect_call *call,
 			   const struct dect_mncc_hold_param *param)
@@ -779,6 +798,7 @@ int dect_mncc_retrieve_req(struct dect_handle *dh, struct dect_call *call,
 	cc_debug_entry(call, "MNCC_RETRIEVE-req");
 	return 0;
 }
+EXPORT_SYMBOL(dect_mncc_retrieve_req);
 
 int dect_mncc_retrieve_res(struct dect_handle *dh, struct dect_call *call,
 			   const struct dect_mncc_hold_param *param)
@@ -786,6 +806,7 @@ int dect_mncc_retrieve_res(struct dect_handle *dh, struct dect_call *call,
 	cc_debug_entry(call, "MNCC_RETRIEVE-res");
 	return 0;
 }
+EXPORT_SYMBOL(dect_mncc_retrieve_res);
 
 int dect_mncc_iwu_info_req(struct dect_handle *dh, struct dect_call *call,
 			   const struct dect_mncc_iwu_info_param *param)
@@ -793,6 +814,7 @@ int dect_mncc_iwu_info_req(struct dect_handle *dh, struct dect_call *call,
 	cc_debug_entry(call, "MNCC_IWU_INFO-req");
 	return 0;
 }
+EXPORT_SYMBOL(dect_mncc_iwu_info_req);
 
 static void dect_mncc_alert_ind(struct dect_handle *dh, struct dect_call *call,
 				struct dect_cc_alerting_msg *msg)

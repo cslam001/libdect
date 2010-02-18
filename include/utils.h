@@ -2,6 +2,9 @@
 #define _UTILS_H
 
 #include <assert.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <unistd.h>
 
 #ifndef AF_DECT
 #define AF_DECT 37
@@ -17,6 +20,7 @@
 #define __fmtstring(x, y)	__attribute__((format(printf, x, y)))
 #define __aligned(x)		__attribute__((aligned(x)))
 #define __packed		__attribute__((packed))
+#define __visible		__attribute__((visibility("default")))
 
 extern void __dect_debug(const char *fmt, ...) __fmtstring(1, 2);
 extern void __dect_hexdump(const char *prefix, const uint8_t *buf, size_t size);
@@ -48,6 +52,7 @@ extern const char *__dect_val2str(const struct dect_trans_tbl *tbl, unsigned int
 #define dect_flags2str(trans, buf, val) \
 	__dect_flags2str(trans, array_size(trans), buf, sizeof(buf), val)
 
+struct dect_handle;
 extern void *dect_malloc(const struct dect_handle *dh, size_t size);
 extern void *dect_zalloc(const struct dect_handle *dh, size_t size);
 extern void dect_free(const struct dect_handle *dh, void *ptr);
@@ -83,6 +88,7 @@ extern int dect_register_fd(const struct dect_handle *dh, struct dect_fd *dfd,
 			    uint32_t events);
 extern void dect_unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd);
 
+#define EXPORT_SYMBOL(x)	typeof(x) (x) __visible
 #define BUG()			assert(0)
 
 /* Force a compilation error if condition is true */

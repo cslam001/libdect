@@ -89,6 +89,7 @@ void *dect_ss_priv(struct dect_ss_endpoint *sse)
 {
 	return sse->priv;
 }
+EXPORT_SYMBOL(dect_ss_priv);
 
 struct dect_ss_endpoint *dect_ss_endpoint_alloc(struct dect_handle *dh)
 {
@@ -103,6 +104,7 @@ struct dect_ss_endpoint *dect_ss_endpoint_alloc(struct dect_handle *dh)
 err1:
 	return NULL;
 }
+EXPORT_SYMBOL(dect_ss_endpoint_alloc);
 
 static struct dect_ss_endpoint *dect_ss_endpoint(struct dect_transaction *ta)
 {
@@ -150,6 +152,7 @@ err2:
 err1:
 	return -1;
 }
+EXPORT_SYMBOL(dect_mnss_setup_req);
 
 /**
  * dect_mnss_facility_req - MNSS_FACILITY-req primitive
@@ -173,6 +176,7 @@ int dect_mnss_facility_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 	return dect_lce_send(dh, &sse->transaction, &ciss_facility_msg_desc,
 			     &msg.common, CISS_FACILITY);
 }
+EXPORT_SYMBOL(dect_mnss_facility_req);
 
 static void dect_ciss_rcv_facility(struct dect_handle *dh,
 				   struct dect_ss_endpoint *sse,
@@ -225,6 +229,7 @@ int dect_mnss_release_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 	return dect_lce_send(dh, &sse->transaction, &ciss_release_com_msg_desc,
 			     &msg.common, CISS_RELEASE_COM);
 }
+EXPORT_SYMBOL(dect_mnss_release_req);
 
 static void dect_ciss_rcv_release_com(struct dect_handle *dh,
 				      struct dect_ss_endpoint *sse,

@@ -24,6 +24,7 @@ void dect_set_debug_hook(int (*fn)(const char *fmt, va_list ap))
 {
 	debug_hook = fn;
 }
+EXPORT_SYMBOL(dect_set_debug_hook);
 
 #ifdef DEBUG
 void __fmtstring(1, 2) __dect_debug(const char *fmt, ...)
@@ -56,6 +57,7 @@ struct dect_handle *dect_alloc_handle(struct dect_ops *ops)
 	init_list_head(&dh->mme_list);
 	return dh;
 }
+EXPORT_SYMBOL(dect_alloc_handle);
 
 int dect_init(struct dect_handle *dh)
 {
@@ -75,6 +77,7 @@ err2:
 err1:
 	return err;
 }
+EXPORT_SYMBOL(dect_init);
 
 void dect_close_handle(struct dect_handle *dh)
 {
@@ -82,3 +85,4 @@ void dect_close_handle(struct dect_handle *dh)
 	dect_netlink_exit(dh);
 	dect_free(dh, dh);
 }
+EXPORT_SYMBOL(dect_close_handle);

@@ -41,11 +41,13 @@ struct dect_ie_common *dect_ie_alloc(const struct dect_handle *dh,
 	ie->refcnt = 1;
 	return ie;
 }
+EXPORT_SYMBOL(dect_ie_alloc);
 
 void dect_ie_destroy(const struct dect_handle *dh, struct dect_ie_common *ie)
 {
 	dect_free(dh, ie);
 }
+EXPORT_SYMBOL(dect_ie_destroy);
 
 struct dect_ie_common *__dect_ie_clone(const struct dect_handle *dh,
 				       const struct dect_ie_common *ie,
@@ -59,6 +61,7 @@ struct dect_ie_common *__dect_ie_clone(const struct dect_handle *dh,
 	memcpy(clone + 1, ie + 1, size - sizeof(*ie));
 	return clone;
 }
+EXPORT_SYMBOL(__dect_ie_clone);
 
 struct dect_ie_common *__dect_ie_hold(struct dect_ie_common *ie)
 {
@@ -69,6 +72,7 @@ struct dect_ie_common *__dect_ie_hold(struct dect_ie_common *ie)
 	ie->refcnt++;
 	return ie;
 }
+EXPORT_SYMBOL(__dect_ie_hold);
 
 void __dect_ie_put(const struct dect_handle *dh, struct dect_ie_common *ie)
 {
@@ -79,6 +83,7 @@ void __dect_ie_put(const struct dect_handle *dh, struct dect_ie_common *ie)
 	if (--ie->refcnt == 0)
 		dect_ie_destroy(dh, ie);
 }
+EXPORT_SYMBOL(__dect_ie_put);
 
 /*
  * Information Element lists
@@ -91,6 +96,7 @@ void dect_ie_list_init(struct dect_ie_list *ie)
 	ie->common.next = &ie_list_marker;
 	ie->list = NULL;
 }
+EXPORT_SYMBOL(dect_ie_list_init);
 
 void __dect_ie_list_add(struct dect_ie_common *ie, struct dect_ie_list *iel)
 {
@@ -103,6 +109,7 @@ void __dect_ie_list_add(struct dect_ie_common *ie, struct dect_ie_list *iel)
 	ie->next = NULL;
 	*pprev = ie;
 }
+EXPORT_SYMBOL(__dect_ie_list_add);
 
 struct dect_ie_list *dect_ie_list_hold(struct dect_ie_list *iel)
 {
@@ -113,6 +120,7 @@ struct dect_ie_list *dect_ie_list_hold(struct dect_ie_list *iel)
 		__dect_ie_hold(ie);
 	return iel;
 }
+EXPORT_SYMBOL(dect_ie_list_hold);
 
 void dect_ie_list_put(const struct dect_handle *dh, struct dect_ie_list *iel)
 {
@@ -122,6 +130,7 @@ void dect_ie_list_put(const struct dect_handle *dh, struct dect_ie_list *iel)
 	dect_foreach_ie(ie, iel)
 		__dect_ie_put(dh, ie);
 }
+EXPORT_SYMBOL(dect_ie_list_put);
 
 /*
  * Information Element collections
@@ -138,6 +147,7 @@ void *dect_ie_collection_alloc(const struct dect_handle *dh, unsigned int size)
 	iec->size   = size;
 	return iec;
 }
+EXPORT_SYMBOL(dect_ie_collection_alloc);
 
 static void dect_ie_collection_free(const struct dect_handle *dh,
 				    struct dect_ie_collection *iec)
@@ -165,6 +175,7 @@ static void dect_ie_collection_free(const struct dect_handle *dh,
 
 	dect_free(dh, iec);
 }
+EXPORT_SYMBOL(dect_ie_collection_free);
 
 void __dect_ie_collection_put(const struct dect_handle *dh, struct dect_ie_collection *iec)
 {
@@ -173,6 +184,7 @@ void __dect_ie_collection_put(const struct dect_handle *dh, struct dect_ie_colle
 		return;
 	dect_ie_collection_free(dh, iec);
 }
+EXPORT_SYMBOL(__dect_ie_collection_put);
 
 struct dect_ie_collection *__dect_ie_collection_hold(struct dect_ie_collection *iec)
 {
@@ -180,3 +192,4 @@ struct dect_ie_collection *__dect_ie_collection_hold(struct dect_ie_collection *
 	iec->refcnt++;
 	return iec;
 }
+EXPORT_SYMBOL(__dect_ie_collection_hold);

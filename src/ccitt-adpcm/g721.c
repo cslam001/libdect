@@ -48,6 +48,7 @@
  * the name of the module which it is implementing.
  *
  */
+#include <utils.h>
 #include "g72x.h"
 
 static short qtab_721[7] = {-124, 80, 178, 246, 300, 349, 400};
@@ -122,6 +123,7 @@ g721_encoder(
 
 	return (i);
 }
+EXPORT_SYMBOL(g721_encoder);
 
 /*
  * g721_decoder()
@@ -171,3 +173,4 @@ g721_decoder(
 		return (-1);
 	}
 }
+EXPORT_SYMBOL(g721_decoder);

@@ -41,6 +41,7 @@ void dect_pin_to_ac(const char *pin, uint8_t *ac, unsigned int ac_len)
 		ac[ac_len - i / 2 - 1] |= (pin[len - i - 1] - '0') << shift;
 	}
 }
+EXPORT_SYMBOL(dect_pin_to_ac);
 
 /**
  * dect_auth_b1 - derive authentication key K from UAK/AC
@@ -59,6 +60,7 @@ void dect_auth_b1(const uint8_t *val, unsigned int len, uint8_t *k)
 	for (i = 0; i < DECT_AUTH_KEY_LEN; i++)
 		k[i] = val[i % len];
 }
+EXPORT_SYMBOL(dect_auth_b1);
 
 /**
  * dect_auth_b2 - derive authentication key K from UAK and UPI
@@ -80,6 +82,7 @@ void dect_auth_b2(const uint8_t *uak, unsigned int uak_len,
 	for (i = 0; i < DECT_AUTH_KEY_LEN; i++)
 		k[i] = uak[i % uak_len] ^ upi[i % upi_len];
 }
+EXPORT_SYMBOL(dect_auth_b2);
 
 static void dect_auth_calc(const uint8_t *key, uint64_t val, uint8_t *e)
 {
@@ -110,6 +113,7 @@ void dect_auth_a11(const uint8_t *k, uint64_t rs, uint8_t *ks)
 {
 	dect_auth_calc(k, rs, ks);
 }
+EXPORT_SYMBOL(dect_auth_a11);
 
 /**
  * dect_auth_a12 - derive cipher key and authentication response
@@ -130,6 +134,7 @@ void dect_auth_a12(const uint8_t *ks, uint64_t rand_f, uint8_t *dck, uint32_t *r
 	memcpy(dck, e + 4, DECT_CIPHER_KEY_LEN);
 	memcpy(res1, e + 12, DECT_AUTH_RES_LEN);
 }
+EXPORT_SYMBOL(dect_auth_a12);
 
 /**
  * dect_auth_a21 - derive authentication session key
@@ -149,6 +154,7 @@ void dect_auth_a21(const uint8_t *k, uint64_t rs, uint8_t *ks)
 	for (i = 0; i < DECT_AUTH_KEY_LEN; i++)
 		ks[i] ^= 0xaa;
 }
+EXPORT_SYMBOL(dect_auth_a21);
 
 /**
  * dect_auth_a22 - derive authentication response
@@ -167,6 +173,7 @@ void dect_auth_a22(const uint8_t *ks, uint64_t rand_p, uint32_t *res2)
 	dect_auth_calc(ks, rand_p, e);
 	memcpy(res2, e + 12, DECT_AUTH_RES_LEN);
 }
+EXPORT_SYMBOL(dect_auth_a22);
 
 /*
  * DSAA/DSC key allocation test from ETS EN 300 175-7 Annex K

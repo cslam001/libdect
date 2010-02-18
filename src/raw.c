@@ -55,6 +55,7 @@ ssize_t dect_raw_transmit(const struct dect_fd *dfd, uint8_t slot,
 
 	return sendmsg(dfd->fd, &msg, 0);
 }
+EXPORT_SYMBOL(dect_raw_transmit);
 
 struct dect_fd *dect_raw_socket(struct dect_handle *dh)
 {
@@ -79,3 +80,4 @@ err2:
 err1:
 	return NULL;
 }
+EXPORT_SYMBOL(dect_raw_socket);

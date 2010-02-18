@@ -160,6 +160,7 @@ int dect_lce_group_ring(struct dect_handle *dh, enum dect_ring_patterns pattern)
 
 	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg));
 }
+EXPORT_SYMBOL(dect_lce_group_ring);
 
 static int dect_lce_page(const struct dect_handle *dh,
 			 const struct dect_ipui *ipui)
