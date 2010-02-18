@@ -28,6 +28,7 @@ CPPFLAGS	+= @CPPFLAGS@
 
 CFLAGS		+= @CFLAGS@ @DEFS@
 CFLAGS		+= -include config.h -I include
+CFLAGS		+= -fstack-protector-all
 
 CFLAGS		+= -Wall
 CFLAGS		+= -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations
