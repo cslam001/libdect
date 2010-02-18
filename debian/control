@@ -1,0 +1,34 @@
+Source: libdect
+Section: net
+Priority: optional
+Maintainer: Patrick McHardy <kaber@trash.net>
+Build-Depends: debhelper (>= 7), cdbs, doxygen, texlive-latex-base, graphviz, ghostscript
+Standards-Version: 3.8.0
+Vcs-Git: git://dect.dyndns.org/libdect.git
+Homepage: http://dect.dyndns.org
+
+Package: libdect
+Architecture: any
+Section: libs
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: DECT NWK layer library
+ This is a library providing an implementation of the DECT Network Layer.
+
+Package: libdect-dev
+Architecture: any
+Section: libdevel
+Depends: libdect (= ${binary:Version}), ${misc:Depends}
+Description: development library and headers for libdect
+ This is a library providing an implementation of the DECT Network Layer.
+ .
+ This package contains all files that are needed to build applications using
+ libdect.
+
+Package: libdect-doc
+Architecture: any
+Section: doc
+Depends: ${misc:Depends}
+Description: API documentation for libdect
+ This is a library providing an implementation of the DECT Network Layer.
+ .
+ This package contain the API reference documentation for libdect.

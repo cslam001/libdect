@@ -1,0 +1,9 @@
+tmp/
+stamp-*
+*.log
+*.substvars
+*.debhelper
+files
+libdect-dev
+libdect-doc
+libdect
