@@ -179,9 +179,6 @@ extern int dect_ddl_set_cipher_key(const struct dect_data_link *ddl,
 extern int dect_ddl_encrypt_req(const struct dect_data_link *ddl,
 				enum dect_cipher_states status);
 
-extern int dect_lce_group_ring(struct dect_handle *dh,
-			       enum dect_ring_patterns pattern);
-
 /* LCE message types */
 enum dect_lce_msg_types {
 	DECT_LCE_PAGE_RESPONSE			= 0x71,

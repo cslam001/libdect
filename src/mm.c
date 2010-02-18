@@ -385,13 +385,14 @@ err1:
 }
 EXPORT_SYMBOL(dect_mm_endpoint_alloc);
 
-static void dect_mm_endpoint_destroy(struct dect_handle *dh,
-				     struct dect_mm_endpoint *mme)
+void dect_mm_endpoint_destroy(struct dect_handle *dh,
+			      struct dect_mm_endpoint *mme)
 {
 	dect_free(dh, mme->procedure[DECT_TRANSACTION_RESPONDER].timer);
 	dect_free(dh, mme->procedure[DECT_TRANSACTION_INITIATOR].timer);
 	dect_free(dh, mme);
 }
+EXPORT_SYMBOL(dect_mm_endpoint_destroy);
 
 static struct dect_mm_endpoint *dect_mm_endpoint(struct dect_transaction *ta)
 {
