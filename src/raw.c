@@ -25,11 +25,11 @@ ssize_t dect_raw_transmit(const struct dect_fd *dfd, uint8_t slot,
 {
 	struct iovec iov;
 	struct msghdr msg;
-	struct dect_raw_auxdata *aux;
+	struct dect_raw_auxdata aux;
 	struct cmsghdr *cmsg;
 	union {
 		struct cmsghdr		cmsg;
-		char			buf[CMSG_SPACE(sizeof(*aux))];
+		char			buf[CMSG_SPACE(sizeof(aux))];
 	} cmsg_buf;
 
 	msg.msg_name		= NULL;
@@ -44,14 +44,14 @@ ssize_t dect_raw_transmit(const struct dect_fd *dfd, uint8_t slot,
 	iov.iov_base		= mb->data;
 
 	cmsg			= CMSG_FIRSTHDR(&msg);
-	cmsg->cmsg_len		= CMSG_LEN(sizeof(*aux));
+	cmsg->cmsg_len		= CMSG_LEN(sizeof(aux));
 	cmsg->cmsg_level	= SOL_DECT;
 	cmsg->cmsg_type		= DECT_RAW_AUXDATA;
 
-	aux			= (void *)CMSG_DATA(cmsg);
-	aux->mfn		= 0;
-	aux->frame		= 0;
-	aux->slot		= slot;
+	aux.mfn			= 0;
+	aux.frame		= 0;
+	aux.slot		= slot;
+	memcpy(CMSG_DATA(cmsg), &aux, sizeof(aux));
 
 	return sendmsg(dfd->fd, &msg, 0);
 }

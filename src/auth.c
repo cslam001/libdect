@@ -187,7 +187,10 @@ static void __init dect_auth_test(void)
 {
 	uint8_t k[DECT_AUTH_KEY_LEN];
 	uint8_t ks[DECT_AUTH_KEY_LEN], ks_[DECT_AUTH_KEY_LEN];
-	uint8_t dck[DECT_CIPHER_KEY_LEN];
+	union {
+		uint8_t key[DECT_CIPHER_KEY_LEN];
+		uint64_t val;
+	} dck;
 	uint32_t res1, res2;
 	uint8_t ac[4];
 
@@ -197,7 +200,7 @@ static void __init dect_auth_test(void)
 
 	/* FT auth request */
 	dect_auth_a11(k, DECT_AUTH_TEST_RS1, ks);
-	dect_auth_a12(ks, DECT_AUTH_TEST_RAND1, dck, &res1);
+	dect_auth_a12(ks, DECT_AUTH_TEST_RAND1, dck.key, &res1);
 
 	if (__be32_to_cpu(res1) != DECT_AUTH_TEST_RES1)
 		printf("dect_auth_test: fail1 res1=%.8x\n", res1);
@@ -211,11 +214,11 @@ static void __init dect_auth_test(void)
 
 	/* DCK allocation using UAK */
 	dect_auth_a11(ks_, DECT_AUTH_TEST_RS2, ks_);
-	dect_auth_a12(ks_, DECT_AUTH_TEST_RAND3, dck, &res1);
+	dect_auth_a12(ks_, DECT_AUTH_TEST_RAND3, dck.key, &res1);
 
 	if (__cpu_to_be32(res1) != DECT_AUTH_TEST_RES3)
 		printf("dect_auth_test: fail3 res1=%.8x\n", res1);
-	if (__cpu_to_be64(*(uint64_t *)dck) != DECT_AUTH_TEST_DCK)
+	if (__cpu_to_be64(dck.val) != DECT_AUTH_TEST_DCK)
 		printf("dect_auth_test: fail4 dck=%.16" PRIx64 "\n",
-		       (uint64_t)__cpu_to_be64(*(uint64_t *)dck));
+		       (uint64_t)__cpu_to_be64(dck.val));
 }
