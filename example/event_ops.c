@@ -83,6 +83,7 @@ static const struct dect_event_ops dect_event_ops = {
 static struct event_base *ev_base;
 static struct event sig_event;
 static bool sigint;
+static bool endloop;
 
 static void sig_callback(int fd, short event, void *data)
 {
@@ -102,14 +103,21 @@ int dect_event_ops_init(struct dect_ops *ops)
 	return 0;
 }
 
+void dect_event_loop_stop(void)
+{
+	endloop = true;
+}
+
 void dect_event_loop(void)
 {
-	while (!sigint)
+	endloop = false;
+
+	while (!sigint && !endloop)
 		event_loop(EVLOOP_ONCE);
-	signal_del(&sig_event);
 }
 
 void dect_event_ops_cleanup(void)
 {
+	signal_del(&sig_event);
 	event_base_free(ev_base);
 }
