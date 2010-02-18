@@ -819,6 +819,12 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 		return;
 	}
 
+	if (tv >= protocols[pd]->max_transactions) {
+		ddl_debug(ddl, "invalid %s transaction value %u\n",
+			  protocols[pd]->name, tv);
+		return;
+	}
+
 	if (dect_timer_running(ddl->sdu_timer))
 		dect_ddl_stop_sdu_timer(dh, ddl);
 
