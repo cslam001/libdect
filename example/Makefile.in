@@ -1,4 +1,4 @@
-LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect
+LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect -levent
 PROGRAMS	+= cc ss mm-fp mm-pp discover hijack
 
 cc-destdir	:= usr/bin
@@ -6,6 +6,7 @@ cc-obj		+= event_ops.o
 cc-obj		+= dummy_ops.o
 cc-obj		+= audio.o
 cc-obj		+= cc.o
+cc-ldflags	+= -lSDL
 
 ss-destdir	:= usr/bin
 ss-obj		+= event_ops.o

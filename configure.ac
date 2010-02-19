@@ -32,12 +32,6 @@ AC_CHECK_LIB([nl], [nl_socket_alloc], ,
 AC_CHECK_LIB([nl-dect], [nl_dect_cluster_alloc], ,
 	     AC_MSG_ERROR([No suitable version of libnl-dect found]))
 
-AC_CHECK_LIB([event], [event_init], ,
-	     AC_MSG_ERROR([No suitable version of libevent found]))
-
-AC_CHECK_LIB([SDL], [SDL_OpenAudio], ,
-	     AC_MSG_ERROR([No suitable version of libsdl found]))
-
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_ASSERT

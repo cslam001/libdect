@@ -59,7 +59,7 @@ $(eval $(call generic_template,$(1)))
 
 $(SUBDIR)$(1):		$$($(1)-extra-targets) $$($(1)-obj)
 			@echo -e "  LD\t\t$$@"
-			$$(CC) $$($(1)-obj) $$(LDFLAGS) -o $$@
+			$$(CC) $$($(1)-obj) $$($(1)-ldflags) $$(LDFLAGS) -o $$@
 all_targets		+= $(SUBDIR)$(1)
 
 $(1)-clean_files	+= $(SUBDIR)$(1)
