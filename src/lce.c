@@ -369,6 +369,7 @@ static void dect_ddl_shutdown(struct dect_handle *dh,
 	bool last = false;
 
 	ddl_debug(ddl, "shutdown");
+	ddl->state = DECT_DATA_LINK_RELEASED;
 	list_for_each_entry_safe(ta, next, &ddl->transactions, list) {
 		if (&next->list == &ddl->transactions)
 			last = true;
@@ -767,7 +768,6 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 			if (ddl->state == DECT_DATA_LINK_RELEASE_PENDING)
 				return dect_ddl_release_complete(dh, ddl);
 			else {
-				ddl->state = DECT_DATA_LINK_RELEASED;
 				if (list_empty(&ddl->transactions))
 					return dect_ddl_destroy(dh, ddl);
 				else
@@ -776,7 +776,6 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 		case ETIMEDOUT:
 		case ECONNRESET:
 		case EHOSTUNREACH:
-			ddl->state = DECT_DATA_LINK_RELEASED;
 			return dect_ddl_shutdown(dh, ddl);
 		default:
 			ddl_debug(ddl, "unhandled receive error: %s",
