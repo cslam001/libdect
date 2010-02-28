@@ -21,6 +21,20 @@
 #include <s_fmt.h>
 #include <lce.h>
 
+static const struct dect_trans_tbl dect_repeat_indicators[] = {
+	TRANS_TBL(DECT_IE_LIST_NORMAL,		"Non prioritized list"),
+	TRANS_TBL(DECT_IE_LIST_PRIORITIZED,	"Prioritized list"),
+};
+
+static void dect_sfmt_dump_repeat_indicator(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_list *ie = dect_ie_container(ie, _ie);
+	char buf[64];
+
+	dect_debug("\trepeat indicator: %s\n",
+		   dect_val2str(dect_repeat_indicators, buf, ie->type));
+}
+
 static int dect_sfmt_parse_repeat_indicator(const struct dect_handle *dh,
 					    struct dect_ie_common **ie,
 					    const struct dect_sfmt_ie *src)
@@ -43,7 +57,6 @@ static int dect_sfmt_build_repeat_indicator(struct dect_sfmt_ie *dst,
 {
 	struct dect_ie_list *src = dect_ie_container(src, ie);
 
-	dect_debug("build repeat indicator list %p\n", src->list);
 	dst->data[0] = src->type;
 	return 0;
 }
@@ -1535,6 +1548,7 @@ static const struct dect_ie_handler {
 		.name	= "repeat indicator",
 		.parse	= dect_sfmt_parse_repeat_indicator,
 		.build	= dect_sfmt_build_repeat_indicator,
+		.dump	= dect_sfmt_dump_repeat_indicator,
 	},
 	[S_SE_IE_SENDING_COMPLETE]		= {
 		.name	= "sending complete",
@@ -2225,6 +2239,8 @@ void dect_msg_free(const struct dect_handle *dh,
 		next = dect_next_ie(desc, ie);
 		if (desc->type == S_SO_IE_REPEAT_INDICATOR)
 			desc++;
+		else if (desc->flags & DECT_SFMT_IE_REPEAT)
+			dect_ie_list_put(dh, (void *)*ie);
 		else if (*ie != NULL)
 			__dect_ie_put(dh, *ie);
 

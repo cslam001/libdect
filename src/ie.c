@@ -103,7 +103,7 @@ void __dect_ie_list_add(struct dect_ie_common *ie, struct dect_ie_list *iel)
 	struct dect_ie_common **pprev;
 
 	pprev = &iel->list;
-	while (*pprev != NULL && (*pprev)->next != NULL)
+	while (*pprev != NULL)
 		pprev = &(*pprev)->next;
 
 	ie->next = NULL;
