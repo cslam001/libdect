@@ -541,7 +541,7 @@ struct dect_ie_feature_indicate {
  * @DECT_FIXED_ID_TYPE_ARI_WRS:	Access rights identity plus radio fixed part number for WRS
  * @DECT_FIXED_ID_TYPE_PARK:	Portable access rights key
  */
-enum fixed_identity_types {
+enum dect_fixed_identity_types {
 	DECT_FIXED_ID_TYPE_ARI			= 0x00,
 	DECT_FIXED_ID_TYPE_ARI_RPN		= 0x01,
 	DECT_FIXED_ID_TYPE_ARI_WRS		= 0x02,
@@ -555,15 +555,75 @@ enum fixed_identity_types {
 
 struct dect_ie_fixed_identity {
 	struct dect_ie_common		common;
-	enum fixed_identity_types	type;
+	enum dect_fixed_identity_types	type;
 	struct dect_ari			ari;
 	uint8_t				rpn;
 };
 
+/* Portable identity IE */
+
+/**
+ * @DECT_PORTABLE_ID_TYPE_IPUI:	International Portable User Identity (IPUI)
+ * @DECT_PORTABLE_ID_TYPE_IPEI:	International Portable Equipment Identity (IPEI)
+ * @DECT_PORTABLE_ID_TYPE_TPUI:	Temporary Portable User Identity (TPUI)
+ */
+enum dect_portable_identity_types {
+	DECT_PORTABLE_ID_TYPE_IPUI		= 0x0,
+	DECT_PORTABLE_ID_TYPE_IPEI		= 0x10,
+	DECT_PORTABLE_ID_TYPE_TPUI		= 0x20,
+};
+
+struct dect_ie_portable_identity {
+	struct dect_ie_common			common;
+	enum dect_portable_identity_types	type;
+	union {
+		struct dect_ipui		ipui;
+		struct dect_tpui		tpui;
+	};
+};
+
+/* NetWorK (NWK) assigned identity IE */
+
+/**
+ * @DECT_NWK_ID_TMSI:		Temporary mobile subscriber identity (TMSI)
+ * @DECT_NWK_ID_PROPRIETARY:	Proprietary (application specific)
+ */
+enum dect_nwk_identity_types {
+	DECT_NWK_ID_TYPE_TMSI			= 0x74,
+	DECT_NWK_ID_TYPE_PROPRIETARY		= 0x7f,
+};
+
+struct dect_ie_nwk_assigned_identity {
+	struct dect_ie_common		common;
+	enum dect_nwk_identity_types	type;
+};
+
 /* Identity type IE */
 
+/**
+ * @DECT_IDENTITY_PORTABLE_IDENTITY:		Portable identity
+ * @DECT_IDENTITY_NETWORK_ASSIGNED_IDENTITY:	Network assigned identity
+ * @DECT_IDENTITY_FIXED_IDENTITY:		Fixed identity
+ * @DECT_IDENTITY_APPLICATION_ASSIGNED:		Application assigned identity
+ * @DECT_IDENTITY_PROPRIETARY:			Proprietary identity (application specific)
+ */
+enum dect_identity_groups {
+	DECT_IDENTITY_PORTABLE_IDENTITY		= 0x0,
+	DECT_IDENTITY_NETWORK_ASSIGNED_IDENTITY	= 0x1,
+	DECT_IDENTITY_FIXED_IDENTITY		= 0x4,
+	DECT_IDENTITY_APPLICATION_ASSIGNED	= 0x8,
+	DECT_IDENTITY_PROPRIETARY		= 0xf,
+};
+
 struct dect_ie_identity_type {
-	struct dect_ie_common		common;
+	struct dect_ie_common			common;
+	enum dect_identity_groups		group;
+	union {
+		unsigned int				type;
+		enum dect_portable_identity_types	portable;
+		enum dect_fixed_identity_types		fixed;
+		enum dect_nwk_identity_types		nwk;
+	};
 };
 
 /* Info type IE */
@@ -641,38 +701,10 @@ struct dect_ie_location_area {
 	uint8_t				level;
 };
 
-/* NetWorK (NWK) assigned identity IE */
-
-struct dect_ie_nwk_assigned_identity {
-	struct dect_ie_common		common;
-};
-
 /* Network parameter IE */
 
 struct dect_ie_network_parameter {
 	struct dect_ie_common		common;
-};
-
-/* Portable identity IE */
-
-/**
- * @DECT_PORTABLE_ID_TYPE_IPUI:	International Portable User Identity (IPUI)
- * @DECT_PORTABLE_ID_TYPE_IPEI:	International Portable Equipment Identity (IPEI)
- * @DECT_PORTABLE_ID_TYPE_TPUI:	Temporary Portable User Identity (TPUI)
- */
-enum portable_identity_types {
-	DECT_PORTABLE_ID_TYPE_IPUI		= 0x0,
-	DECT_PORTABLE_ID_TYPE_IPEI		= 0x10,
-	DECT_PORTABLE_ID_TYPE_TPUI		= 0x20,
-};
-
-struct dect_ie_portable_identity {
-	struct dect_ie_common		common;
-	enum portable_identity_types	type;
-	union {
-		struct dect_ipui	ipui;
-		struct dect_tpui	tpui;
-	};
 };
 
 /* Progress indicator IE */

@@ -169,7 +169,8 @@ static DECT_SFMT_MSG_DESC(mm_identity_reply,
 );
 
 static DECT_SFMT_MSG_DESC(mm_identity_request,
-	DECT_SFMT_IE(S_VL_IE_IDENTITY_TYPE,		IE_MANDATORY, IE_NONE,      0),
+	DECT_SFMT_IE(S_SO_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_IDENTITY_TYPE,		IE_MANDATORY, IE_NONE,      DECT_SFMT_IE_REPEAT),
 	DECT_SFMT_IE(S_VL_IE_NETWORK_PARAMETER,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_IWU_TO_IWU,		IE_OPTIONAL,  IE_NONE,      0),
 	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_NONE,      0),
@@ -1631,8 +1632,17 @@ static void dect_mm_rcv_locate_accept(struct dect_handle *dh,
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 	param->codec_list		= dect_ie_hold(msg.codec_list);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	/*
+	 * TPUI or NWK identity assignment begins an identity assignment
+	 * procedure.
+	 */
+	if (param->portable_identity->type == DECT_PORTABLE_ID_TYPE_TPUI ||
+	    param->nwk_assigned_identity)
+		mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;
+	else {
+		dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+		mp->type = DECT_MMP_NONE;
+	}
 
 	mm_debug(mme, "MM_LOCATE-cfm: accept: 1");
 	dh->ops->mm_ops->mm_locate_cfm(dh, mme, true, param);
@@ -1752,17 +1762,121 @@ err1:
 	dect_msg_free(dh, &mm_detach_msg_desc, &msg.common);
 }
 
+/**
+ * dect_mm_identity_req - MM_IDENTITY-req primitive
+ *
+ * @dh:		libdect DECT handle
+ * @mme:	Mobility Management Endpoint
+ * @param:	identity request parameters
+ */
+int dect_mm_identity_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+			 const struct dect_mm_identity_param *param)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_identity_request_msg msg;
+	int err;
+
+	mm_debug_entry(mme, "MM_IDENTITY-req");
+	if (mp->type != DECT_MMP_NONE)
+		return -1;
+
+	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
+					DECT_PD_MM);
+	if (err < 0)
+		goto err1;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.identity_type		= param->identity_type;
+	msg.network_parameter		= param->network_parameter;
+	msg.iwu_to_iwu			= param->iwu_to_iwu;
+	msg.escape_to_proprietary	= param->escape_to_proprietary;
+
+	err = dect_mm_send_msg(dh, mp, &mm_identity_request_msg_desc,
+			       &msg.common, DECT_MM_IDENTITY_REQUEST);
+	if (err < 0)
+		goto err2;
+
+	mp->type = DECT_MMP_IDENTIFICATION;
+	return 0;
+
+err2:
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+err1:
+	return err;
+}
+EXPORT_SYMBOL(dect_mm_identity_req);
+
+/**
+ * dect_mm_identity_res - MM_IDENTITY_res primitive
+ *
+ * @dh:		libdect DECT handle
+ * @mme:	Mobility Management Endpoint
+ * @param:	identity response parameters
+ */
+int dect_mm_identity_res(struct dect_handle *dh,
+			 struct dect_mm_endpoint *mme,
+			 const struct dect_mm_identity_param *param)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_identity_reply_msg msg;
+	int err;
+
+	mm_debug_entry(mme, "MM_IDENTITY-res");
+	if (mp->type != DECT_MMP_IDENTIFICATION)
+		return -1;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.portable_identity		= param->portable_identity;
+	msg.fixed_identity		= param->fixed_identity;
+	msg.nwk_assigned_identity	= param->nwk_assigned_identity;
+	//msg.iwu_to_iwu		= param->iwu_to_iwu;
+	msg.model_identifier		= param->model_identifier;
+	msg.escape_to_proprietary	= param->escape_to_proprietary;
+
+	err = dect_mm_send_msg(dh, mp, &mm_identity_reply_msg_desc,
+			       &msg.common, DECT_MM_IDENTITY_REPLY);
+	if (err < 0)
+		return err;
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+	return 0;
+}
+EXPORT_SYMBOL(dect_mm_identity_res);
+
 static void dect_mm_rcv_identity_request(struct dect_handle *dh,
 					 struct dect_mm_endpoint *mme,
 					 struct dect_msg_buf *mb)
 {
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_identity_param *param;
 	struct dect_mm_identity_request_msg msg;
+	enum dect_sfmt_error err;
 
 	mm_debug(mme, "IDENTITY-REQUEST");
-	if (dect_parse_sfmt_msg(dh, &mm_identity_request_msg_desc,
-				&msg.common, mb) < 0)
+	if (mp->type != DECT_MMP_NONE)
 		return;
 
+	err = dect_parse_sfmt_msg(dh, &mm_identity_request_msg_desc,
+				  &msg.common, mb);
+	if (err < 0)
+		return;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->identity_type		= *dect_ie_list_hold(&msg.identity_type);
+	param->network_parameter	= dect_ie_hold(msg.network_parameter);
+	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	mp->type = DECT_MMP_IDENTIFICATION;
+
+	mm_debug(mme, "MM_IDENTIY-ind");
+	dh->ops->mm_ops->mm_identity_ind(dh, mme, param);
+	dect_ie_collection_put(dh, param);
+err1:
 	dect_msg_free(dh, &mm_identity_request_msg_desc, &msg.common);
 }
 
@@ -1770,14 +1884,186 @@ static void dect_mm_rcv_identity_reply(struct dect_handle *dh,
 				       struct dect_mm_endpoint *mme,
 				       struct dect_msg_buf *mb)
 {
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_identity_param *param;
 	struct dect_mm_identity_reply_msg msg;
 
 	mm_debug(mme, "IDENTITY-REPLY");
+	if (mp->type != DECT_MMP_IDENTIFICATION)
+		return;
+
 	if (dect_parse_sfmt_msg(dh, &mm_identity_reply_msg_desc,
 				&msg.common, mb) < 0)
 		return;
 
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->portable_identity	= *dect_ie_list_hold(&msg.portable_identity);
+	param->fixed_identity		= *dect_ie_list_hold(&msg.fixed_identity);
+	param->nwk_assigned_identity	= *dect_ie_list_hold(&msg.nwk_assigned_identity);
+	param->model_identifier		= dect_ie_hold(msg.model_identifier);
+	//param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+
+	mm_debug(mme, "MM_IDENTITY-cfm");
+	dh->ops->mm_ops->mm_identity_cfm(dh, mme, param);
+	dect_ie_collection_put(dh, param);
+err1:
 	dect_msg_free(dh, &mm_identity_reply_msg_desc, &msg.common);
+}
+
+/**
+ * dect_mm_identity_assign_req - MM_IDENTITY_ASSIGN-req primitive
+ *
+ * @dh:		libdect DECT handle
+ * @mme:	Mobility Management Endpoint
+ * @param:	identity  request parameters
+ */
+int dect_mm_identity_assign_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+				const struct dect_mm_identity_assign_param *param)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_temporary_identity_assign_msg msg;
+	int err;
+
+	mm_debug_entry(mme, "MM_IDENTITY_ASSIGN-req");
+	if (mp->type != DECT_MMP_NONE)
+		return -1;
+
+	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
+					DECT_PD_MM);
+	if (err < 0)
+		goto err1;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.portable_identity		= param->portable_identity;
+	msg.location_area		= param->location_area;
+	msg.nwk_assigned_identity	= param->nwk_assigned_identity;
+	msg.duration			= param->duration;
+	msg.network_parameter		= param->network_parameter;
+	//msg.iwu_to_iwu		= param->iwu_to_iwu;
+	msg.escape_to_proprietary	= param->escape_to_proprietary;
+
+	err = dect_mm_send_msg(dh, mp, &mm_temporary_identity_assign_msg_desc,
+			       &msg.common, DECT_MM_TEMPORARY_IDENTITY_ASSIGN);
+	if (err < 0)
+		goto err2;
+
+	mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;
+	return 0;
+
+err2:
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+err1:
+	return err;
+}
+EXPORT_SYMBOL(dect_mm_identity_req);
+
+static int dect_mm_send_temporary_identity_assign_ack(const struct dect_handle *dh,
+						      struct dect_mm_procedure *mp,
+						      const struct dect_mm_identity_assign_param *param)
+{
+	struct dect_mm_temporary_identity_assign_ack_msg msg = {
+		.iwu_to_iwu		= param->iwu_to_iwu,
+		.escape_to_proprietary	= param->escape_to_proprietary,
+	};
+
+	return dect_mm_send_msg(dh, mp, &mm_temporary_identity_assign_ack_msg_desc,
+				&msg.common, DECT_MM_TEMPORARY_IDENTITY_ASSIGN_ACK);
+}
+
+static int dect_mm_send_temporary_identity_assign_rej(const struct dect_handle *dh,
+						      struct dect_mm_procedure *mp,
+						      const struct dect_mm_identity_assign_param *param)
+{
+	struct dect_mm_temporary_identity_assign_rej_msg msg = {
+		.reject_reason		= param->reject_reason,
+		.escape_to_proprietary	= param->escape_to_proprietary,
+	};
+
+	return dect_mm_send_msg(dh, mp, &mm_temporary_identity_assign_rej_msg_desc,
+				&msg.common, DECT_MM_TEMPORARY_IDENTITY_ASSIGN_REJ);
+}
+
+/**
+ * dect_mm_identity_assign_res - MM_IDENTITY_ASSIGN-res primitive
+ *
+ * @dh:		libdect DECT handle
+ * @mme:	Mobility Management Endpoint
+ * @accept:	accept/reject identity assignment
+ * @param:	identity assigment response parameters
+ */
+int dect_mm_identity_assign_res(struct dect_handle *dh,
+				struct dect_mm_endpoint *mme, bool accept,
+				const struct dect_mm_identity_assign_param *param)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	int err;
+
+	mm_debug_entry(mme, "MM_IDENTITY_ASSIGN-res: accept: %u", accept);
+	if (mp->type != DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT)
+		return -1;
+
+	if (accept)
+		err = dect_mm_send_temporary_identity_assign_ack(dh, mp, param);
+	else
+		err = dect_mm_send_temporary_identity_assign_rej(dh, mp, param);
+
+	if (err < 0)
+		return err;
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+	return 0;
+}
+EXPORT_SYMBOL(dect_mm_identity_assign_res);
+
+static void dect_mm_rcv_temporary_identity_assign(struct dect_handle *dh,
+						  struct dect_mm_endpoint *mme,
+						  struct dect_msg_buf *mb)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_temporary_identity_assign_msg msg;
+	struct dect_mm_identity_assign_param *param;
+	enum dect_sfmt_error err;
+
+	mm_debug(mme, "TEMPORARY_IDENTITY_ASSIGN");
+	if (mp->type != DECT_MMP_NONE)
+		return;
+
+	err = dect_parse_sfmt_msg(dh, &mm_temporary_identity_assign_msg_desc,
+				  &msg.common, mb);
+	if (err < 0)
+		return; //dect_mm_send_reject(dh, mp, identity_assign, err);
+
+	if (msg.portable_identity &&
+	    msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
+		goto err1;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	param->portable_identity	= dect_ie_hold(msg.portable_identity);
+	param->location_area		= dect_ie_hold(msg.location_area);
+	param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity);
+	param->duration			= dect_ie_hold(msg.duration);
+	param->network_parameter	= dect_ie_hold(msg.network_parameter);
+	//param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;
+
+	mm_debug(mme, "MM_IDENTITY_ASSIGN-ind");
+	dh->ops->mm_ops->mm_identity_assign_ind(dh, mme, param);
+	dect_ie_collection_put(dh, param);
+err1:
+	dect_msg_free(dh, &mm_temporary_identity_assign_msg_desc, &msg.common);
 }
 
 static void dect_mm_rcv_temporary_identity_assign_ack(struct dect_handle *dh,
@@ -2225,8 +2511,6 @@ static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 		return dect_mm_rcv_access_rights_accept(dh, mme, mb);
 	case DECT_MM_ACCESS_RIGHTS_REJECT:
 		return dect_mm_rcv_access_rights_reject(dh, mme, mb);
-	case DECT_MM_ACCESS_RIGHTS_TERMINATE_REQUEST:
-		break;
 	case DECT_MM_ACCESS_RIGHTS_TERMINATE_ACCEPT:
 		return dect_mm_rcv_access_rights_terminate_accept(dh, mme, mb);
 	case DECT_MM_ACCESS_RIGHTS_TERMINATE_REJECT:
@@ -2247,8 +2531,6 @@ static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 		return dect_mm_rcv_locate_reject(dh, mme, mb);
 	case DECT_MM_IDENTITY_REPLY:
 		return dect_mm_rcv_identity_reply(dh, mme, mb);
-	case DECT_MM_TEMPORARY_IDENTITY_ASSIGN:
-		break;
 	case DECT_MM_TEMPORARY_IDENTITY_ASSIGN_ACK:
 		return dect_mm_rcv_temporary_identity_assign_ack(dh, mme, mb);
 	case DECT_MM_TEMPORARY_IDENTITY_ASSIGN_REJ:
@@ -2277,6 +2559,7 @@ static void dect_mm_open(struct dect_handle *dh,
 	case DECT_MM_INFO_REQUEST:
 	case DECT_MM_INFO_SUGGEST:
 	case DECT_MM_IDENTITY_REQUEST:
+	case DECT_MM_TEMPORARY_IDENTITY_ASSIGN:
 	case DECT_MM_DETACH:
 		break;
 	default:
@@ -2315,6 +2598,8 @@ static void dect_mm_open(struct dect_handle *dh,
 		return dect_mm_rcv_info_suggest(dh, mme, mb);
 	case DECT_MM_IDENTITY_REQUEST:
 		return dect_mm_rcv_identity_request(dh, mme, mb);
+	case DECT_MM_TEMPORARY_IDENTITY_ASSIGN:
+		return dect_mm_rcv_temporary_identity_assign(dh, mme, mb);
 	case DECT_MM_DETACH:
 		return dect_mm_rcv_detach(dh, mme, mb);
 	case DECT_MM_IWU:

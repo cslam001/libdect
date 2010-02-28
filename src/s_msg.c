@@ -268,6 +268,83 @@ static int dect_sfmt_parse_info_type(const struct dect_handle *dh,
 	return 0;
 }
 
+static const struct dect_trans_tbl dect_identity_groups[] = {
+	TRANS_TBL(DECT_IDENTITY_PORTABLE_IDENTITY,		"portable identity"),
+	TRANS_TBL(DECT_IDENTITY_NETWORK_ASSIGNED_IDENTITY,	"network assigned identity"),
+	TRANS_TBL(DECT_IDENTITY_FIXED_IDENTITY,			"fixed identity"),
+	TRANS_TBL(DECT_IDENTITY_APPLICATION_ASSIGNED,		"application assigned identity"),
+	TRANS_TBL(DECT_IDENTITY_PROPRIETARY,			"proprietary"),
+};
+
+static const struct dect_trans_tbl dect_portable_identity_types[] = {
+	TRANS_TBL(DECT_PORTABLE_ID_TYPE_IPUI,			"IPUI"),
+	TRANS_TBL(DECT_PORTABLE_ID_TYPE_IPEI,			"IPEI"),
+	TRANS_TBL(DECT_PORTABLE_ID_TYPE_TPUI,			"TPUI"),
+};
+
+static const struct dect_trans_tbl dect_fixed_identity_types[] = {
+	TRANS_TBL(DECT_FIXED_ID_TYPE_ARI,			"ARI"),
+	TRANS_TBL(DECT_FIXED_ID_TYPE_ARI_RPN,			"ARI/RPN"),
+	TRANS_TBL(DECT_FIXED_ID_TYPE_ARI_WRS,			"ARI/WRS"),
+	TRANS_TBL(DECT_FIXED_ID_TYPE_PARK,			"PARK"),
+};
+
+static const struct dect_trans_tbl dect_nwk_identity_types[] = {
+	TRANS_TBL(DECT_NWK_ID_TYPE_TMSI,			"TMSI"),
+	TRANS_TBL(DECT_NWK_ID_TYPE_PROPRIETARY,			"Proprietary"),
+};
+
+static void dect_sfmt_dump_identity_type(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_identity_type *ie = dect_ie_container(ie, _ie);
+	char buf[64];
+
+	dect_debug("\tidentity group: %s\n",
+		   dect_val2str(dect_identity_groups, buf, ie->group));
+
+	switch (ie->group) {
+	case DECT_IDENTITY_PORTABLE_IDENTITY:
+		dect_debug("\tidentity type: %s\n",
+			   dect_val2str(dect_portable_identity_types, buf, ie->type));
+		break;
+	case DECT_IDENTITY_FIXED_IDENTITY:
+		dect_debug("\tidentity type: %s\n",
+			   dect_val2str(dect_fixed_identity_types, buf, ie->type));
+		break;
+	case DECT_IDENTITY_NETWORK_ASSIGNED_IDENTITY:
+		dect_debug("\tidentity type: %s\n",
+			   dect_val2str(dect_nwk_identity_types, buf, ie->type));
+		break;
+	case DECT_IDENTITY_APPLICATION_ASSIGNED:
+	case DECT_IDENTITY_PROPRIETARY:
+	default:
+		dect_debug("\tidentity type: %u\n", ie->type);
+		break;
+	}
+}
+
+static int dect_sfmt_build_identity_type(struct dect_sfmt_ie *dst,
+					 const struct dect_ie_common *src)
+{
+	struct dect_ie_identity_type *ie = dect_ie_container(ie, src);
+
+	dst->data[2] = ie->group | DECT_OCTET_GROUP_END;
+	dst->data[3] = ie->type  | DECT_OCTET_GROUP_END;
+	dst->len = 4;
+	return 0;
+}
+
+static int dect_sfmt_parse_identity_type(const struct dect_handle *dh,
+					 struct dect_ie_common **ie,
+					 const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_identity_type *dst = dect_ie_container(dst, *ie);
+
+	dst->group = src->data[2] & ~DECT_OCTET_GROUP_END;
+	dst->type  = src->data[3] & ~DECT_OCTET_GROUP_END;
+	return 0;
+}
+
 static const struct dect_trans_tbl dect_release_reasons[] = {
 	TRANS_TBL(DECT_RELEASE_NORMAL,				"normal"),
 	TRANS_TBL(DECT_RELEASE_UNEXPECTED_MESSAGE,		"unexpected message"),
@@ -398,16 +475,17 @@ static int dect_sfmt_parse_timer_restart(const struct dect_handle *dh,
 static void dect_sfmt_dump_portable_identity(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_portable_identity *ie = dect_ie_container(ie, _ie);
+	char buf[64];
+
+	dect_debug("\ttype: %s\n",
+		   dect_val2str(dect_portable_identity_types, buf, ie->type));
 
 	switch (ie->type) {
 	case DECT_PORTABLE_ID_TYPE_IPUI:
-		dect_debug("\ttype: IPUI\n");
 		return dect_dump_ipui(&ie->ipui);
 	case DECT_PORTABLE_ID_TYPE_IPEI:
-		dect_debug("\ttype: IPEI\n");
 		break;
 	case DECT_PORTABLE_ID_TYPE_TPUI:
-		dect_debug("\ttype: TPUI\n");
 		return dect_dump_tpui(&ie->tpui);
 	}
 }
@@ -480,25 +558,22 @@ static int dect_sfmt_build_portable_identity(struct dect_sfmt_ie *dst,
 static void dect_sfmt_dump_fixed_identity(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_fixed_identity *ie = dect_ie_container(ie, _ie);
+	char buf[64];
+
+	dect_debug("\ttype: %s\n",
+		   dect_val2str(dect_fixed_identity_types, buf, ie->type));
 
 	switch (ie->type) {
 	case DECT_FIXED_ID_TYPE_ARI:
-		dect_debug("\ttype: ARI\n");
-		dect_dump_ari(&ie->ari);
-		break;
+		return dect_dump_ari(&ie->ari);
 	case DECT_FIXED_ID_TYPE_PARK:
-		dect_debug("\ttype: PARK\n");
-		dect_dump_ari(&ie->ari);
-		break;
+		return dect_dump_ari(&ie->ari);
 	case DECT_FIXED_ID_TYPE_ARI_RPN:
-		dect_debug("\ttype: ARI/RPN\n");
 		dect_dump_ari(&ie->ari);
 		dect_debug("\tRPN: %u\n", ie->rpn);
-		break;
+		return;
 	case DECT_FIXED_ID_TYPE_ARI_WRS:
-		dect_debug("\ttype: ARI/WRS\n");
-		dect_dump_ari(&ie->ari);
-		break;
+		return dect_dump_ari(&ie->ari);
 	}
 }
 
@@ -1620,7 +1695,10 @@ static const struct dect_ie_handler {
 	},
 	[S_VL_IE_IDENTITY_TYPE]			= {
 		.name	= "identity type",
-		.size	= sizeof(struct dect_ie_identity_type)
+		.size	= sizeof(struct dect_ie_identity_type),
+		.parse	= dect_sfmt_parse_identity_type,
+		.build	= dect_sfmt_build_identity_type,
+		.dump	= dect_sfmt_dump_identity_type,
 	},
 	[S_VL_IE_PORTABLE_IDENTITY]		= {
 		.name	= "portable identity",

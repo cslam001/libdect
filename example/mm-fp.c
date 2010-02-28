@@ -152,6 +152,34 @@ static void mm_authenticate_req(struct dect_handle *dh,
 	dect_mm_authenticate_req(dh, mme, &param);
 }
 
+static void mm_identity_cfm(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+			    struct dect_mm_identity_param *param)
+{
+	mm_authenticate_req(dh, mme);
+}
+
+static int mm_identity_req(struct dect_handle *dh, struct dect_mm_endpoint *mme)
+{
+	struct dect_ie_identity_type identity_type[3] = {};
+	struct dect_mm_identity_param param = {	};
+
+	identity_type[0].group	= DECT_IDENTITY_PORTABLE_IDENTITY;
+	identity_type[0].type	= DECT_PORTABLE_ID_TYPE_IPEI;
+	dect_ie_list_add(&identity_type[0], &param.identity_type);
+
+	identity_type[1].group	= DECT_IDENTITY_PORTABLE_IDENTITY;
+	identity_type[1].type	= DECT_PORTABLE_ID_TYPE_IPUI;
+	dect_ie_list_add(&identity_type[1], &param.identity_type);
+
+	identity_type[2].group	= DECT_IDENTITY_PORTABLE_IDENTITY;
+	identity_type[2].type	= DECT_PORTABLE_ID_TYPE_TPUI;
+	dect_ie_list_add(&identity_type[2], &param.identity_type);
+
+	param.identity_type.type = DECT_IE_LIST_NORMAL;
+
+	return dect_mm_identity_req(dh, mme, &param);
+}
+
 static void mm_locate_ind(struct dect_handle *dh,
 			  struct dect_mm_endpoint *mme,
 			  struct dect_mm_locate_param *param)
@@ -159,7 +187,7 @@ static void mm_locate_ind(struct dect_handle *dh,
 	struct mm_priv *priv = dect_mm_priv(mme);
 
 	priv->locate = dect_ie_collection_hold(param);
-	mm_authenticate_req(dh, mme);
+	mm_identity_req(dh, mme);
 }
 
 static void mm_access_rights_ind(struct dect_handle *dh,
@@ -176,6 +204,7 @@ static struct dect_mm_ops mm_ops = {
 	.mm_cipher_cfm		= mm_cipher_cfm,
 	.mm_access_rights_ind	= mm_access_rights_ind,
 	.mm_locate_ind		= mm_locate_ind,
+	.mm_identity_cfm	= mm_identity_cfm,
 	.mm_identity_assign_cfm	= mm_identity_assign_cfm,
 };
 

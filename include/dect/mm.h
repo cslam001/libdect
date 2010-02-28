@@ -98,10 +98,11 @@ struct dect_mm_detach_param {
 
 struct dect_mm_identity_param {
 	struct dect_ie_collection		common;
-	struct dect_ie_identity_type		*identity_type;
-	struct dect_ie_portable_identity	*portable_identity;
-	struct dect_ie_fixed_identity		*fixed_identity;
-	struct dect_ie_nwk_assigned_identity	*nwk_assigned_identity;
+	struct dect_ie_list			identity_type;
+	struct dect_ie_network_parameter	*network_parameter;
+	struct dect_ie_list			portable_identity;
+	struct dect_ie_list			fixed_identity;
+	struct dect_ie_list			nwk_assigned_identity;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_model_identifier		*model_identifier;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
@@ -110,8 +111,10 @@ struct dect_mm_identity_param {
 struct dect_mm_identity_assign_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
+	struct dect_ie_location_area		*location_area;
 	struct dect_ie_nwk_assigned_identity	*nwk_assigned_identity;
 	struct dect_ie_duration			*duration;
+	struct dect_ie_network_parameter	*network_parameter;
 	struct dect_ie_reject_reason		*reject_reason;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
@@ -196,7 +199,7 @@ struct dect_mm_ops {
 				   struct dect_mm_endpoint *mme,
 				   struct dect_mm_identity_param *param);
 	void	(*mm_identity_cfm)(struct dect_handle *dh,
-				   struct dect_mm_endpoint *mme, bool accept,
+				   struct dect_mm_endpoint *mme,
 				   struct dect_mm_identity_param *param);
 
 	void	(*mm_identity_assign_ind)(struct dect_handle *dh,
