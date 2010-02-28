@@ -989,7 +989,7 @@ int dect_mm_access_rights_req(struct dect_handle *dh,
 	msg.portable_identity		= param->portable_identity;
 	msg.auth_type			= param->auth_type;
 	msg.cipher_info			= param->cipher_info;
-	msg.setup_capability		= NULL;
+	msg.setup_capability		= param->setup_capability;
 	msg.terminal_capability		= param->terminal_capability;
 	msg.model_identifier		= param->model_identifier;
 	msg.escape_to_proprietary	= param->escape_to_proprietary;
@@ -1021,7 +1021,7 @@ static int dect_mm_send_access_rights_accept(const struct dect_handle *dh,
 		.auth_type		= param->auth_type,
 		.location_area		= param->location_area,
 		.cipher_info		= param->cipher_info,
-		.setup_capability	= NULL,
+		.setup_capability	= param->setup_capability,
 		.model_identifier	= param->model_identifier,
 		//.iwu_to_iwu		= param->iwu_to_iwu,
 		.escape_to_proprietary	= param->escape_to_proprietary,
@@ -1115,6 +1115,7 @@ static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
 	param->portable_identity	= dect_ie_hold(msg.portable_identity);
 	param->auth_type		= dect_ie_hold(msg.auth_type);
 	param->cipher_info		= dect_ie_hold(msg.cipher_info);
+	param->setup_capability		= dect_ie_hold(msg.setup_capability);
 	param->terminal_capability	= dect_ie_hold(msg.terminal_capability);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 	param->codec_list		= dect_ie_hold(msg.codec_list);
@@ -1155,7 +1156,7 @@ static void dect_mm_rcv_access_rights_accept(struct dect_handle *dh,
 	param->cipher_info		= dect_ie_hold(msg.cipher_info);
 	param->zap_field		= dect_ie_hold(msg.zap_field);
 	param->service_class		= dect_ie_hold(msg.service_class);
-	//param->setup_capability	= dect_ie_hold(msg.setup_capability);
+	param->setup_capability		= dect_ie_hold(msg.setup_capability);
 	param->model_identifier		= dect_ie_hold(msg.model_identifier);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 	param->codec_list		= dect_ie_hold(msg.codec_list);

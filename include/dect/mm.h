@@ -17,6 +17,7 @@ struct dect_mm_access_rights_param {
 	struct dect_ie_auth_type		*auth_type;
 	struct dect_ie_cipher_info		*cipher_info;
 	struct dect_ie_zap_field		*zap_field;
+	struct dect_ie_setup_capability		*setup_capability;
 	struct dect_ie_terminal_capability	*terminal_capability;
 	struct dect_ie_service_class		*service_class;
 	struct dect_ie_model_identifier		*model_identifier;
