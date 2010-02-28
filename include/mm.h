@@ -50,8 +50,8 @@ struct dect_mm_access_rights_accept_msg {
 	struct dect_ie_zap_field		*zap_field;
 	struct dect_ie_service_class		*service_class;
 	struct dect_ie_setup_capability		*setup_capability;
-	struct dect_ie_model_identifier		*model_identifier;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
+	struct dect_ie_model_identifier		*model_identifier;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 	struct dect_ie_codec_list		*codec_list;
 };
@@ -168,8 +168,8 @@ struct dect_mm_identity_reply_msg {
 	struct dect_ie_list			portable_identity;
 	struct dect_ie_list			fixed_identity;
 	struct dect_ie_list			nwk_assigned_identity;
-	struct dect_ie_model_identifier		*model_identifier;
 	struct dect_ie_list			iwu_to_iwu;
+	struct dect_ie_model_identifier		*model_identifier;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
