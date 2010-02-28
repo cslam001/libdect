@@ -230,6 +230,7 @@ bool dect_ipui_cmp(const struct dect_ipui *i1, const struct dect_ipui *i2)
 {
 	return memcmp(i1, i2, sizeof(*i1));
 }
+EXPORT_SYMBOL(dect_ipui_cmp);
 
 void dect_ipui_to_tpui(struct dect_tpui *tpui, const struct dect_ipui *ipui)
 {
