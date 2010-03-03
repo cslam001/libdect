@@ -100,13 +100,14 @@ int main(int argc, char **argv)
 	uint8_t slot;
 
 	if (argc < 3) {
-		printf("Usage: %s rx-slot tx-slot tx-carrier\n", argv[0]);
+		printf("Usage: %s cluster rx-slot tx-slot tx-carrier\n",
+			argv[0]);
 		exit(1);
 	}
-	slot = atoi(argv[1]);
-	dect_build_msg(&msg, atoi(argv[2]), atoi(argv[3]));
+	slot = atoi(argv[2]);
+	dect_build_msg(&msg, atoi(argv[3]), atoi(argv[4]));
 
-	dect_common_init(&ops);
+	dect_common_init(&ops, argv[1]);
 
 	dfd = dect_raw_socket(dh);
 	if (dfd == NULL)

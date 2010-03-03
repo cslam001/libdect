@@ -9,7 +9,7 @@ static struct dect_ops ops;
 
 int main(int argc, char **argv)
 {
-	dect_common_init(&ops);
+	dect_common_init(&ops, argv[1]);
 
 	dect_lce_group_ring(dh, 0);
 	dect_event_loop();

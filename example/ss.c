@@ -63,7 +63,7 @@ static struct dect_ops ops = {
 
 int main(int argc, char **argv)
 {
-	dect_common_init(&ops);
+	dect_common_init(&ops, argv[1]);
 
 	dect_invoke_ss(dh, &ipui);
 	dect_event_loop();

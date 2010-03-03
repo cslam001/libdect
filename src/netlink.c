@@ -256,7 +256,7 @@ static int dect_netlink_event_rcv(struct nl_msg *msg, void *arg)
 	return dect_netlink_msg_rcv(msg, &handler);
 }
 
-int dect_netlink_init(struct dect_handle *dh)
+int dect_netlink_init(struct dect_handle *dh, const char *cluster)
 {
 	int err = 0;
 
@@ -281,7 +281,7 @@ int dect_netlink_init(struct dect_handle *dh)
 	if (dect_register_fd(dh, dh->nlfd, DECT_FD_READ))
 		goto err3;
 
-	err = dect_netlink_get_cluster(dh, "cluster0");
+	err = dect_netlink_get_cluster(dh, cluster);
 	if (err < 0)
 		goto err4;
 

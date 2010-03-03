@@ -11,7 +11,7 @@ void pexit(const char *str)
 	exit(1);
 }
 
-void dect_common_init(struct dect_ops *ops)
+void dect_common_init(struct dect_ops *ops, const char *cluster)
 {
 	dect_debug_init();
 	dect_dummy_ops_init(ops);
@@ -23,7 +23,7 @@ void dect_common_init(struct dect_ops *ops)
 	if (dh == NULL)
 		pexit("dect_alloc_handle");
 
-	if (dect_init(dh) < 0)
+	if (dect_init(dh, cluster) < 0)
 		pexit("dect_init");
 }
 

@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 	if (rand_fd < 0)
 		exit(1);
 
-	dect_common_init(&ops);
+	dect_common_init(&ops, argv[1]);
 
 	dect_event_loop();
 

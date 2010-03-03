@@ -14,7 +14,7 @@ extern void dect_event_ops_cleanup(void);
 extern void dect_dummy_ops_init(struct dect_ops *ops);
 extern void dect_debug_init(void);
 
-extern void dect_common_init(struct dect_ops *ops);
+extern void dect_common_init(struct dect_ops *ops, const char *cluster);
 extern void dect_common_cleanup(struct dect_handle *dh);
 
 extern int dect_write_uak(const struct dect_ipui *ipui,

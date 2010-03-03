@@ -557,6 +557,7 @@ static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
 			goto err2;
 
 		ddl->dlei.dect_family = AF_DECT;
+		ddl->dlei.dect_index  = dh->index;
 		ddl->dlei.dect_ari = dect_build_ari(&dh->pari) >> 24;
 		ddl->dlei.dect_pmid = 0xe98a1;
 		ddl->dlei.dect_lln = 1;
@@ -1050,6 +1051,7 @@ int dect_lce_init(struct dect_handle *dh)
 
 	memset(&s_addr, 0, sizeof(s_addr));
 	s_addr.dect_family = AF_DECT;
+	s_addr.dect_index  = dh->index;
 	s_addr.dect_lln    = 1;
 	s_addr.dect_sapi   = 0;
 

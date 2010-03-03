@@ -262,7 +262,7 @@ static struct dect_ops ops = {
 
 int main(int argc, char **argv)
 {
-	dect_common_init(&ops);
+	dect_common_init(&ops, argv[1]);
 #if 0
 	//dect_lce_group_ring(dh, 0xf);
 	dect_open_call(dh, &ipuis[PHONE1]);

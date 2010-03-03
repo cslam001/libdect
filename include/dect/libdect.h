@@ -139,7 +139,7 @@ struct dect_ops {
 extern struct dect_handle *dect_alloc_handle(struct dect_ops *ops);
 extern void dect_close_handle(struct dect_handle *dh);
 
-extern int dect_init(struct dect_handle *dh);
+extern int dect_init(struct dect_handle *dh, const char *cluster);
 
 #ifdef __cplusplus
 }

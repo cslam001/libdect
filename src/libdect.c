@@ -35,11 +35,14 @@ struct dect_handle *dect_alloc_handle(struct dect_ops *ops)
 }
 EXPORT_SYMBOL(dect_alloc_handle);
 
-int dect_init(struct dect_handle *dh)
+int dect_init(struct dect_handle *dh, const char *cluster)
 {
 	int err;
 
-	err = dect_netlink_init(dh);
+	if (cluster == NULL)
+		cluster = "cluster0";
+
+	err = dect_netlink_init(dh, cluster);
 	if (err < 0)
 		goto err1;
 
