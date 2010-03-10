@@ -30,8 +30,7 @@
  * Information Elements
  */
 
-struct dect_ie_common *dect_ie_alloc(const struct dect_handle *dh,
-				     unsigned int size)
+struct dect_ie_common *dect_ie_alloc(const struct dect_handle *dh, size_t size)
 {
 	struct dect_ie_common *ie;
 
