@@ -1636,7 +1636,8 @@ static void dect_mm_rcv_locate_accept(struct dect_handle *dh,
 	 * TPUI or NWK identity assignment begins an identity assignment
 	 * procedure.
 	 */
-	if (param->portable_identity->type == DECT_PORTABLE_ID_TYPE_TPUI ||
+	if ((param->portable_identity &&
+	     param->portable_identity->type == DECT_PORTABLE_ID_TYPE_TPUI) ||
 	    param->nwk_assigned_identity)
 		mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;
 	else {
