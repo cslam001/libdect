@@ -16,6 +16,7 @@
 #define __init			__attribute__((constructor))
 #define __exit			__attribute__((destructor))
 #define __must_check		__attribute__((warn_unused_result))
+#define __maybe_unused		__attribute__((unused))
 #define __noreturn		__attribute__((__noreturn__))
 #define __fmtstring(x, y)	__attribute__((format(printf, x, y)))
 #define __aligned(x)		__attribute__((aligned(x)))
