@@ -263,18 +263,7 @@ static struct dect_ops ops = {
 
 int main(int argc, char **argv)
 {
-	dummy_ops_init(&ops);
-
-	if (dect_event_ops_init(&ops) < 0)
-		exit(1);
-
-	dh = dect_alloc_handle(&ops);
-	if (dh == NULL)
-		exit(1);
-
-	if (dect_init(dh) < 0)
-		exit(1);
-
+	dect_common_init(&ops);
 #if 0
 	//dect_lce_group_ring(dh, 0xf);
 	dect_open_call(dh, &ipuis[PHONE1]);
@@ -283,7 +272,6 @@ int main(int argc, char **argv)
 	dect_open_call(dh, &ipuis[PHONE2]);
 #endif
 	dect_event_loop();
-	dect_close_handle(dh);
-	dect_event_ops_cleanup();
+	dect_common_cleanup(dh);
 	return 0;
 }

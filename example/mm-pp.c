@@ -337,17 +337,7 @@ int main(int argc, char **argv)
 	if (rand_fd < 0)
 		exit(1);
 
-	dummy_ops_init(&ops);
-
-	if (dect_event_ops_init(&ops) < 0)
-		exit(1);
-
-	dh = dect_alloc_handle(&ops);
-	if (dh == NULL)
-		exit(1);
-
-	if (dect_init(dh) < 0)
-		exit(1);
+	dect_common_init(&ops);
 
 	mme = dect_mm_endpoint_alloc(dh, &ipui);
 	if (mme == NULL)
@@ -372,8 +362,7 @@ int main(int argc, char **argv)
 		mm_detach_req(dh, mme);
 	}
 
-	dect_close_handle(dh);
-	dect_event_ops_cleanup();
+	dect_common_cleanup(dh);
 	close(rand_fd);
 	return 0;
 }

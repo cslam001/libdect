@@ -1,7 +1,7 @@
 LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect -levent
 PROGRAMS	+= cc ss mm-fp mm-pp discover hijack
 
-common-obj	+= event_ops.o dummy_ops.o
+common-obj	+= common.o event_ops.o dummy_ops.o
 
 cc-destdir	:= usr/bin
 cc-obj		+= $(common-obj)

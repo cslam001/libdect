@@ -14,12 +14,6 @@
 
 static struct dect_msg_buf msg = { .data = msg.head };
 
-static void pexit(const char *str)
-{
-	perror(str);
-	exit(1);
-}
-
 static void mm_locate_ind(struct dect_handle *dh,
                           struct dect_mm_endpoint *mme,
                           struct dect_mm_locate_param *param)
@@ -112,17 +106,7 @@ int main(int argc, char **argv)
 	slot = atoi(argv[1]);
 	dect_build_msg(&msg, atoi(argv[2]), atoi(argv[3]));
 
-	dummy_ops_init(&ops);
-
-	if (dect_event_ops_init(&ops) < 0)
-		pexit("dect_event_ops_init");
-
-	dh = dect_alloc_handle(&ops);
-	if (dh == NULL)
-		pexit("dect_alloc_handle");
-
-	if (dect_init(dh) < 0)
-		pexit("dect_init");
+	dect_common_init(&ops);
 
 	dfd = dect_raw_socket(dh);
 	if (dfd == NULL)
@@ -144,7 +128,6 @@ int main(int argc, char **argv)
 	dect_unregister_fd(dh, dfd);
 	dect_close(dh, dfd);
 
-	dect_close_handle(dh);
-	dect_event_ops_cleanup();
+	dect_common_cleanup(dh);
 	return 0;
 }
