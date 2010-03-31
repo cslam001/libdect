@@ -6,6 +6,8 @@
 #include <stdbool.h>
 #include <unistd.h>
 
+#include <timer.h>
+
 #ifndef AF_DECT
 #define AF_DECT 37
 #endif
@@ -57,20 +59,6 @@ struct dect_handle;
 extern void *dect_malloc(const struct dect_handle *dh, size_t size);
 extern void *dect_zalloc(const struct dect_handle *dh, size_t size);
 extern void dect_free(const struct dect_handle *dh, void *ptr);
-
-enum dect_timer_state {
-	DECT_TIMER_STOPPED,
-	DECT_TIMER_RUNNING,
-};
-
-extern struct dect_timer *dect_alloc_timer(const struct dect_handle *dh);
-extern void dect_setup_timer(struct dect_timer *timer,
-			     void (*cb)(struct dect_handle *, struct dect_timer *),
-			     void *data);
-extern void dect_start_timer(const struct dect_handle *dh,
-			     struct dect_timer *timer, unsigned int timeout);
-extern void dect_stop_timer(const struct dect_handle *dh, struct dect_timer *timer);
-extern bool dect_timer_running(const struct dect_timer *timer);
 
 extern struct dect_fd *dect_alloc_fd(const struct dect_handle *dh);
 extern void dect_setup_fd(struct dect_fd *fd,
