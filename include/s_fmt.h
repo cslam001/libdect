@@ -1,5 +1,5 @@
-#ifndef _DECT_S_FMT_H
-#define _DECT_S_FMT_H
+#ifndef _LIBDECT_S_FMT_H
+#define _LIBDECT_S_FMT_H
 
 #include <assert.h>
 #include <identities.h>
@@ -416,4 +416,4 @@ extern void dect_msg_free(const struct dect_handle *dh,
 			  const struct dect_sfmt_msg_desc *desc,
 			  struct dect_msg_common *msg);
 
-#endif /* _DECT_S_FMT_H */
+#endif /* _LIBDECT_S_FMT_H */

@@ -1,5 +1,5 @@
-#ifndef _DECT_B_FMT_H
-#define _DECT_B_FMT_H
+#ifndef _LIBDECT_B_FMT_H
+#define _LIBDECT_B_FMT_H
 
 struct dect_short_page_msg {
 	uint8_t		hdr;
@@ -45,4 +45,4 @@ enum lce_request_page_hdr_codes {
 
 #define DECT_LCE_SHORT_PAGE_TPUI_MASK		0xffff
 
-#endif /* _DECT_B_FMT_H */
+#endif /* _LIBDECT_B_FMT_H */

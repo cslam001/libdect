@@ -4,8 +4,8 @@
  * Copyright (c) 2009 Patrick McHardy <kaber@trash.net>
  */
 
-#ifndef _DECT_LCE_H
-#define _DECT_LCE_H
+#ifndef _LIBDECT_LCE_H
+#define _LIBDECT_LCE_H
 
 #include <assert.h>
 #include <linux/dect.h>
@@ -224,4 +224,4 @@ struct dect_lce_page_reject {
 extern int dect_lce_init(struct dect_handle *dh);
 extern void dect_lce_exit(struct dect_handle *dh);
 
-#endif /* _DECT_LCE_H */
+#endif /* _LIBDECT_LCE_H */

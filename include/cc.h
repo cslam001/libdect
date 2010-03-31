@@ -4,8 +4,8 @@
  * Copyright (c) 2009 Patrick McHardy <kaber@trash.net>
  */
 
-#ifndef _DECT_CC_H
-#define _DECT_CC_H
+#ifndef _LIBDECT_CC_H
+#define _LIBDECT_CC_H
 
 /**
  * Call Control message types
@@ -330,4 +330,4 @@ struct dect_call {
 
 #define DECT_CC_SETUP_TIMEOUT		20 /* seconds */
 
-#endif /* _DECT_CC_H */
+#endif /* _LIBDECT_CC_H */

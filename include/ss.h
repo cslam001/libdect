@@ -4,8 +4,8 @@
  * Copyright (c) 2009 Patrick McHardy <kaber@trash.net>
  */
 
-#ifndef _DECT_SS_H
-#define _DECT_SS_H
+#ifndef _LIBDECT_SS_H
+#define _LIBDECT_SS_H
 
 /**
  * Call Independant Supplementary Services messages types
@@ -78,4 +78,4 @@ enum dect_crss_msg_types {
 	CRSS_FACILITY		= 0x62,
 };
 
-#endif
+#endif /* _LIBDECT_SS_H */

@@ -1,5 +1,5 @@
-#ifndef _UTILS_H
-#define _UTILS_H
+#ifndef _LIBDECT_UTILS_H
+#define _LIBDECT_UTILS_H
 
 #include <assert.h>
 #include <stdint.h>
@@ -115,4 +115,4 @@ static inline unsigned int fls(uint64_t v)
 	return len;
 }
 
-#endif /* _UTILS_H */
+#endif /* _LIBDECT_UTILS_H */

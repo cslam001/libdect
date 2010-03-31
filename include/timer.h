@@ -1,5 +1,5 @@
-#ifndef _DECT_TIMER_H
-#define _DECT_TIMER_H
+#ifndef _LIBDECT_TIMER_H
+#define _LIBDECT_TIMER_H
 
 struct dect_handle;
 
@@ -33,4 +33,4 @@ extern void dect_start_timer(const struct dect_handle *dh,
 extern void dect_stop_timer(const struct dect_handle *dh, struct dect_timer *timer);
 extern bool dect_timer_running(const struct dect_timer *timer);
 
-#endif /* _DECT_TIMER_H */
+#endif /* _LIBDECT_TIMER_H */
