@@ -1,30 +1,32 @@
 LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect -levent
 PROGRAMS	+= cc ss mm-fp mm-pp discover hijack
 
+destdir		:= usr/share/dect/examples
+
 common-obj	+= common.o event_ops.o dummy_ops.o
 
-cc-destdir	:= usr/bin
+cc-destdir	:= $(destdir)
 cc-obj		+= $(common-obj)
 cc-obj		+= audio.o
 cc-obj		+= cc.o
 cc-ldflags	+= -lSDL
 
-ss-destdir	:= usr/bin
+ss-destdir	:= $(destdir)
 ss-obj		+= $(common-obj)
 ss-obj		+= ss.o
 
-mm-fp-destdir	:= usr/bin
+mm-fp-destdir	:= $(destdir)
 mm-fp-obj	+= $(common-obj)
 mm-fp-obj	+= mm-fp.o
 
-mm-pp-destdir	:= usr/bin
+mm-pp-destdir	:= $(destdir)
 mm-pp-obj	+= $(common-obj)
 mm-pp-obj	+= mm-pp.o
 
-discover-destdir:= usr/bin
+discover-destdir:= $(destdir)
 discover-obj	+= $(common-obj)
 discover-obj	+= discover.o
 
-hijack-destdir	:= usr/bin
+hijack-destdir	:= $(destdir)
 hijack-obj	+= $(common-obj)
 hijack-obj	+= hijack.o
