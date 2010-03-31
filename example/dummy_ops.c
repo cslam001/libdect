@@ -110,6 +110,9 @@ static void mm_access_rights_ind(struct dect_handle *dh,
 				 struct dect_mm_endpoint *mme,
 				 struct dect_mm_access_rights_param *param)
 {
+	struct dect_mm_access_rights_param reply = {};
+
+	dect_mm_access_rights_res(dh, mme, false, &reply);
 }
 
 static void mm_access_rights_cfm(struct dect_handle *dh,
@@ -122,6 +125,9 @@ static void mm_access_rights_terminate_ind(struct dect_handle *dh,
 					   struct dect_mm_endpoint *mme,
 					   struct dect_mm_access_rights_terminate_param *param)
 {
+	struct dect_mm_access_rights_terminate_param reply = {};
+
+	dect_mm_access_rights_terminate_res(dh, mme, false, &reply);
 }
 
 static void mm_access_rights_terminate_cfm(struct dect_handle *dh,
@@ -140,6 +146,9 @@ static void mm_authenticate_ind(struct dect_handle *dh,
 				struct dect_mm_endpoint *mme,
 				struct dect_mm_authenticate_param *param)
 {
+	struct dect_mm_authenticate_param reply = {};
+
+	dect_mm_authenticate_res(dh, mme, false, &reply);
 }
 
 static void mm_authenticate_cfm(struct dect_handle *dh,
@@ -152,6 +161,9 @@ static void mm_cipher_ind(struct dect_handle *dh,
 			  struct dect_mm_endpoint *mme,
 			  struct dect_mm_cipher_param *param)
 {
+	struct dect_mm_cipher_param reply = {};
+
+	dect_mm_cipher_res(dh, mme, false, &reply, NULL);
 }
 
 static void mm_cipher_cfm(struct dect_handle *dh,
@@ -164,6 +176,9 @@ static void mm_locate_ind(struct dect_handle *dh,
 			  struct dect_mm_endpoint *mme,
 			  struct dect_mm_locate_param *param)
 {
+	struct dect_mm_locate_param reply = {};
+
+	dect_mm_locate_res(dh, mme, false, &reply);
 }
 
 static void mm_locate_cfm(struct dect_handle *dh,
@@ -194,6 +209,9 @@ static void mm_identity_assign_ind(struct dect_handle *dh,
 				   struct dect_mm_endpoint *mme,
 				   struct dect_mm_identity_assign_param *param)
 {
+	struct dect_mm_identity_assign_param reply = {};
+
+	dect_mm_identity_assign_res(dh, mme, false, &reply);
 }
 
 static void mm_identity_assign_cfm(struct dect_handle *dh,
@@ -206,6 +224,9 @@ static void mm_info_ind(struct dect_handle *dh,
 			struct dect_mm_endpoint *mme,
 			struct dect_mm_info_param *param)
 {
+	struct dect_mm_info_param reply = {};
+
+	dect_mm_info_res(dh, mme, false, &reply);
 }
 
 static void mm_info_cfm(struct dect_handle *dh,
@@ -221,6 +242,10 @@ static void mm_iwu_ind(struct dect_handle *dh,
 }
 
 static struct dect_mm_ops dummy_mm_ops;
+
+/*
+ * SS Ops
+ */
 
 static void mnss_setup_ind(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 			   struct dect_mnss_param *param)
