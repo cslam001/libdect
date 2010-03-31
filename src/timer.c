@@ -18,6 +18,12 @@ struct dect_timer *dect_alloc_timer(const struct dect_handle *dh)
 }
 EXPORT_SYMBOL(dect_alloc_timer);
 
+void *dect_timer_priv(struct dect_timer *timer)
+{
+	return timer->priv;
+}
+EXPORT_SYMBOL(dect_timer_priv);
+
 void dect_setup_timer(struct dect_timer *timer,
 		      void (*cb)(struct dect_handle *, struct dect_timer *),
 		      void *data)
@@ -56,3 +62,10 @@ bool dect_timer_running(const struct dect_timer *timer)
 	return timer->state == DECT_TIMER_RUNNING;
 }
 EXPORT_SYMBOL(dect_timer_running);
+
+void dect_run_timer(struct dect_handle *dh, struct dect_timer *timer)
+{
+	timer->state = DECT_TIMER_STOPPED;
+	timer->callback(dh, timer);
+}
+EXPORT_SYMBOL(dect_run_timer);

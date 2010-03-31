@@ -49,16 +49,14 @@ static void unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd)
 
 static void timer_expire(int fd, short mask, void *data)
 {
-	struct dect_timer *timer = data;
-
-	timer->callback(dh, timer);
+	dect_run_timer(dh, data);
 }
 
 static void start_timer(const struct dect_handle *dh,
 			struct dect_timer *timer,
 			const struct timeval *tv)
 {
-	struct event *ev = (struct event *)timer->priv;
+	struct event *ev = dect_timer_priv(timer);
 
 	evtimer_set(ev, timer_expire, timer);
 	evtimer_add(ev, (struct timeval *)tv);
@@ -66,7 +64,7 @@ static void start_timer(const struct dect_handle *dh,
 
 static void stop_timer(const struct dect_handle *dh, struct dect_timer *timer)
 {
-	struct event *ev = (struct event *)timer->priv;
+	struct event *ev = dect_timer_priv(timer);
 
 	evtimer_del(ev);
 }
