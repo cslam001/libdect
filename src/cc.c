@@ -21,6 +21,7 @@
 #include <s_fmt.h>
 #include <lce.h>
 #include <cc.h>
+#include <ss.h>
 
 static DECT_SFMT_MSG_DESC(cc_setup,
 	DECT_SFMT_IE(S_VL_IE_PORTABLE_IDENTITY,		IE_MANDATORY, IE_MANDATORY, 0),
@@ -284,6 +285,12 @@ static DECT_SFMT_MSG_DESC(cc_notify,
 );
 
 static DECT_SFMT_MSG_DESC(cc_iwu_info,
+	DECT_SFMT_IE_END_MSG
+);
+
+static DECT_SFMT_MSG_DESC(crss_hold,
+	DECT_SFMT_IE(S_DO_IE_SINGLE_DISPLAY,		IE_OPTIONAL,  IE_NONE,      0),
+	DECT_SFMT_IE(S_VL_IE_ESCAPE_TO_PROPRIETARY,	IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE_END_MSG
 );
 
@@ -779,7 +786,13 @@ EXPORT_SYMBOL(dect_mncc_modify_res);
 int dect_mncc_hold_req(struct dect_handle *dh, struct dect_call *call,
 		       const struct dect_mncc_hold_param *param)
 {
+	struct dect_crss_hold_msg msg = {
+		.display			= param->display,
+		.escape_to_proprietary		= param->escape_to_proprietary,
+	};
+
 	cc_debug_entry(call, "MNCC_HOLD-req");
+	dect_cc_send_msg(dh, call, &crss_hold_msg_desc, &msg.common, CRSS_HOLD);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mncc_hold_req);

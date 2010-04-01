@@ -278,6 +278,12 @@ struct dect_cc_iwu_info_msg {
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
+struct dect_crss_hold_msg {
+	struct dect_msg_common			common;
+	struct dect_ie_display			*display;
+	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+};
+
 /**
  * enum dect_cc_states - CC call states
  *
