@@ -185,7 +185,6 @@ static int dect_sfmt_parse_single_keypad(const struct dect_handle *dh,
 
 	dst->info[0] = src->data[1];
 	dst->len = 1;
-	dect_debug("single keypad: '%c'\n", dst->info[0]);
 	return 0;
 }
 
@@ -937,7 +936,6 @@ static int dect_sfmt_parse_multi_keypad(const struct dect_handle *dh,
 
 	dst->len = src->len - 2;
 	memcpy(dst->info, src->data + 2, src->len - 2);
-	dect_debug("multi-keypad: '%.*s'\n", dst->len, dst->info);
 	return 0;
 }
 
