@@ -1,7 +1,7 @@
 /*
  * DECT Mobility Management (MM)
  *
- * Copyright (c) 2009 Patrick McHardy <kaber@trash.net>
+ * Copyright (c) 2009-2010 Patrick McHardy <kaber@trash.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -326,14 +326,154 @@ static DECT_SFMT_MSG_DESC(mm_notify_msg,
 );
 
 #define __mm_debug(mme, pfx, fmt, args...) \
-	dect_debug("%sMM (link %d): " fmt "\n", (pfx), \
-		   (mme)->link->dfd ? (mme)->link->dfd->fd : -1, \
+	dect_debug("%sMM: link %d (%s): " fmt "\n", (pfx), \
+		   (mme)->link && (mme)->link->dfd ? (mme)->link->dfd->fd : -1, \
+		   (mme)->current ? dect_mm_proc[(mme)->current->type].name : "none", \
 		   ## args)
 
 #define mm_debug(mme, fmt, args...) \
 	__mm_debug(mme, "", fmt, ## args)
 #define mm_debug_entry(mme, fmt, args...) \
 	__mm_debug(mme, "\n", fmt, ## args)
+
+/*
+ * MM Procedure Management
+ */
+
+struct dect_mm_proc {
+	const char	*name;
+	void		(*abort)(struct dect_handle *dh,
+				 struct dect_mm_endpoint *mme,
+				 struct dect_mm_procedure *mp);
+	struct {
+		uint8_t	priority;
+		uint8_t	timeout;
+	} param[2];
+};
+
+static const struct dect_mm_proc dect_mm_proc[DECT_MMP_MAX + 1];
+
+static int dect_mm_procedure_initiate(struct dect_handle *dh,
+				      struct dect_mm_endpoint *mme,
+				      enum dect_mm_procedures type)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	const struct dect_mm_proc *proc = &dect_mm_proc[type];
+	uint8_t priority;
+	int err;
+
+	priority = proc->param[dh->mode].priority;
+	mm_debug(mme, "initiate procedure: %s priority: %u timeout: %us",
+		 proc->name, priority, proc->param[dh->mode].timeout);
+
+	/* Invalid procedure */
+	if (priority == 0)
+		return -1;
+
+	/* Higher priority procedure active */
+	if (mme->current != NULL &&
+	    mme->current->priority <= priority)
+		return -1;
+
+	if (mp->type != DECT_MMP_NONE) {
+		mm_debug(mme, "cancel procedure");
+		if (dect_timer_running(mp->timer))
+			dect_stop_timer(dh, mp->timer);
+		dect_mm_proc[mp->type].abort(dh, mme, mp);
+	} else {
+		err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link, DECT_PD_MM);
+		if (err < 0)
+			return err;
+	}
+
+	mp->type     = type;
+	mp->priority = priority;
+	dect_start_timer(dh, mp->timer, proc->param[dh->mode].timeout);
+	mme->current = mp;
+	return 0;
+}
+
+static int dect_mm_procedure_respond(struct dect_handle *dh,
+				     struct dect_mm_endpoint *mme,
+				     enum dect_mm_procedures type)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	const struct dect_mm_proc *proc = &dect_mm_proc[type];
+	uint8_t priority;
+
+	priority = proc->param[!dh->mode].priority;
+	mm_debug(mme, "respond to procedure: %s priority: %u",
+		 proc->name, priority);
+
+	/* Invalid procedure */
+	if (priority == 0)
+		return -1;
+
+	/* Higher priority procedure active */
+	if (mme->current != NULL &&
+	    mme->current->priority <= priority)
+		return -1;
+
+	if (mp->type != DECT_MMP_NONE)
+		return -1;
+
+	mp->type     = type;
+	mp->priority = priority;
+	mme->current = mp;
+	return 0;
+}
+
+static void dect_mm_procedure_complete(struct dect_handle *dh,
+				       struct dect_mm_endpoint *mme,
+				       struct dect_mm_procedure *mp)
+{
+	mm_debug(mme, "complete procedure");
+
+	if (dect_timer_running(mp->timer))
+		dect_stop_timer(dh, mp->timer);
+
+	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	mp->type = DECT_MMP_NONE;
+
+	if (mme->procedure[!mme->current->role].type != DECT_MMP_NONE)
+		mme->current = &mme->procedure[!mme->current->role];
+	else
+		mme->current = NULL;
+}
+
+#define dect_mm_procedure_cancel dect_mm_procedure_complete
+
+static void dect_mm_procedure_timeout(struct dect_handle *dh,
+				      struct dect_timer *timer)
+{
+	struct dect_mm_procedure *mp = timer->data;
+	struct dect_mm_endpoint *mme;
+	enum dect_mm_procedures type = mp->type;
+
+	mme = container_of(mp, struct dect_mm_endpoint, procedure[mp->role]);
+	mm_debug(mme, "procedure timeout");
+
+	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_proc[type].abort(dh, mme, mp);
+}
+
+static int dect_mm_procedure_init(struct dect_handle *dh,
+				  struct dect_mm_endpoint *mme,
+				  enum dect_transaction_role role)
+{
+	struct dect_mm_procedure *mp = &mme->procedure[role];
+
+	mp->role  = role;
+	mp->timer = dect_alloc_timer(dh);
+	if (mp->timer == NULL)
+		return -1;
+	dect_setup_timer(mp->timer, dect_mm_procedure_timeout, mp);
+	return 0;
+}
+
+/*
+ * MM Endpoints
+ */
 
 void *dect_mm_priv(struct dect_mm_endpoint *mme)
 {
@@ -362,13 +502,9 @@ struct dect_mm_endpoint *dect_mm_endpoint_alloc(struct dect_handle *dh,
 	mme = dect_zalloc(dh, sizeof(*mme) + dh->ops->mm_ops->priv_size);
 	if (mme == NULL)
 		goto err1;
-
-	mme->procedure[DECT_TRANSACTION_INITIATOR].timer = dect_alloc_timer(dh);
-	if (mme->procedure[DECT_TRANSACTION_INITIATOR].timer == NULL)
+	if (dect_mm_procedure_init(dh, mme, DECT_TRANSACTION_INITIATOR) < 0)
 		goto err2;
-
-	mme->procedure[DECT_TRANSACTION_RESPONDER].timer = dect_alloc_timer(dh);
-	if (mme->procedure[DECT_TRANSACTION_RESPONDER].timer == NULL)
+	if (dect_mm_procedure_init(dh, mme, DECT_TRANSACTION_RESPONDER) < 0)
 		goto err3;
 
 	if (ipui != NULL)
@@ -421,6 +557,10 @@ static int dect_mm_send_msg(const struct dect_handle *dh,
 	(void)0;						\
 })
 
+/*
+ * Key Allocation
+ */
+
 /**
  * dect_mm_key_allocate_req - MM_KEY_ALLOCATE-req primitive
  *
@@ -437,11 +577,7 @@ int dect_mm_key_allocate_req(struct dect_handle *dh,
 	int err;
 
 	mm_debug_entry(mme, "MM_KEY_ALLOCATE-req");
-	if (mp->type != DECT_MMP_NONE)
-		return -1;
-
-	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
-					DECT_PD_MM);
+	err = dect_mm_procedure_initiate(dh, mme, DECT_MMP_KEY_ALLOCATION);
 	if (err < 0)
 		goto err1;
 
@@ -456,11 +592,10 @@ int dect_mm_key_allocate_req(struct dect_handle *dh,
 	if (err < 0)
 		goto err2;
 
-	mp->type = DECT_MMP_KEY_ALLOCATION;
 	return 0;
 
 err2:
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_mm_procedure_cancel(dh, mme, mp);
 err1:
 	return err;
 }
@@ -475,30 +610,37 @@ static void dect_mm_rcv_key_allocate(struct dect_handle *dh,
 	struct dect_mm_key_allocate_param *param;
 
 	mm_debug(mme, "KEY-ALLOCATE");
-	if (mp->type != DECT_MMP_NONE)
+	if (dect_mm_procedure_respond(dh, mme, DECT_MMP_KEY_ALLOCATION) < 0)
 		return;
 
 	if (dect_parse_sfmt_msg(dh, &mm_key_allocate_msg_desc,
 				&msg.common, mb) < 0)
-		return;
+		goto err1;
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
-		goto err1;
+		goto err2;
 
 	param->allocation_type		= dect_ie_hold(msg.allocation_type);
 	param->rand			= dect_ie_hold(msg.rand);
 	param->rs			= dect_ie_hold(msg.rs);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	mp->type = DECT_MMP_KEY_ALLOCATION;
-
 	mm_debug(mme, "MM_KEY_ALLOCATE-ind");
 	dh->ops->mm_ops->mm_key_allocate_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
-err1:
+
+	return dect_msg_free(dh, &mm_key_allocate_msg_desc, &msg.common);
+
+err2:
 	dect_msg_free(dh, &mm_key_allocate_msg_desc, &msg.common);
+err1:
+	dect_mm_procedure_cancel(dh, mme, mp);
 }
+
+/*
+ * Authentication
+ */
 
 /**
  * dect_mm_authenticate_req - MM_AUTHENTICATE-req primitive
@@ -516,11 +658,7 @@ int dect_mm_authenticate_req(struct dect_handle *dh,
 	int err;
 
 	mm_debug_entry(mme, "MM_AUTHENTICATE-req");
-	if (mp->type != DECT_MMP_NONE)
-		return -1;
-
-	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
-					DECT_PD_MM);
+	err = dect_mm_procedure_initiate(dh, mme, DECT_MMP_AUTHENTICATE);
 	if (err < 0)
 		goto err1;
 
@@ -538,18 +676,17 @@ int dect_mm_authenticate_req(struct dect_handle *dh,
 	if (err < 0)
 		goto err2;
 
-	mp->type = DECT_MMP_AUTHENTICATE;
 	return 0;
 
 err2:
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_mm_procedure_cancel(dh, mme, mp);
 err1:
 	return err;
 }
 EXPORT_SYMBOL(dect_mm_authenticate_req);
 
 static int dect_mm_send_authenticate_reply(const struct dect_handle *dh,
-					   struct dect_mm_procedure *mp,
+					   const struct dect_mm_procedure *mp,
 					   const struct dect_mm_authenticate_param *param)
 {
 	struct dect_mm_authentication_reply_msg msg = {
@@ -567,7 +704,7 @@ static int dect_mm_send_authenticate_reply(const struct dect_handle *dh,
 }
 
 static int dect_mm_send_authenticate_reject(const struct dect_handle *dh,
-					    struct dect_mm_procedure *mp,
+					    const struct dect_mm_procedure *mp,
 					    const struct dect_mm_authenticate_param *param)
 {
 	struct dect_mm_authentication_reject_msg msg = {
@@ -593,14 +730,12 @@ int dect_mm_authenticate_res(struct dect_handle *dh,
 			     struct dect_mm_endpoint *mme, bool accept,
 			     const struct dect_mm_authenticate_param *param)
 {
-	struct dect_mm_procedure *mpi = &mme->procedure[DECT_TRANSACTION_INITIATOR];
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_procedure *mp = mme->current;
 	int err;
 
 	mm_debug_entry(mme, "MM_AUTHENTICATE-res: accept: %u", accept);
-	if (mpi->type == DECT_MMP_KEY_ALLOCATION)
-		mp = mpi;
-	else if (mp->type != DECT_MMP_AUTHENTICATE)
+	if (mp->type != DECT_MMP_AUTHENTICATE &&
+	    mp->type != DECT_MMP_KEY_ALLOCATION)
 		return -1;
 
 	if (accept)
@@ -611,8 +746,7 @@ int dect_mm_authenticate_res(struct dect_handle *dh,
 	if (err < 0)
 		return err;
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mm_authenticate_res);
@@ -630,7 +764,7 @@ static void dect_mm_rcv_authentication_request(struct dect_handle *dh,
 	mm_debug(mme, "AUTHENTICATION-REQUEST");
 	if (mpi->type == DECT_MMP_KEY_ALLOCATION)
 		mp = mpi;
-	else if (mp->type != DECT_MMP_NONE)
+	else if (dect_mm_procedure_respond(dh, mme, DECT_MMP_AUTHENTICATE) < 0)
 		return;
 
 	err = dect_parse_sfmt_msg(dh, &mm_authentication_request_msg_desc,
@@ -658,6 +792,15 @@ static void dect_mm_rcv_authentication_request(struct dect_handle *dh,
 	dect_ie_collection_put(dh, param);
 err1:
 	dect_msg_free(dh, &mm_authentication_request_msg_desc, &msg.common);
+}
+
+static void dect_mm_authentication_abort(struct dect_handle *dh,
+					 struct dect_mm_endpoint *mme,
+					 struct dect_mm_procedure *mp)
+
+{
+	mm_debug(mme, "MM_AUTHENTICATE-cfm: accept: 0");
+	dh->ops->mm_ops->mm_authenticate_cfm(dh, mme, false, NULL);
 }
 
 static void dect_mm_rcv_authentication_reply(struct dect_handle *dh,
@@ -688,8 +831,7 @@ static void dect_mm_rcv_authentication_reply(struct dect_handle *dh,
 	param->iwu_to_iwu		= *dect_ie_list_hold(&msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_AUTHENTICATE-cfm: accept: 1");
 	dh->ops->mm_ops->mm_authenticate_cfm(dh, mme, true, param);
@@ -715,13 +857,12 @@ static void dect_mm_rcv_authentication_reject(struct dect_handle *dh,
 	if (param == NULL)
 		goto err1;
 
-	//param->auth_type	= *dect_ie_list_hold(&msg.auth_type);
+	//param->auth_type		= *dect_ie_list_hold(&msg.auth_type);
 	param->reject_reason		= dect_ie_hold(msg.reject_reason);
 	param->iwu_to_iwu		= *dect_ie_list_hold(&msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_AUTHENTICATE-cfm: accept: 0");
 	dh->ops->mm_ops->mm_authenticate_cfm(dh, mme, false, param);
@@ -729,6 +870,10 @@ static void dect_mm_rcv_authentication_reject(struct dect_handle *dh,
 err1:
 	dect_msg_free(dh, &mm_authentication_reject_msg_desc, &msg.common);
 }
+
+/*
+ * Ciphering
+ */
 
 /**
  * dect_mm_cipher_req - MM_CIPHER-req primitive
@@ -747,11 +892,7 @@ int dect_mm_cipher_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	int err;
 
 	mm_debug_entry(mme, "MM_CIPHER-req");
-	if (mp->type != DECT_MMP_NONE)
-		return -1;
-
-	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
-					DECT_PD_MM);
+	err = dect_mm_procedure_initiate(dh, mme, DECT_MMP_CIPHER);
 	if (err < 0)
 		goto err1;
 
@@ -777,21 +918,20 @@ int dect_mm_cipher_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	if (err < 0)
 		goto err2;
 
-	mp->type = DECT_MMP_CIPHER;
 	return 0;
 
 err2:
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_mm_procedure_cancel(dh, mme, mp);
 err1:
 	return err;
 }
 EXPORT_SYMBOL(dect_mm_cipher_req);
 
 static int dect_mm_send_cipher_reject(const struct dect_handle *dh,
-				      struct dect_mm_procedure *mp,
+				      const struct dect_mm_procedure *mp,
 				      const struct dect_mm_cipher_param *param)
 {
-	struct dect_mm_locate_reject_msg msg = {
+	struct dect_mm_cipher_reject_msg msg = {
 		//.cipher_info		= param->cipher_info,
 		.reject_reason		= param->reject_reason,
 		.escape_to_proprietary	= param->escape_to_proprietary,
@@ -849,17 +989,19 @@ static void dect_mm_rcv_cipher_request(struct dect_handle *dh,
 	enum dect_sfmt_error err;
 
 	mm_debug(mme, "CIPHER-REQUEST");
-	if (mp->type != DECT_MMP_NONE)
+	if (dect_mm_procedure_respond(dh, mme, DECT_MMP_CIPHER) < 0)
 		return;
 
 	err = dect_parse_sfmt_msg(dh, &mm_cipher_request_msg_desc,
 				  &msg.common, mb);
-	if (err < 0)
-		return dect_mm_send_reject(dh, mp, cipher, err);
+	if (err < 0) {
+		dect_mm_send_reject(dh, mp, cipher, err);
+		goto err1;
+	}
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
-		goto err1;
+		goto err2;
 
 	param->cipher_info		= dect_ie_hold(msg.cipher_info);
 	param->call_identity		= dect_ie_hold(msg.call_identity);
@@ -867,12 +1009,16 @@ static void dect_mm_rcv_cipher_request(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	mp->type = DECT_MMP_CIPHER;
-
 	mm_debug(mme, "MM_CIPHER-ind");
 	dh->ops->mm_ops->mm_cipher_ind(dh, mme, param);
-err1:
+	dect_ie_collection_put(dh, param);
+
+	return dect_msg_free(dh, &mm_cipher_request_msg_desc, &msg.common);
+
+err2:
 	dect_msg_free(dh, &mm_cipher_request_msg_desc, &msg.common);
+err1:
+	dect_mm_procedure_cancel(dh, mme, mp);
 }
 
 static void dect_mm_rcv_cipher_suggest(struct dect_handle *dh,
@@ -884,16 +1030,16 @@ static void dect_mm_rcv_cipher_suggest(struct dect_handle *dh,
 	struct dect_mm_cipher_param *param;
 
 	mm_debug(mme, "CIPHER-SUGGEST");
-	if (mp->type != DECT_MMP_NONE)
+	if (dect_mm_procedure_respond(dh, mme, DECT_MMP_CIPHER) < 0)
 		return;
 
 	if (dect_parse_sfmt_msg(dh, &mm_cipher_suggest_msg_desc,
 				&msg.common, mb) < 0)
-		return;
+		goto err1;
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
-		goto err1;
+		goto err2;
 
 	param->cipher_info		= dect_ie_hold(msg.cipher_info);
 	param->call_identity		= dect_ie_hold(msg.call_identity);
@@ -901,12 +1047,24 @@ static void dect_mm_rcv_cipher_suggest(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	mp->type = DECT_MMP_CIPHER;
-
 	mm_debug(mme, "MM_CIPHER-ind");
 	dh->ops->mm_ops->mm_cipher_ind(dh, mme, param);
-err1:
+	dect_ie_collection_put(dh, param);
+
+	return dect_msg_free(dh, &mm_cipher_suggest_msg_desc, &msg.common);
+
+err2:
 	dect_msg_free(dh, &mm_cipher_suggest_msg_desc, &msg.common);
+err1:
+	dect_mm_procedure_cancel(dh, mme, mp);
+}
+
+static void dect_mm_cipher_abort(struct dect_handle *dh,
+				 struct dect_mm_endpoint *mme,
+				 struct dect_mm_procedure *mp)
+{
+	mm_debug(mme, "MM_CIPHER-cfm: accept: 0");
+	dh->ops->mm_ops->mm_cipher_cfm(dh, mme, false, NULL);
 }
 
 static void dect_mm_rcv_cipher_reject(struct dect_handle *dh,
@@ -930,11 +1088,11 @@ static void dect_mm_rcv_cipher_reject(struct dect_handle *dh,
 	param->reject_reason		= dect_ie_hold(msg.reject_reason);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_CIPHER-cfm: accept: 0");
 	dh->ops->mm_ops->mm_cipher_cfm(dh, mme, false, param);
+	dect_ie_collection_put(dh, param);
 err1:
 	dect_msg_free(dh, &mm_cipher_reject_msg_desc, &msg.common);
 }
@@ -945,8 +1103,8 @@ static void dect_mm_cipher_cfm(struct dect_handle *dh,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 
 	mm_debug(mme, "CIPHER-cfm");
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+
+	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_CIPHER-cfm: accept: 1");
 	dh->ops->mm_ops->mm_cipher_cfm(dh, mme, true, NULL);
@@ -961,6 +1119,10 @@ static void dect_mm_encrypt_ind(struct dect_handle *dh, struct dect_transaction 
 	if (mp->type == DECT_MMP_CIPHER)
 		dect_mm_cipher_cfm(dh, mme);
 }
+
+/*
+ * Access rights requests
+ */
 
 /**
  * dect_mm_access_rights_req - MM_ACCESS_RIGHTS-req primitive
@@ -978,11 +1140,7 @@ int dect_mm_access_rights_req(struct dect_handle *dh,
 	int err;
 
 	mm_debug_entry(mme, "MM_ACCESS_RIGHTS-req");
-	if (mp->type != DECT_MMP_NONE)
-		return -1;
-
-	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
-				        DECT_PD_MM);
+	err = dect_mm_procedure_initiate(dh, mme, DECT_MMP_ACCESS_RIGHTS);
 	if (err < 0)
 		goto err1;
 
@@ -1001,18 +1159,17 @@ int dect_mm_access_rights_req(struct dect_handle *dh,
 	if (err < 0)
 		goto err2;
 
-	mp->type = DECT_MMP_ACCESS_RIGHTS;
 	return 0;
 
 err2:
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_mm_procedure_cancel(dh, mme, mp);
 err1:
-	return -1;
+	return err;
 }
 EXPORT_SYMBOL(dect_mm_access_rights_req);
 
 static int dect_mm_send_access_rights_accept(const struct dect_handle *dh,
-					     struct dect_mm_procedure *mp,
+					     const struct dect_mm_procedure *mp,
 					     const struct dect_mm_access_rights_param *param)
 {
 	struct dect_ie_fixed_identity fixed_identity;
@@ -1041,7 +1198,7 @@ static int dect_mm_send_access_rights_accept(const struct dect_handle *dh,
 }
 
 static int dect_mm_send_access_rights_reject(const struct dect_handle *dh,
-					     struct dect_mm_procedure *mp,
+					     const struct dect_mm_procedure *mp,
 					     const struct dect_mm_access_rights_param *param)
 {
 	struct dect_mm_access_rights_reject_msg msg = {
@@ -1082,8 +1239,7 @@ int dect_mm_access_rights_res(struct dect_handle *dh,
 	if (err < 0)
 		return err;
 
-	mp->type = DECT_MMP_NONE;
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_mm_procedure_complete(dh, mme, mp);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mm_access_rights_res);
@@ -1098,20 +1254,22 @@ static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
 	enum dect_sfmt_error err;
 
 	mm_debug(mme, "ACCESS-RIGHTS-REQUEST");
-	if (mp->type != DECT_MMP_NONE)
+	if (dect_mm_procedure_respond(dh, mme, DECT_MMP_ACCESS_RIGHTS) < 0)
 		return;
 
 	err = dect_parse_sfmt_msg(dh, &mm_access_rights_request_msg_desc,
 				  &msg.common, mb);
-	if (err < 0)
-		return dect_mm_send_reject(dh, mp, access_rights, err);
+	if (err < 0) {
+		dect_mm_send_reject(dh, mp, access_rights, err);
+		goto err1;
+	}
 
 	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
-		return;
+		goto err2;
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
-		goto err1;
+		goto err2;
 
 	param->portable_identity	= dect_ie_hold(msg.portable_identity);
 	param->auth_type		= dect_ie_hold(msg.auth_type);
@@ -1121,13 +1279,24 @@ static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 	param->codec_list		= dect_ie_hold(msg.codec_list);
 
-	mp->type = DECT_MMP_ACCESS_RIGHTS;
-
 	mm_debug(mme, "MM_ACCESS_RIGHTS-ind");
 	dh->ops->mm_ops->mm_access_rights_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
-err1:
+
+	return dect_msg_free(dh, &mm_access_rights_request_msg_desc, &msg.common);
+
+err2:
 	dect_msg_free(dh, &mm_access_rights_request_msg_desc, &msg.common);
+err1:
+	dect_mm_procedure_complete(dh, mme, mp);
+}
+
+static void dect_mm_access_rights_abort(struct dect_handle *dh,
+					struct dect_mm_endpoint *mme,
+					struct dect_mm_procedure *mp)
+{
+	mm_debug(mme, "MM_ACCESS_RIGHTS-cfm: accept: 0");
+	dh->ops->mm_ops->mm_access_rights_cfm(dh, mme, false, NULL);
 }
 
 static void dect_mm_rcv_access_rights_accept(struct dect_handle *dh,
@@ -1162,8 +1331,7 @@ static void dect_mm_rcv_access_rights_accept(struct dect_handle *dh,
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 	param->codec_list		= dect_ie_hold(msg.codec_list);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_ACCESS_RIGHTS-cfm: accept: 1");
 	dh->ops->mm_ops->mm_access_rights_cfm(dh, mme, true, param);
@@ -1194,8 +1362,7 @@ static void dect_mm_rcv_access_rights_reject(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_ACCESS_RIGHTS-cfm: accept: 0");
 	dh->ops->mm_ops->mm_access_rights_cfm(dh, mme, false, param);
@@ -1203,6 +1370,10 @@ static void dect_mm_rcv_access_rights_reject(struct dect_handle *dh,
 err1:
 	dect_msg_free(dh, &mm_access_rights_reject_msg_desc, &msg.common);
 }
+
+/*
+ * Access rights termination
+ */
 
 /**
  * dect_mm_access_rights_terminate_req - MM_ACCESS_RIGHTS_TERMINATE-req primitive
@@ -1221,11 +1392,7 @@ int dect_mm_access_rights_terminate_req(struct dect_handle *dh,
 	int err;
 
 	mm_debug_entry(mme, "MM_ACCESS_RIGHTS_TERMINATE-req");
-	if (mp->type != DECT_MMP_NONE)
-		return -1;
-
-	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
-					DECT_PD_MM);
+	err = dect_mm_procedure_initiate(dh, mme, DECT_MMP_ACCESS_RIGHTS_TERMINATE);
 	if (err < 0)
 		goto err1;
 
@@ -1247,18 +1414,17 @@ int dect_mm_access_rights_terminate_req(struct dect_handle *dh,
 	if (err < 0)
 		goto err2;
 
-	mp->type = DECT_MMP_ACCESS_RIGHTS_TERMINATE;
 	return 0;
 
 err2:
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_mm_procedure_cancel(dh, mme, mp);
 err1:
 	return err;
 }
 EXPORT_SYMBOL(dect_mm_access_rights_terminate_req);
 
 static int dect_mm_send_access_rights_terminate_accept(const struct dect_handle *dh,
-						       struct dect_mm_procedure *mp,
+						       const struct dect_mm_procedure *mp,
 						       const struct dect_mm_access_rights_terminate_param *param)
 {
 	struct dect_mm_access_rights_terminate_accept_msg msg = {
@@ -1270,7 +1436,7 @@ static int dect_mm_send_access_rights_terminate_accept(const struct dect_handle 
 }
 
 static int dect_mm_send_access_rights_terminate_reject(const struct dect_handle *dh,
-						       struct dect_mm_procedure *mp,
+						       const struct dect_mm_procedure *mp,
 						       const struct dect_mm_access_rights_terminate_param *param)
 {
 	struct dect_mm_access_rights_terminate_reject_msg msg = {
@@ -1310,8 +1476,7 @@ int dect_mm_access_rights_terminate_res(struct dect_handle *dh,
 	if (err < 0)
 		return err;
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mm_access_rights_terminate_res);
@@ -1326,30 +1491,43 @@ static void dect_mm_rcv_access_rights_terminate_request(struct dect_handle *dh,
 	enum dect_sfmt_error err;
 
 	mm_debug(mme, "ACCESS-RIGHTS-TERMINATE-REQUEST");
-	if (mp->type != DECT_MMP_NONE)
+	if (dect_mm_procedure_respond(dh, mme, DECT_MMP_ACCESS_RIGHTS_TERMINATE) < 0)
 		return;
 
 	err = dect_parse_sfmt_msg(dh, &mm_access_rights_terminate_request_msg_desc,
 				  &msg.common, mb);
-	if (err < 0)
-		return dect_mm_send_reject(dh, mp, access_rights_terminate, err);
+	if (err < 0) {
+		dect_mm_send_reject(dh, mp, access_rights_terminate, err);
+		goto err1;
+	}
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
-		goto err1;
+		goto err2;
 
 	param->portable_identity	= dect_ie_hold(msg.portable_identity);
 	param->fixed_identity		= *dect_ie_list_hold(&msg.fixed_identity);
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	mp->type = DECT_MMP_ACCESS_RIGHTS_TERMINATE;
-
 	mm_debug(mme, "MM_ACCESS_RIGHTS_TERMINATE-ind");
 	dh->ops->mm_ops->mm_access_rights_terminate_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
-err1:
+
+	return dect_msg_free(dh, &mm_access_rights_terminate_request_msg_desc, &msg.common);
+
+err2:
 	dect_msg_free(dh, &mm_access_rights_terminate_request_msg_desc, &msg.common);
+err1:
+	dect_mm_procedure_complete(dh, mme, mp);
+}
+
+static void dect_mm_access_rights_terminate_abort(struct dect_handle *dh,
+						  struct dect_mm_endpoint *mme,
+						  struct dect_mm_procedure *mp)
+{
+	mm_debug(mme, "MM_ACCESS_RIGHTS_TERMINATE-cfm: accept: 0");
+	dh->ops->mm_ops->mm_access_rights_terminate_cfm(dh, mme, false, NULL);
 }
 
 static void dect_mm_rcv_access_rights_terminate_accept(struct dect_handle *dh,
@@ -1374,8 +1552,7 @@ static void dect_mm_rcv_access_rights_terminate_accept(struct dect_handle *dh,
 
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_ACCESS_RIGHTS_TERMINATE-cfm: accept: 1");
 	dh->ops->mm_ops->mm_access_rights_terminate_cfm(dh, mme, true, param);
@@ -1408,8 +1585,7 @@ static void dect_mm_rcv_access_rights_terminate_reject(struct dect_handle *dh,
 	param->duration			= dect_ie_hold(msg.duration);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_ACCESS_RIGHTS_TERMINATE-cfm: accept: 0");
 	dh->ops->mm_ops->mm_access_rights_terminate_cfm(dh, mme, false, param);
@@ -1417,6 +1593,10 @@ static void dect_mm_rcv_access_rights_terminate_reject(struct dect_handle *dh,
 err1:
 	dect_msg_free(dh, &mm_access_rights_terminate_reject_msg_desc, &msg.common);
 }
+
+/*
+ * Location registration
+ */
 
 /**
  * dect_mm_locate_req - MM_LOCATE-req primitive
@@ -1434,11 +1614,7 @@ int dect_mm_locate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	int err;
 
 	mm_debug_entry(mme, "MM_LOCATE-req");
-	if (mp->type != DECT_MMP_NONE)
-		return -1;
-
-	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
-					DECT_PD_MM);
+	err = dect_mm_procedure_initiate(dh, mme, DECT_MMP_LOCATION_REGISTRATION);
 	if (err < 0)
 		goto err1;
 
@@ -1463,18 +1639,17 @@ int dect_mm_locate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	if (err < 0)
 		goto err2;
 
-	mp->type = DECT_MMP_LOCATION_REGISTRATION;
 	return 0;
 
 err2:
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_mm_procedure_cancel(dh, mme, mp);
 err1:
 	return err;
 }
 EXPORT_SYMBOL(dect_mm_locate_req);
 
 static int dect_mm_send_locate_accept(const struct dect_handle *dh,
-				      struct dect_mm_procedure *mp,
+				      const struct dect_mm_procedure *mp,
 				      const struct dect_mm_locate_param *param)
 {
 	struct dect_mm_locate_accept_msg msg = {
@@ -1487,26 +1662,13 @@ static int dect_mm_send_locate_accept(const struct dect_handle *dh,
 		.codec_list		= param->codec_list,
 		.model_identifier	= param->model_identifier,
 	};
-	int err;
 
-	err = dect_mm_send_msg(dh, mp, &mm_locate_accept_msg_desc,
-			       &msg.common, DECT_MM_LOCATE_ACCEPT);
-	if (err < 0)
-		return err;
-
-	/*
-	 * TPUI or NWK identity assignment begins an identity assignment
-	 * procedure.
-	 */
-	if (param->portable_identity->type == DECT_PORTABLE_ID_TYPE_TPUI ||
-	    param->nwk_assigned_identity)
-		mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;
-
-	return err;
+	return dect_mm_send_msg(dh, mp, &mm_locate_accept_msg_desc,
+				&msg.common, DECT_MM_LOCATE_ACCEPT);
 }
 
 static int dect_mm_send_locate_reject(const struct dect_handle *dh,
-				      struct dect_mm_procedure *mp,
+				      const struct dect_mm_procedure *mp,
 				      const struct dect_mm_locate_param *param)
 {
 	struct dect_mm_locate_reject_msg msg = {
@@ -1547,11 +1709,18 @@ int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	if (err < 0)
 		return err;
 
-	if (mp->type != DECT_MMP_LOCATION_REGISTRATION)
+	/*
+	 * TPUI or NWK identity assignment begins an identity assignment
+	 * procedure.
+	 */
+	if (accept &&
+	    (param->portable_identity->type == DECT_PORTABLE_ID_TYPE_TPUI ||
+	     param->nwk_assigned_identity)) {
+		mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;
 		return 0;
+	}
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mm_locate_res);
@@ -1566,20 +1735,22 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 	enum dect_sfmt_error err;
 
 	mm_debug(mme, "LOCATE-REQUEST");
-	if (mp->type != DECT_MMP_NONE)
+	if (dect_mm_procedure_respond(dh, mme, DECT_MMP_LOCATION_REGISTRATION) < 0)
 		return;
 
 	err = dect_parse_sfmt_msg(dh, &mm_locate_request_msg_desc,
 				  &msg.common, mb);
-	if (err < 0)
-		return dect_mm_send_reject(dh, mp, locate, err);
+	if (err < 0) {
+		dect_mm_send_reject(dh, mp, locate, err);
+		goto err1;
+	}
 
 	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
-		goto err1;
+		goto err2;
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
-		goto err1;
+		goto err2;
 
 	param->portable_identity	= dect_ie_hold(msg.portable_identity);
 	param->fixed_identity		= dect_ie_hold(msg.fixed_identity);
@@ -1593,13 +1764,24 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 	param->codec_list		= dect_ie_hold(msg.codec_list);
 
-	mp->type = DECT_MMP_LOCATION_REGISTRATION;
-
 	mm_debug(mme, "MM_LOCATE-ind");
 	dh->ops->mm_ops->mm_locate_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
-err1:
+
+	return dect_msg_free(dh, &mm_locate_request_msg_desc, &msg.common);
+
+err2:
 	dect_msg_free(dh, &mm_locate_request_msg_desc, &msg.common);
+err1:
+	dect_mm_procedure_complete(dh, mme, mp);
+}
+
+static void dect_mm_locate_abort(struct dect_handle *dh,
+				 struct dect_mm_endpoint *mme,
+				 struct dect_mm_procedure *mp)
+{
+	mm_debug(mme, "MM_ACCESS_LOCATE-cfm: accept: 0");
+	dh->ops->mm_ops->mm_locate_cfm(dh, mme, false, NULL);
 }
 
 static void dect_mm_rcv_locate_accept(struct dect_handle *dh,
@@ -1640,10 +1822,8 @@ static void dect_mm_rcv_locate_accept(struct dect_handle *dh,
 	     param->portable_identity->type == DECT_PORTABLE_ID_TYPE_TPUI) ||
 	    param->nwk_assigned_identity)
 		mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;
-	else {
-		dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-		mp->type = DECT_MMP_NONE;
-	}
+	else
+		dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_LOCATE-cfm: accept: 1");
 	dh->ops->mm_ops->mm_locate_cfm(dh, mme, true, param);
@@ -1677,8 +1857,7 @@ static void dect_mm_rcv_locate_reject(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_LOCATE-cfm: accept: 0");
 	dh->ops->mm_ops->mm_locate_cfm(dh, mme, false, param);
@@ -1763,6 +1942,10 @@ err1:
 	dect_msg_free(dh, &mm_detach_msg_desc, &msg.common);
 }
 
+/*
+ * Identification
+ */
+
 /**
  * dect_mm_identity_req - MM_IDENTITY-req primitive
  *
@@ -1778,11 +1961,7 @@ int dect_mm_identity_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	int err;
 
 	mm_debug_entry(mme, "MM_IDENTITY-req");
-	if (mp->type != DECT_MMP_NONE)
-		return -1;
-
-	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
-					DECT_PD_MM);
+	err = dect_mm_procedure_initiate(dh, mme, DECT_MMP_IDENTIFICATION);
 	if (err < 0)
 		goto err1;
 
@@ -1797,11 +1976,10 @@ int dect_mm_identity_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	if (err < 0)
 		goto err2;
 
-	mp->type = DECT_MMP_IDENTIFICATION;
 	return 0;
 
 err2:
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_mm_procedure_cancel(dh, mme, mp);
 err1:
 	return err;
 }
@@ -1839,8 +2017,7 @@ int dect_mm_identity_res(struct dect_handle *dh,
 	if (err < 0)
 		return err;
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mm_identity_res);
@@ -1855,30 +2032,41 @@ static void dect_mm_rcv_identity_request(struct dect_handle *dh,
 	enum dect_sfmt_error err;
 
 	mm_debug(mme, "IDENTITY-REQUEST");
-	if (mp->type != DECT_MMP_NONE)
+	if (dect_mm_procedure_respond(dh, mme, DECT_MMP_IDENTIFICATION) < 0)
 		return;
 
 	err = dect_parse_sfmt_msg(dh, &mm_identity_request_msg_desc,
 				  &msg.common, mb);
 	if (err < 0)
-		return;
+		goto err1;
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
-		goto err1;
+		goto err2;
 
 	param->identity_type		= *dect_ie_list_hold(&msg.identity_type);
 	param->network_parameter	= dect_ie_hold(msg.network_parameter);
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	mp->type = DECT_MMP_IDENTIFICATION;
-
 	mm_debug(mme, "MM_IDENTIY-ind");
 	dh->ops->mm_ops->mm_identity_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
-err1:
+
+	return dect_msg_free(dh, &mm_identity_request_msg_desc, &msg.common);
+
+err2:
 	dect_msg_free(dh, &mm_identity_request_msg_desc, &msg.common);
+err1:
+	dect_mm_procedure_complete(dh, mme, mp);
+}
+
+static void dect_mm_identity_abort(struct dect_handle *dh,
+				   struct dect_mm_endpoint *mme,
+				   struct dect_mm_procedure *mp)
+{
+	mm_debug(mme, "MM_IDENTITY-cfm");
+	dh->ops->mm_ops->mm_identity_cfm(dh, mme, NULL);
 }
 
 static void dect_mm_rcv_identity_reply(struct dect_handle *dh,
@@ -1908,8 +2096,7 @@ static void dect_mm_rcv_identity_reply(struct dect_handle *dh,
 	//param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_IDENTITY-cfm");
 	dh->ops->mm_ops->mm_identity_cfm(dh, mme, param);
@@ -1917,6 +2104,10 @@ static void dect_mm_rcv_identity_reply(struct dect_handle *dh,
 err1:
 	dect_msg_free(dh, &mm_identity_reply_msg_desc, &msg.common);
 }
+
+/*
+ * Temporary identity assignment
+ */
 
 /**
  * dect_mm_identity_assign_req - MM_IDENTITY_ASSIGN-req primitive
@@ -1933,11 +2124,7 @@ int dect_mm_identity_assign_req(struct dect_handle *dh, struct dect_mm_endpoint 
 	int err;
 
 	mm_debug_entry(mme, "MM_IDENTITY_ASSIGN-req");
-	if (mp->type != DECT_MMP_NONE)
-		return -1;
-
-	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
-					DECT_PD_MM);
+	err = dect_mm_procedure_initiate(dh, mme, DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT);
 	if (err < 0)
 		goto err1;
 
@@ -1955,18 +2142,17 @@ int dect_mm_identity_assign_req(struct dect_handle *dh, struct dect_mm_endpoint 
 	if (err < 0)
 		goto err2;
 
-	mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;
 	return 0;
 
 err2:
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_mm_procedure_cancel(dh, mme, mp);
 err1:
 	return err;
 }
 EXPORT_SYMBOL(dect_mm_identity_req);
 
 static int dect_mm_send_temporary_identity_assign_ack(const struct dect_handle *dh,
-						      struct dect_mm_procedure *mp,
+						      const struct dect_mm_procedure *mp,
 						      const struct dect_mm_identity_assign_param *param)
 {
 	struct dect_mm_temporary_identity_assign_ack_msg msg = {
@@ -1979,7 +2165,7 @@ static int dect_mm_send_temporary_identity_assign_ack(const struct dect_handle *
 }
 
 static int dect_mm_send_temporary_identity_assign_rej(const struct dect_handle *dh,
-						      struct dect_mm_procedure *mp,
+						      const struct dect_mm_procedure *mp,
 						      const struct dect_mm_identity_assign_param *param)
 {
 	struct dect_mm_temporary_identity_assign_rej_msg msg = {
@@ -2018,11 +2204,13 @@ int dect_mm_identity_assign_res(struct dect_handle *dh,
 	if (err < 0)
 		return err;
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mm_identity_assign_res);
+
+#define dect_mm_send_identity_assign_reject \
+	dect_mm_send_temporary_identity_assign_rej
 
 static void dect_mm_rcv_temporary_identity_assign(struct dect_handle *dh,
 						  struct dect_mm_endpoint *mme,
@@ -2034,21 +2222,23 @@ static void dect_mm_rcv_temporary_identity_assign(struct dect_handle *dh,
 	enum dect_sfmt_error err;
 
 	mm_debug(mme, "TEMPORARY_IDENTITY_ASSIGN");
-	if (mp->type != DECT_MMP_NONE)
+	if (dect_mm_procedure_respond(dh, mme, DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT) < 0)
 		return;
 
 	err = dect_parse_sfmt_msg(dh, &mm_temporary_identity_assign_msg_desc,
 				  &msg.common, mb);
-	if (err < 0)
-		return; //dect_mm_send_reject(dh, mp, identity_assign, err);
+	if (err < 0) {
+		dect_mm_send_reject(dh, mp, identity_assign, err);
+		goto err1;
+	}
 
 	if (msg.portable_identity &&
 	    msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
-		goto err1;
+		goto err2;
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
-		goto err1;
+		goto err2;
 
 	param->portable_identity	= dect_ie_hold(msg.portable_identity);
 	param->location_area		= dect_ie_hold(msg.location_area);
@@ -2058,13 +2248,24 @@ static void dect_mm_rcv_temporary_identity_assign(struct dect_handle *dh,
 	//param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;
-
 	mm_debug(mme, "MM_IDENTITY_ASSIGN-ind");
 	dh->ops->mm_ops->mm_identity_assign_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
-err1:
+
+	return dect_msg_free(dh, &mm_temporary_identity_assign_msg_desc, &msg.common);
+
+err2:
 	dect_msg_free(dh, &mm_temporary_identity_assign_msg_desc, &msg.common);
+err1:
+	dect_mm_procedure_complete(dh, mme, mp);
+}
+
+static void dect_mm_temporary_identity_assign_abort(struct dect_handle *dh,
+						    struct dect_mm_endpoint *mme,
+						    struct dect_mm_procedure *mp)
+{
+	mm_debug(mme, "MM_IDENTITY_ASSIGN-cfm: accept: 0");
+	dh->ops->mm_ops->mm_identity_assign_cfm(dh, mme, false, NULL);
 }
 
 static void dect_mm_rcv_temporary_identity_assign_ack(struct dect_handle *dh,
@@ -2090,8 +2291,7 @@ static void dect_mm_rcv_temporary_identity_assign_ack(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_IDENTITY_ASSIGN-cfm: accept: 1");
 	dh->ops->mm_ops->mm_identity_assign_cfm(dh, mme, true, param);
@@ -2123,8 +2323,7 @@ static void dect_mm_rcv_temporary_identity_assign_rej(struct dect_handle *dh,
 	param->reject_reason 		= dect_ie_hold(msg.reject_reason);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_IDENTITY_ASSIGN-cfm: accept: 0");
 	dh->ops->mm_ops->mm_identity_assign_cfm(dh, mme, false, param);
@@ -2132,6 +2331,10 @@ static void dect_mm_rcv_temporary_identity_assign_rej(struct dect_handle *dh,
 err1:
 	dect_msg_free(dh, &mm_temporary_identity_assign_rej_msg_desc, &msg.common);
 }
+
+/*
+ * Parameter retrieval
+ */
 
 /**
  * dect_mm_info_req - MM_INFO-req primitive
@@ -2205,7 +2408,7 @@ err1:
 EXPORT_SYMBOL(dect_mm_info_req);
 
 static int dect_mm_send_info_accept(const struct dect_handle *dh,
-				    struct dect_mm_procedure *mp,
+				    const struct dect_mm_procedure *mp,
 				    const struct dect_mm_info_param *param)
 {
 	struct dect_mm_info_accept_msg msg = {
@@ -2224,7 +2427,7 @@ static int dect_mm_send_info_accept(const struct dect_handle *dh,
 }
 
 static int dect_mm_send_info_reject(const struct dect_handle *dh,
-				    struct dect_mm_procedure *mp,
+				    const struct dect_mm_procedure *mp,
 				    const struct dect_mm_info_param *param)
 {
 	struct dect_mm_info_reject_msg msg = {
@@ -2264,8 +2467,7 @@ int dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	if (err < 0)
 		return err;
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mm_info_res);
@@ -2280,17 +2482,19 @@ static void dect_mm_rcv_info_request(struct dect_handle *dh,
 	enum dect_sfmt_error err;
 
 	mm_debug(mme, "INFO-REQUEST");
-	if (mp->type != DECT_MMP_NONE)
+	if (dect_mm_procedure_respond(dh, mme, DECT_MMP_PARAMETER_RETRIEVAL) < 0)
 		return;
 
 	err = dect_parse_sfmt_msg(dh, &mm_info_request_msg_desc,
 				  &msg.common, mb);
-	if (err < 0)
-		return dect_mm_send_reject(dh, mp, info, err);
+	if (err < 0) {
+		dect_mm_send_reject(dh, mp, info, err);
+		goto err1;
+	}
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
-		goto err1;
+		goto err2;
 
 	param->info_type		= dect_ie_hold(msg.info_type);
 	param->call_identity		= dect_ie_hold(msg.call_identity);
@@ -2302,13 +2506,24 @@ static void dect_mm_rcv_info_request(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	mp->type = DECT_MMP_PARAMETER_RETRIEVAL;
-
 	mm_debug(mme, "MM_INFO-ind");
 	dh->ops->mm_ops->mm_info_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
-err1:
+
+	return dect_msg_free(dh, &mm_info_request_msg_desc, &msg.common);
+
+err2:
 	dect_msg_free(dh, &mm_info_request_msg_desc, &msg.common);
+err1:
+	dect_mm_procedure_complete(dh, mme, mp);
+}
+
+static void dect_mm_info_abort(struct dect_handle *dh,
+			       struct dect_mm_endpoint *mme,
+			       struct dect_mm_procedure *mp)
+{
+	mm_debug(mme, "MM_INFO-cfm: accept: 0");
+	dh->ops->mm_ops->mm_info_cfm(dh, mme, false, NULL);
 }
 
 static void dect_mm_rcv_info_accept(struct dect_handle *dh,
@@ -2341,8 +2556,7 @@ static void dect_mm_rcv_info_accept(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_INFO-cfm: accept: 1");
 	dh->ops->mm_ops->mm_info_cfm(dh, mme, true, param);
@@ -2376,15 +2590,13 @@ static void dect_mm_rcv_info_reject(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
-	mp->type = DECT_MMP_NONE;
+	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_INFO-cfm: accept: 0");
 	dh->ops->mm_ops->mm_info_cfm(dh, mme, false, param);
 	dect_ie_collection_put(dh, param);
 err1:
 	dect_msg_free(dh, &mm_info_reject_msg_desc, &msg.common);
-
 }
 
 static void dect_mm_rcv_info_suggest(struct dect_handle *dh,
@@ -2424,6 +2636,10 @@ static void dect_mm_rcv_info_suggest(struct dect_handle *dh,
 err1:
 	dect_msg_free(dh, &mm_info_suggest_msg_desc, &msg.common);
 }
+
+/*
+ * External protocol information
+ */
 
 /**
  * dect_mm_iwu_req - MM_IWU-req primitive
@@ -2474,8 +2690,7 @@ static void dect_mm_rcv_iwu(struct dect_handle *dh,
 	if (mp->type != DECT_MMP_NONE)
 		return;
 
-	if (dect_parse_sfmt_msg(dh, &mm_iwu_msg_desc,
-				&msg.common, mb) < 0)
+	if (dect_parse_sfmt_msg(dh, &mm_iwu_msg_desc, &msg.common, mb) < 0)
 		return;
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
@@ -2490,11 +2705,129 @@ static void dect_mm_rcv_iwu(struct dect_handle *dh,
 
 	mm_debug(mme, "MM_IWU-ind");
 	dh->ops->mm_ops->mm_iwu_ind(dh, mme, param);
-
 	dect_ie_collection_put(dh, param);
 err1:
 	dect_msg_free(dh, &mm_iwu_msg_desc, &msg.common);
 }
+
+static const struct dect_mm_proc dect_mm_proc[DECT_MMP_MAX + 1] = {
+	[DECT_MMP_ACCESS_RIGHTS] = {
+		.name	= "access rights",
+		.abort	= dect_mm_access_rights_abort,
+		.param	= {
+			[DECT_MODE_PP] = {
+				.priority	= 3,
+				.timeout	= 60,
+			},
+		},
+	},
+	[DECT_MMP_ACCESS_RIGHTS_TERMINATE] = {
+		.name	= "access rights terminate",
+		.abort	= dect_mm_access_rights_terminate_abort,
+		.param	= {
+			[DECT_MODE_FP] = {
+				.priority	= 2,
+				.timeout	= 10,
+			},
+			[DECT_MODE_PP] = {
+				.priority	= 3,
+				.timeout	= 20,
+			},
+		},
+	},
+	[DECT_MMP_AUTHENTICATE] = {
+		.name	= "authentication",
+		.abort	= dect_mm_authentication_abort,
+		.param	= {
+			[DECT_MODE_FP] = {
+				.priority	= 2,
+				.timeout	= 10,
+			},
+			[DECT_MODE_PP] = {
+				.priority	= 1,
+				.timeout	= 10,
+			},
+		},
+	},
+	[DECT_MMP_AUTHENTICATE_USER] = {
+		.name	= "user authentication",
+		.abort	= dect_mm_authentication_abort,
+		.param	= {
+			[DECT_MODE_FP] = {
+				.priority	= 2,
+				.timeout	= 100,
+			},
+		},
+	},
+	[DECT_MMP_KEY_ALLOCATION]  {
+		.name	= "key allocation",
+		.abort	= dect_mm_authentication_abort,
+		.param	= {
+			[DECT_MODE_FP] = {
+				.priority	= 2,
+				.timeout	= 10,
+			},
+		},
+	},
+	[DECT_MMP_LOCATION_REGISTRATION] = {
+		.name	= "location registration",
+		.abort	= dect_mm_locate_abort,
+		.param	= {
+			[DECT_MODE_PP] = {
+				.priority	= 3,
+				.timeout	= 20,
+			},
+		},
+	},
+	[DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT] = {
+		.name	= "temporary identity assignment",
+		.abort	= dect_mm_temporary_identity_assign_abort,
+		.param	= {
+			[DECT_MODE_FP] = {
+				.priority	= 2,
+				.timeout	= 10,
+			},
+		},
+	},
+	[DECT_MMP_IDENTIFICATION] = {
+		.name	= "identification",
+		.abort	= dect_mm_identity_abort,
+		.param	= {
+			[DECT_MODE_FP] = {
+				.priority	= 2,
+				.timeout	= 10,
+			},
+		},
+	},
+	[DECT_MMP_CIPHER] = {
+		.name	= "ciphering",
+		.abort	= dect_mm_cipher_abort,
+		.param	= {
+			[DECT_MODE_FP] = {
+				.priority	= 2,
+				.timeout	= 10,
+			},
+			[DECT_MODE_PP] = {
+				.priority	= 3,
+				.timeout	= 10,
+			},
+		},
+	},
+	[DECT_MMP_PARAMETER_RETRIEVAL] = {
+		.name	= "parameter retrieval",
+		.abort	= dect_mm_info_abort,
+		.param	= {
+			[DECT_MODE_FP] = {
+				.priority	= 2,
+				.timeout	= 10,
+			},
+			[DECT_MODE_PP] = {
+				.priority	= 3,
+				.timeout	= 20,
+			},
+		},
+	},
+};
 
 static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 			struct dect_msg_buf *mb)
@@ -2613,10 +2946,15 @@ static void dect_mm_open(struct dect_handle *dh,
 static void dect_mm_shutdown(struct dect_handle *dh,
 			     struct dect_transaction *ta)
 {
+	struct dect_mm_procedure *mp = container_of(ta, struct dect_mm_procedure, transaction);
 	struct dect_mm_endpoint *mme = dect_mm_endpoint(ta);
+	const struct dect_mm_proc *proc = &dect_mm_proc[mp->type];
 
 	mm_debug(mme, "shutdown");
-	dect_close_transaction(dh, ta, DECT_DDL_RELEASE_NORMAL);
+	dect_mm_procedure_complete(dh, mme, mp);
+	if (mme->current == NULL)
+		mme->link = NULL;
+	proc->abort(dh, mme, mp);
 }
 
 static const struct dect_nwk_protocol mm_protocol = {

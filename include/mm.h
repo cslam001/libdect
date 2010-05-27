@@ -327,18 +327,34 @@ enum dect_mm_procedures {
 	DECT_MMP_ACCESS_RIGHTS,
 	DECT_MMP_ACCESS_RIGHTS_TERMINATE,
 	DECT_MMP_AUTHENTICATE,
+	DECT_MMP_AUTHENTICATE_USER,
 	DECT_MMP_KEY_ALLOCATION,
 	DECT_MMP_LOCATION_REGISTRATION,
 	DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT,
 	DECT_MMP_IDENTIFICATION,
 	DECT_MMP_CIPHER,
 	DECT_MMP_PARAMETER_RETRIEVAL,
+	__DECT_MMP_MAX
 };
+#define DECT_MMP_MAX				(__DECT_MMP_MAX - 1)
 
+/**
+ * struct dect_mm_procedure - Mobility Management Procedure
+ *
+ * @type:		Procedure type
+ * @role:		Procedure role (initiator/responder)
+ * @priority:		Procedure priority
+ * @retransmissions:	Number of retransmissions
+ * @transaction:	Procedure transaction
+ * @timer:		Procedure timer
+ */
 struct dect_mm_procedure {
+	enum dect_mm_procedures			type:8;
+	enum dect_transaction_role		role:8;
+	uint8_t					priority;
+	uint8_t					retransmissions;
 	struct dect_transaction			transaction;
 	struct dect_timer			*timer;
-	enum dect_mm_procedures			type;
 };
 
 /**
@@ -347,12 +363,14 @@ struct dect_mm_procedure {
  * @list:		MM endpoint list node
  * @link:		data link
  * @procedure:		Originator/Responder procedures
+ * @current:		currently active procedure
  * @priv:		libdect user private storage
  */
 struct dect_mm_endpoint {
 	struct list_head			list;
 	struct dect_data_link			*link;
 	struct dect_mm_procedure		procedure[DECT_TRANSACTION_MAX + 1];
+	struct dect_mm_procedure		*current;
 	uint8_t					priv[];
 };
 

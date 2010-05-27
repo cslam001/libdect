@@ -299,6 +299,15 @@ static int mm_access_rights_terminate_req(struct dect_handle *dh,
 	return dect_mm_access_rights_terminate_req(dh, mme, &param);
 }
 
+static void mm_identity_ind(struct dect_handle *dh,
+			    struct dect_mm_endpoint *mme,
+			    struct dect_mm_identity_param *param)
+{
+	struct dect_mm_identity_param reply = {};
+
+	dect_mm_identity_res(dh, mme, &reply);
+}
+
 static struct dect_mm_ops mm_ops = {
 	.priv_size			= sizeof(struct mm_priv),
 	.mm_authenticate_ind		= mm_authenticate_ind,
@@ -309,6 +318,7 @@ static struct dect_mm_ops mm_ops = {
 	.mm_access_rights_terminate_ind	= mm_access_rights_terminate_ind,
 	.mm_access_rights_terminate_cfm	= mm_access_rights_terminate_cfm,
 	.mm_cipher_cfm			= mm_cipher_cfm,
+	.mm_identity_ind		= mm_identity_ind,
 	.mm_info_cfm			= mm_info_cfm,
 };
 
