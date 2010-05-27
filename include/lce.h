@@ -13,10 +13,11 @@
 #include <s_fmt.h>
 #include <utils.h>
 
-static inline void dect_mbuf_dump(const struct dect_msg_buf *mb,
+static inline void dect_mbuf_dump(enum dect_debug_subsys subsys,
+				  const struct dect_msg_buf *mb,
 				  const char *prefix)
 {
-	dect_hexdump(prefix, mb->data, mb->len);
+	dect_hexdump(subsys, prefix, mb->data, mb->len);
 }
 
 /**

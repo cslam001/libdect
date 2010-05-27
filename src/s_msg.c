@@ -21,6 +21,9 @@
 #include <s_fmt.h>
 #include <lce.h>
 
+#define sfmt_debug(fmt, args...) \
+	dect_debug(DECT_DEBUG_SFMT, fmt, ## args)
+
 static const struct dect_trans_tbl dect_repeat_indicators[] = {
 	TRANS_TBL(DECT_IE_LIST_NORMAL,		"Non prioritized list"),
 	TRANS_TBL(DECT_IE_LIST_PRIORITIZED,	"Prioritized list"),
@@ -31,7 +34,7 @@ static void dect_sfmt_dump_repeat_indicator(const struct dect_ie_common *_ie)
 	const struct dect_ie_list *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\trepeat indicator: %s\n",
+	sfmt_debug("\trepeat indicator: %s\n",
 		   dect_val2str(dect_repeat_indicators, buf, ie->type));
 }
 
@@ -47,7 +50,7 @@ static int dect_sfmt_parse_repeat_indicator(const struct dect_handle *dh,
 	case DECT_IE_LIST_PRIORITIZED:
 		return 0;
 	default:
-		dect_debug("invalid list type\n");
+		sfmt_debug("invalid list type\n");
 		return -1;
 	}
 }
@@ -105,9 +108,9 @@ static void dect_sfmt_dump_basic_service(const struct dect_ie_common *_ie)
 	const struct dect_ie_basic_service *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\tcall class: %s\n",
+	sfmt_debug("\tcall class: %s\n",
 		   dect_val2str(dect_call_classes, buf, ie->class));
-	dect_debug("\tservice: %s\n",
+	sfmt_debug("\tservice: %s\n",
 		   dect_val2str(dect_basic_services, buf, ie->service));
 }
 
@@ -143,7 +146,7 @@ static void dect_sfmt_dump_display(const struct dect_ie_common *_ie)
 				ie->info[i] : '.';
 	info[ie->len] = '\0';
 
-	dect_debug("\tinfo: '%s'\n", info);
+	sfmt_debug("\tinfo: '%s'\n", info);
 }
 
 static int dect_sfmt_parse_single_display(const struct dect_handle *dh,
@@ -177,7 +180,7 @@ static void dect_sfmt_dump_keypad(const struct dect_ie_common *_ie)
 				ie->info[i] : '.';
 	info[ie->len] = '\0';
 
-	dect_debug("\tinfo: '%s'\n", info);
+	sfmt_debug("\tinfo: '%s'\n", info);
 }
 
 static int dect_sfmt_parse_single_keypad(const struct dect_handle *dh,
@@ -237,7 +240,7 @@ static void dect_sfmt_dump_info_type(const struct dect_ie_common *_ie)
 	char buf[64];
 
 	for (i = 0; i < ie->num; i++)
-		dect_debug("\tparameter type[%u]: %s\n", i,
+		sfmt_debug("\tparameter type[%u]: %s\n", i,
 			   dect_val2str(dect_info_type_parameters, buf, ie->type[i]));
 }
 
@@ -304,26 +307,26 @@ static void dect_sfmt_dump_identity_type(const struct dect_ie_common *_ie)
 	const struct dect_ie_identity_type *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\tidentity group: %s\n",
+	sfmt_debug("\tidentity group: %s\n",
 		   dect_val2str(dect_identity_groups, buf, ie->group));
 
 	switch (ie->group) {
 	case DECT_IDENTITY_PORTABLE_IDENTITY:
-		dect_debug("\tidentity type: %s\n",
+		sfmt_debug("\tidentity type: %s\n",
 			   dect_val2str(dect_portable_identity_types, buf, ie->type));
 		break;
 	case DECT_IDENTITY_FIXED_IDENTITY:
-		dect_debug("\tidentity type: %s\n",
+		sfmt_debug("\tidentity type: %s\n",
 			   dect_val2str(dect_fixed_identity_types, buf, ie->type));
 		break;
 	case DECT_IDENTITY_NETWORK_ASSIGNED_IDENTITY:
-		dect_debug("\tidentity type: %s\n",
+		sfmt_debug("\tidentity type: %s\n",
 			   dect_val2str(dect_nwk_identity_types, buf, ie->type));
 		break;
 	case DECT_IDENTITY_APPLICATION_ASSIGNED:
 	case DECT_IDENTITY_PROPRIETARY:
 	default:
-		dect_debug("\tidentity type: %u\n", ie->type);
+		sfmt_debug("\tidentity type: %u\n", ie->type);
 		break;
 	}
 }
@@ -390,7 +393,7 @@ static void dect_sfmt_dump_release_reason(const struct dect_ie_common *_ie)
 	const struct dect_ie_release_reason *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\trelease reason: %s\n",
+	sfmt_debug("\trelease reason: %s\n",
 		   dect_val2str(dect_release_reasons, buf, ie->reason));
 }
 
@@ -442,7 +445,7 @@ static void dect_sfmt_dump_signal(const struct dect_ie_common *_ie)
 	struct dect_ie_signal *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\tsignal: %s\n", dect_val2str(dect_signal_codes, buf, ie->code));
+	sfmt_debug("\tsignal: %s\n", dect_val2str(dect_signal_codes, buf, ie->code));
 }
 
 static int dect_sfmt_parse_signal(const struct dect_handle *dh,
@@ -485,7 +488,7 @@ static void dect_sfmt_dump_portable_identity(const struct dect_ie_common *_ie)
 	const struct dect_ie_portable_identity *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\ttype: %s\n",
+	sfmt_debug("\ttype: %s\n",
 		   dect_val2str(dect_portable_identity_types, buf, ie->type));
 
 	switch (ie->type) {
@@ -519,14 +522,14 @@ static int dect_sfmt_parse_portable_identity(const struct dect_handle *dh,
 	switch (dst->type) {
 	case DECT_PORTABLE_ID_TYPE_IPUI:
 		if (!dect_parse_ipui(&dst->ipui, src->data + 4, len))
-			dect_debug("parsing failed\n");
+			sfmt_debug("parsing failed\n");
 		return 0;
 	case DECT_PORTABLE_ID_TYPE_IPEI:
 		return 0;
 	case DECT_PORTABLE_ID_TYPE_TPUI:
 		return 0;
 	default:
-		dect_debug("invalid type %u\n", dst->type);
+		sfmt_debug("invalid type %u\n", dst->type);
 		return -1;
 	}
 }
@@ -568,7 +571,7 @@ static void dect_sfmt_dump_fixed_identity(const struct dect_ie_common *_ie)
 	const struct dect_ie_fixed_identity *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\ttype: %s\n",
+	sfmt_debug("\ttype: %s\n",
 		   dect_val2str(dect_fixed_identity_types, buf, ie->type));
 
 	switch (ie->type) {
@@ -578,7 +581,7 @@ static void dect_sfmt_dump_fixed_identity(const struct dect_ie_common *_ie)
 		return dect_dump_ari(&ie->ari);
 	case DECT_FIXED_ID_TYPE_ARI_RPN:
 		dect_dump_ari(&ie->ari);
-		dect_debug("\tRPN: %u\n", ie->rpn);
+		sfmt_debug("\tRPN: %u\n", ie->rpn);
 		return;
 	case DECT_FIXED_ID_TYPE_ARI_WRS:
 		return dect_dump_ari(&ie->ari);
@@ -617,7 +620,7 @@ static int dect_sfmt_parse_fixed_identity(const struct dect_handle *dh,
 	case DECT_FIXED_ID_TYPE_ARI_WRS:
 		return 0;
 	default:
-		dect_debug("invalid type %u\n", dst->type);
+		sfmt_debug("invalid type %u\n", dst->type);
 		return -1;
 	}
 }
@@ -644,7 +647,7 @@ static void dect_sfmt_dump_location_area(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_location_area *ie = dect_ie_container(ie, _ie);
 
-	dect_debug("\ttype: %x level: %u\n", ie->type, ie->level);
+	sfmt_debug("\ttype: %x level: %u\n", ie->type, ie->level);
 }
 
 static int dect_sfmt_parse_location_area(const struct dect_handle *dh,
@@ -688,10 +691,10 @@ static void dect_sfmt_dump_allocation_type(const struct dect_ie_common *_ie)
 	const struct dect_ie_allocation_type *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\tauthentication algorithm: %s\n",
+	sfmt_debug("\tauthentication algorithm: %s\n",
 		   dect_val2str(dect_auth_algs, buf, ie->auth_id));
-	dect_debug("\tauthentication key number: %u\n", ie->auth_key_num);
-	dect_debug("\tauthentication code number: %u\n", ie->auth_code_num);
+	sfmt_debug("\tauthentication key number: %u\n", ie->auth_key_num);
+	sfmt_debug("\tauthentication code number: %u\n", ie->auth_code_num);
 }
 
 static int dect_sfmt_parse_allocation_type(const struct dect_handle *dh,
@@ -723,13 +726,13 @@ static void dect_sfmt_dump_auth_type(const struct dect_ie_common *_ie)
 	const struct dect_ie_auth_type *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\tauthentication algorithm: %s\n",
+	sfmt_debug("\tauthentication algorithm: %s\n",
 		   dect_val2str(dect_auth_algs, buf, ie->auth_id));
-	dect_debug("\tauthentication key type: %s\n",
+	sfmt_debug("\tauthentication key type: %s\n",
 		   dect_val2str(dect_auth_key_types, buf, ie->auth_key_type));
-	dect_debug("\tauthentication key number: %u\n", ie->auth_key_num);
-	dect_debug("\tcipher key number: %u\n", ie->cipher_key_num);
-	dect_debug("\tINC: %u DEF: %u TXC: %u UPC: %u\n",
+	sfmt_debug("\tauthentication key number: %u\n", ie->auth_key_num);
+	sfmt_debug("\tcipher key number: %u\n", ie->cipher_key_num);
+	sfmt_debug("\tINC: %u DEF: %u TXC: %u UPC: %u\n",
 		   ie->flags & DECT_AUTH_FLAG_INC ? 1 : 0,
 		   ie->flags & DECT_AUTH_FLAG_DEF ? 1 : 0,
 		   ie->flags & DECT_AUTH_FLAG_TXC ? 1 : 0,
@@ -782,7 +785,7 @@ static void dect_sfmt_dump_auth_value(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_auth_value *ie = dect_ie_container(ie, _ie);
 
-	dect_debug("\tvalue: %.16" PRIx64 "\n", ie->value);
+	sfmt_debug("\tvalue: %.16" PRIx64 "\n", ie->value);
 }
 
 static int dect_sfmt_parse_auth_value(const struct dect_handle *dh,
@@ -811,7 +814,7 @@ static void dect_sfmt_dump_auth_res(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_auth_res *ie = dect_ie_container(ie, _ie);
 
-	dect_debug("\tvalue: %.8x\n", ie->value);
+	sfmt_debug("\tvalue: %.8x\n", ie->value);
 }
 
 static int dect_sfmt_parse_auth_res(const struct dect_handle *dh,
@@ -859,12 +862,12 @@ static void dect_sfmt_dump_cipher_info(const struct dect_ie_common *_ie)
 	const struct dect_ie_cipher_info *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\tenable: %u\n", ie->enable);
-	dect_debug("\tcipher algorithm: %s\n",
+	sfmt_debug("\tenable: %u\n", ie->enable);
+	sfmt_debug("\tcipher algorithm: %s\n",
 		   dect_val2str(dect_cipher_algs, buf, ie->cipher_alg_id));
-	dect_debug("\tcipher key type: %s\n",
+	sfmt_debug("\tcipher key type: %s\n",
 		   dect_val2str(dect_cipher_key_types, buf, ie->cipher_key_type));
-	dect_debug("\tcipher key num: %u\n", ie->cipher_key_num);
+	sfmt_debug("\tcipher key num: %u\n", ie->cipher_key_num);
 }
 
 static int dect_sfmt_parse_cipher_info(const struct dect_handle *dh,
@@ -981,7 +984,7 @@ static void dect_sfmt_dump_feature_activate(const struct dect_ie_common *_ie)
 	const struct dect_ie_feature_activate *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\tfeature: %s\n", dect_val2str(dect_features, buf, ie->feature));
+	sfmt_debug("\tfeature: %s\n", dect_val2str(dect_features, buf, ie->feature));
 }
 
 static int dect_sfmt_build_feature_activate(struct dect_sfmt_ie *dst,
@@ -1000,8 +1003,8 @@ static void dect_sfmt_dump_feature_indicate(const struct dect_ie_common *_ie)
 	const struct dect_ie_feature_indicate *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\tfeature: %s\n", dect_val2str(dect_features, buf, ie->feature));
-	dect_debug("\tstatus: %x\n", ie->status);
+	sfmt_debug("\tfeature: %s\n", dect_val2str(dect_features, buf, ie->feature));
+	sfmt_debug("\tstatus: %x\n", ie->status);
 }
 
 static int dect_sfmt_parse_feature_indicate(const struct dect_handle *dh,
@@ -1054,7 +1057,7 @@ static void dect_sfmt_dump_reject_reason(const struct dect_ie_common *_ie)
 	struct dect_ie_reject_reason *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\treject reason: %s (%x)\n",
+	sfmt_debug("\treject reason: %s (%x)\n",
 		   dect_val2str(dect_reject_reasons, buf, ie->reason),
 		   ie->reason);
 }
@@ -1208,27 +1211,27 @@ static void dect_sfmt_dump_terminal_capability(const struct dect_ie_common *_ie)
 	const struct dect_ie_terminal_capability *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\tdisplay capability: %s\n",
+	sfmt_debug("\tdisplay capability: %s\n",
 		   dect_val2str(dect_display_capabilities, buf, ie->display));
-	dect_debug("\ttone capability: %s\n",
+	sfmt_debug("\ttone capability: %s\n",
 		   dect_val2str(dect_tone_capabilities, buf, ie->tone));
-	dect_debug("\techo parameters: %s\n",
+	sfmt_debug("\techo parameters: %s\n",
 		   dect_val2str(dect_echo_parameters, buf, ie->echo));
-	dect_debug("\tnoise rejection capability: %s\n",
+	sfmt_debug("\tnoise rejection capability: %s\n",
 		   dect_val2str(dect_noise_rejection_capabilities, buf, ie->noise_rejection));
-	dect_debug("\tadaptive volume control provision: %s\n",
+	sfmt_debug("\tadaptive volume control provision: %s\n",
 		   dect_val2str(dect_volume_ctrl_provisions, buf, ie->volume_ctrl));
-	dect_debug("\tslot capabilities: %s\n",
+	sfmt_debug("\tslot capabilities: %s\n",
 		   dect_flags2str(dect_slot_capabilities, buf, ie->slot));
-	dect_debug("\tdisplay memory: %u\n", ie->display_memory);
-	dect_debug("\tdisplay lines: %u\n", ie->display_lines);
-	dect_debug("\tdisplay columns: %u\n", ie->display_columns);
-	dect_debug("\tscrolling behaviour: %s\n",
+	sfmt_debug("\tdisplay memory: %u\n", ie->display_memory);
+	sfmt_debug("\tdisplay lines: %u\n", ie->display_lines);
+	sfmt_debug("\tdisplay columns: %u\n", ie->display_columns);
+	sfmt_debug("\tscrolling behaviour: %s\n",
 		   dect_val2str(dect_scrolling_behaviour, buf, ie->scrolling));
-	dect_debug("\tprofile indicator: %s\n",
+	sfmt_debug("\tprofile indicator: %s\n",
 		   dect_flags2str(dect_profile_indicators, buf, ie->profile_indicator));
-	dect_debug("\tdisplay control: %x\n", ie->display_control);
-	dect_debug("\tdisplay charsets: %x\n", ie->display_charsets);
+	sfmt_debug("\tdisplay control: %x\n", ie->display_control);
+	sfmt_debug("\tdisplay charsets: %x\n", ie->display_charsets);
 }
 
 static int dect_sfmt_parse_terminal_capability(const struct dect_handle *dh,
@@ -1384,9 +1387,9 @@ static void dect_sfmt_dump_called_party_number(const struct dect_ie_common *_ie)
 	memcpy(address, ie->address, ie->len);
 	address[ie->len] = '\0';
 
-	dect_debug("\tNumber type: %s\n", dect_val2str(dect_number_types, buf, ie->type));
-	dect_debug("\tNumbering Plan: %s\n", dect_val2str(dect_npis, buf, ie->npi));
-	dect_debug("\tAddress: %s\n", address);
+	sfmt_debug("\tNumber type: %s\n", dect_val2str(dect_number_types, buf, ie->type));
+	sfmt_debug("\tNumbering Plan: %s\n", dect_val2str(dect_npis, buf, ie->npi));
+	sfmt_debug("\tAddress: %s\n", address);
 }
 
 static int dect_sfmt_parse_called_party_number(const struct dect_handle *dh,
@@ -1437,9 +1440,9 @@ static void dect_sfmt_dump_duration(const struct dect_ie_common *_ie)
 	struct dect_ie_duration *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\tlock: %s\n", dect_val2str(dect_lock_limits, buf, ie->lock));
-	dect_debug("\ttime: %s\n", dect_val2str(dect_time_limits, buf, ie->time));
-	dect_debug("\tduration: %u\n", ie->duration);
+	sfmt_debug("\tlock: %s\n", dect_val2str(dect_lock_limits, buf, ie->lock));
+	sfmt_debug("\ttime: %s\n", dect_val2str(dect_time_limits, buf, ie->time));
+	sfmt_debug("\tduration: %u\n", ie->duration);
 }
 
 static int dect_sfmt_parse_duration(const struct dect_handle *dh,
@@ -1509,9 +1512,9 @@ static void dect_sfmt_dump_iwu_to_iwu(const struct dect_ie_common *_ie)
 	struct dect_ie_iwu_to_iwu *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	dect_debug("\tSend/Reject (S/R) bit: %s\n",
+	sfmt_debug("\tSend/Reject (S/R) bit: %s\n",
 		   dect_val2str(dect_iwu_to_iwu_sr, buf, ie->sr));
-	dect_debug("\tProtocol Discriminator: %s\n",
+	sfmt_debug("\tProtocol Discriminator: %s\n",
 		   dect_val2str(dect_iwu_to_iwu_pds, buf, ie->pd));
 }
 
@@ -1551,11 +1554,11 @@ static void dect_sfmt_dump_escape_to_proprietary(const struct dect_ie_common *_i
 	struct dect_ie_escape_to_proprietary *ie = dect_ie_container(ie, _ie);
 	unsigned int i;
 
-	dect_debug("\tEMC: %x\n", ie->emc);
-	dect_debug("\tContent: ");
+	sfmt_debug("\tEMC: %x\n", ie->emc);
+	sfmt_debug("\tContent: ");
 	for (i = 0; i < ie->len; i++)
-		dect_debug("%.2x ", ie->content[i]);
-	dect_debug("\n");
+		sfmt_debug("%.2x ", ie->content[i]);
+	sfmt_debug("\n");
 }
 
 static int dect_sfmt_build_escape_to_proprietary(struct dect_sfmt_ie *dst,
@@ -1637,18 +1640,18 @@ static void dect_sfmt_dump_codec_list(const struct dect_ie_common *_ie)
 	unsigned int i;
 	char buf[64];
 
-	dect_debug("\tNegotiation Indicator: %s\n",
+	sfmt_debug("\tNegotiation Indicator: %s\n",
 		   dect_val2str(dect_negotiation_indicators, buf, ie->negotiation));
 
 	for (i = 0; i < ie->num; i++) {
-		dect_debug("\tCodec %u:\n", i + 1);
-		dect_debug("\t Codec: %s\n",
+		sfmt_debug("\tCodec %u:\n", i + 1);
+		sfmt_debug("\t Codec: %s\n",
 			   dect_val2str(dect_codecs, buf, ie->entry[i].codec));
-		dect_debug("\t MAC/DLC Service: %s\n",
+		sfmt_debug("\t MAC/DLC Service: %s\n",
 			   dect_val2str(dect_mac_dlc_services, buf, ie->entry[i].service));
-		dect_debug("\t Slot size: %s\n",
+		sfmt_debug("\t Slot size: %s\n",
 			   dect_val2str(dect_slot_sizes, buf, ie->entry[i].slot));
-		dect_debug("\t C-Plane routing: %s\n",
+		sfmt_debug("\t C-Plane routing: %s\n",
 			   dect_val2str(dect_cplane_routing, buf, ie->entry[i].cplane));
 	}
 }
@@ -2114,7 +2117,7 @@ static void dect_msg_ie_init(const struct dect_sfmt_ie_desc *desc,
 	else
 		return;
 #if 0
-	dect_debug("init message IE %p: <%s>\n",
+	sfmt_debug("init message IE %p: <%s>\n",
 		 ie, dect_ie_handlers[desc->type].name);
 #endif
 }
@@ -2149,7 +2152,7 @@ static int dect_parse_sfmt_ie_header(struct dect_sfmt_ie *ie,
 	}
 	ie->data = mb->data;
 
-//	dect_debug("found IE: <%s> (%x) len: %u\n", dect_ie_handlers[ie->id].name,
+//	sfmt_debug("found IE: <%s> (%x) len: %u\n", dect_ie_handlers[ie->id].name,
 //		   ie->id, ie->len);
 	return 0;
 }
@@ -2193,7 +2196,7 @@ static int dect_parse_sfmt_ie(const struct dect_handle *dh,
 			goto err1;
 	}
 
-	dect_debug("  IE: <%s> id: %x len: %u dst: %p\n",
+	sfmt_debug("  IE: <%s> id: %x len: %u dst: %p\n",
 		   ieh->name, ie->id, ie->len, *dst);
 
 	err = ieh->parse(dh, dst, ie);
@@ -2207,11 +2210,11 @@ err2:
 	dect_free(dh, *dst);
 	*dst = NULL;
 err1:
-	dect_debug("smsg: IE parsing error\n");
+	sfmt_debug("smsg: IE parsing error\n");
 	return err;
 }
 
-static void dect_debug_msg(const struct dect_sfmt_msg_desc *mdesc, const char *msg)
+static void sfmt_debug_msg(const struct dect_sfmt_msg_desc *mdesc, const char *msg)
 {
 	char buf[strlen(mdesc->name) + 1];
 	unsigned int i;
@@ -2223,7 +2226,7 @@ static void dect_debug_msg(const struct dect_sfmt_msg_desc *mdesc, const char *m
 		if (buf[i] == '_')
 			buf[i] = '-';
 	}
-	dect_debug("%s {%s} message\n", msg, buf);
+	sfmt_debug("%s {%s} message\n", msg, buf);
 }
 
 enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,
@@ -2236,7 +2239,7 @@ enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,
 	struct dect_sfmt_ie _ie[2], *ie;
 	uint8_t idx = 0;
 
-	dect_debug_msg(mdesc, "parse");
+	sfmt_debug_msg(mdesc, "parse");
 
 	dect_msg_ie_init(desc, dst);
 	while (mb->len > 0) {
@@ -2279,7 +2282,7 @@ enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,
 found:
 		/* Treat empty variable length IEs as absent */
 		if (!(ie->id & DECT_SFMT_IE_FIXED_LEN) && ie->len == 2) {
-			dect_debug("  IE: <%s> id: %x len: %u (empty)\n",
+			sfmt_debug("  IE: <%s> id: %x len: %u (empty)\n",
 				   dect_ie_handlers[ie->id].name, ie->id, ie->len);
 			goto next;
 		}
@@ -2337,7 +2340,7 @@ dect_build_sfmt_ie(const struct dect_handle *dh,
 	if (ieh->build == NULL)
 		goto err1;
 
-	dect_debug("  IE: <%s> id: %x %p\n", ieh->name, type, ie);
+	sfmt_debug("  IE: <%s> id: %x %p\n", ieh->name, type, ie);
 	if (ieh->dump != NULL)
 		ieh->dump(ie);
 
@@ -2365,7 +2368,7 @@ enum dect_sfmt_error dect_build_sfmt_msg(const struct dect_handle *dh,
 	struct dect_ie_list *iel;
 	enum dect_sfmt_error err;
 
-	dect_debug_msg(mdesc, "build");
+	sfmt_debug_msg(mdesc, "build");
 
 	while (!(desc->flags & DECT_SFMT_IE_END)) {
 		next = dect_next_ie(desc, (struct dect_ie_common **)src);
@@ -2407,7 +2410,7 @@ next:
 	return DECT_SFMT_OK;
 
 err_mandatory:
-	dect_debug("  IE <%s> id: %x missing\n",
+	sfmt_debug("  IE <%s> id: %x missing\n",
 		   dect_ie_handlers[desc->type].name, desc->type);
 	return DECT_SFMT_MANDATORY_IE_MISSING;
 }

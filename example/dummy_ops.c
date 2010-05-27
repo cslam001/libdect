@@ -268,7 +268,7 @@ static void mnss_release_ind(struct dect_handle *dh, struct dect_ss_endpoint *ss
 
 static struct dect_ss_ops dummy_ss_ops;
 
-void dummy_ops_init(struct dect_ops *ops)
+void dect_dummy_ops_init(struct dect_ops *ops)
 {
 	struct dect_cc_ops *cc_ops;
 	struct dect_mm_ops *mm_ops;

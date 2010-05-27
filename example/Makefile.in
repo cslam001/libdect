@@ -4,7 +4,7 @@ PROGRAMS	+= cc ss mm-fp mm-pp pp-access-rights discover hijack
 
 destdir		:= usr/share/dect/examples
 
-common-obj	+= common.o event_ops.o keys.o dummy_ops.o
+common-obj	+= common.o event_ops.o keys.o dummy_ops.o debug.o
 
 cc-destdir	:= $(destdir)
 cc-obj		+= $(common-obj)

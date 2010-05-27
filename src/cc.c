@@ -325,7 +325,7 @@ static DECT_SFMT_MSG_DESC(crss_hold,
 );
 
 #define __cc_debug(call, pfx, fmt, args...) \
-	dect_debug("%sCC: call %p (%s): " fmt "\n", pfx, \
+	dect_debug(DECT_DEBUG_CC, "%sCC: call %p (%s): " fmt "\n", pfx, \
 		   (call), call_states[(call)->state], ## args)
 
 #define cc_debug(call, fmt, args...) \
@@ -1354,7 +1354,7 @@ static void dect_cc_rcv_setup(struct dect_handle *dh,
 	struct dect_cc_setup_msg msg;
 	struct dect_call *call;
 
-	dect_debug("CC-SETUP\n");
+	dect_debug(DECT_DEBUG_CC, "CC-SETUP\n");
 	if (dect_parse_sfmt_msg(dh, &cc_setup_msg_desc, &msg.common, mb) < 0)
 		return;
 
@@ -1363,10 +1363,10 @@ static void dect_cc_rcv_setup(struct dect_handle *dh,
 		goto out;
 
 	dect_foreach_ie(call_attributes, &msg.call_attributes)
-		dect_debug("call attributes\n");
+		dect_debug(DECT_DEBUG_CC, "call attributes\n");
 
 	dect_foreach_ie(connection_attributes, &msg.connection_attributes)
-		dect_debug("connection attributes\n");
+		dect_debug(DECT_DEBUG_CC, "connection attributes\n");
 
 	call = dect_call_alloc(dh);
 	if (call == NULL)
@@ -1386,7 +1386,7 @@ static void dect_cc_open(struct dect_handle *dh,
 			 const struct dect_transaction *req,
 			 struct dect_msg_buf *mb)
 {
-	dect_debug("CC: unknown transaction: msg type: %x\n", mb->type);
+	dect_debug(DECT_DEBUG_CC, "CC: unknown transaction: msg type: %x\n", mb->type);
 	switch (mb->type) {
 	case CC_SETUP:
 		return dect_cc_rcv_setup(dh, req, mb);

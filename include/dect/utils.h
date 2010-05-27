@@ -11,6 +11,8 @@ extern "C" {
 	const typeof( ((type *)0)->member ) *__mptr = (ptr);		\
 	(type *)( (char *)__mptr - offsetof(type,member) );})
 
+#define __fmtstring(x, y)	__attribute__((format(printf, x, y)))
+
 #ifdef __cplusplus
 }
 #endif

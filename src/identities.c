@@ -19,6 +19,9 @@
 #include <identities.h>
 #include <utils.h>
 
+#define sfmt_debug(fmt, args...) \
+	dect_debug(DECT_DEBUG_SFMT, fmt, ## args)
+
 static const char * const ari_classes[] = {
 	[DECT_ARC_A]	= "A",
 	[DECT_ARC_B]	= "B",
@@ -29,17 +32,17 @@ static const char * const ari_classes[] = {
 
 void dect_dump_ari(const struct dect_ari *ari)
 {
-	dect_debug("\tclass: %s\n", ari_classes[ari->arc]);
+	sfmt_debug("\tclass: %s\n", ari_classes[ari->arc]);
 
 	switch (ari->arc) {
 	case DECT_ARC_A:
-		dect_debug("\tEMC: %.4x\n", ari->emc);
-		dect_debug("\tFPN: %.5x\n", ari->fpn);
+		sfmt_debug("\tEMC: %.4x\n", ari->emc);
+		sfmt_debug("\tFPN: %.5x\n", ari->fpn);
 		break;
 	case DECT_ARC_B:
-		dect_debug("\tEIC: %x\n", ari->eic);
-		dect_debug("\tFPN: %x\n", ari->fpn);
-		dect_debug("\tFPS: %x\n", ari->fps);
+		sfmt_debug("\tEIC: %x\n", ari->eic);
+		sfmt_debug("\tFPN: %x\n", ari->fpn);
+		sfmt_debug("\tFPS: %x\n", ari->fps);
 		break;
 	case DECT_ARC_C:
 	case DECT_ARC_D:
@@ -113,8 +116,8 @@ uint64_t dect_build_ari(const struct dect_ari *ari)
 
 static void dect_dump_ipei(const struct dect_ipei *ipei)
 {
-	dect_debug("\tEMC: %.4x\n", ipei->emc);
-	dect_debug("\tPSN: %.5x\n", ipei->psn);
+	sfmt_debug("\tEMC: %.4x\n", ipei->emc);
+	sfmt_debug("\tPSN: %.5x\n", ipei->psn);
 }
 
 static bool dect_parse_ipei(struct dect_ipei *ipei, uint64_t i)
@@ -137,11 +140,11 @@ void dect_dump_ipui(const struct dect_ipui *ipui)
 {
 	switch (ipui->put) {
 	case DECT_IPUI_N:
-		dect_debug("\tPUT: N (IPEI)\n");
+		sfmt_debug("\tPUT: N (IPEI)\n");
 		return dect_dump_ipei(&ipui->pun.n.ipei);
 	case DECT_IPUI_O:
-		dect_debug("\tPUT: O (private)\n");
-		dect_debug("\tNumber: %" PRIx64 "\n", ipui->pun.o.number);
+		sfmt_debug("\tPUT: O (private)\n");
+		sfmt_debug("\tNumber: %" PRIx64 "\n", ipui->pun.o.number);
 		return;
 	case DECT_IPUI_P:
 	case DECT_IPUI_Q:
@@ -150,7 +153,7 @@ void dect_dump_ipui(const struct dect_ipui *ipui)
 	case DECT_IPUI_T:
 	case DECT_IPUI_U:
 	default:
-		dect_debug("\tIPUI: unhandled type %u\n", ipui->put);
+		sfmt_debug("\tIPUI: unhandled type %u\n", ipui->put);
 	}
 }
 
@@ -184,7 +187,7 @@ bool dect_parse_ipui(struct dect_ipui *ipui, const uint8_t *ptr, uint8_t len)
 	case DECT_IPUI_T:
 	case DECT_IPUI_U:
 	default:
-		dect_debug("\tIPUI: unhandled type %u\n", ipui->put);
+		sfmt_debug("\tIPUI: unhandled type %u\n", ipui->put);
 		return false;
 	}
 }
@@ -257,26 +260,26 @@ void dect_dump_tpui(const struct dect_tpui *tpui)
 
 	switch (tpui->type) {
 	case DECT_TPUI_INDIVIDUAL_ASSIGNED:
-		dect_debug("\ttype: individual assigned\n");
-		dect_debug("\tdigits: ");
+		sfmt_debug("\ttype: individual assigned\n");
+		sfmt_debug("\tdigits: ");
 		for (i = 0; i < 5; i++) {
 			if (tpui->ia.digits[i] != 0xb)
-				dect_debug("%u", tpui->ia.digits[i]);
+				sfmt_debug("%u", tpui->ia.digits[i]);
 		}
-		dect_debug("\n");
+		sfmt_debug("\n");
 		return;
 	case DECT_TPUI_CONNECTIONLESS_GROUP:
-		dect_debug("\ttype: connectionless group\n");
+		sfmt_debug("\ttype: connectionless group\n");
 		return;
 	case DECT_TPUI_CALL_GROUP:
-		dect_debug("\ttype: call group\n");
+		sfmt_debug("\ttype: call group\n");
 		return;
 	case DECT_TPUI_INDIVIDUAL_DEFAULT:
-		dect_debug("\ttype: individual default\n");
-		dect_debug("\tIPUI: %.4x\n", tpui->id.ipui);
+		sfmt_debug("\ttype: individual default\n");
+		sfmt_debug("\tIPUI: %.4x\n", tpui->id.ipui);
 		return;
 	case DECT_TPUI_EMERGENCY:
-		dect_debug("\ttype: emergency\n");
+		sfmt_debug("\ttype: emergency\n");
 		return;
 	}
 }

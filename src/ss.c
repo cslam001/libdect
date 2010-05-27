@@ -68,7 +68,7 @@ static DECT_SFMT_MSG_DESC(ciss_facility,
 );
 
 #define __ss_debug(pfx, fmt, args...) \
-	dect_debug("%sSS (link %d): " fmt "\n", pfx, \
+	dect_debug(DECT_DEBUG_SS, "%sSS (link %d): " fmt "\n", pfx, \
 		   (sse)->transaction.link ? (sse)->transaction.link->dfd->fd : -1, \
 		   ## args)
 
@@ -288,7 +288,7 @@ static void dect_ciss_rcv_register(struct dect_handle *dh,
 	struct dect_mnss_param *param;
 	struct dect_ss_endpoint *sse;
 
-	dect_debug("CISS-REGISTER");
+	dect_debug(DECT_DEBUG_SS, "CISS-REGISTER");
 	if (dect_parse_sfmt_msg(dh, &ciss_register_msg_desc, &msg.common, mb) < 0)
 		return;
 
@@ -320,7 +320,7 @@ static void dect_ciss_open(struct dect_handle *dh,
 			   const struct dect_transaction *req,
 			   struct dect_msg_buf *mb)
 {
-	dect_debug("SS: unknown transaction: msg type: %x\n", mb->type);
+	dect_debug(DECT_DEBUG_SS, "SS: unknown transaction: msg type: %x\n", mb->type);
 	switch (mb->type) {
 	case CISS_REGISTER:
 		return dect_ciss_rcv_register(dh, req, mb);

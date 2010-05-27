@@ -331,7 +331,7 @@ static DECT_SFMT_MSG_DESC(mm_notify_msg,
 );
 
 #define __mm_debug(mme, pfx, fmt, args...) \
-	dect_debug("%sMM: link %d (%s): " fmt "\n", (pfx), \
+	dect_debug(DECT_DEBUG_MM, "%sMM: link %d (%s): " fmt "\n", (pfx), \
 		   (mme)->link && (mme)->link->dfd ? (mme)->link->dfd->fd : -1, \
 		   (mme)->current ? dect_mm_proc[(mme)->current->type].name : "none", \
 		   ## args)
@@ -3075,7 +3075,7 @@ static void dect_mm_open(struct dect_handle *dh,
 	struct dect_mm_endpoint *mme;
 	struct dect_transaction *ta;
 
-	dect_debug("MM: unknown transaction: msg type: %x\n", mb->type);
+	dect_debug(DECT_DEBUG_MM, "MM: unknown transaction: msg type: %x\n", mb->type);
 	switch (mb->type) {
 	case DECT_MM_AUTHENTICATION_REQUEST:
 	case DECT_MM_CIPHER_REQUEST:

@@ -24,40 +24,9 @@
 #define __must_check		__attribute__((warn_unused_result))
 #define __maybe_unused		__attribute__((unused))
 #define __noreturn		__attribute__((__noreturn__))
-#define __fmtstring(x, y)	__attribute__((format(printf, x, y)))
 #define __aligned(x)		__attribute__((aligned(x)))
 #define __packed		__attribute__((packed))
 #define __visible		__attribute__((visibility("default")))
-
-extern void __dect_debug(const char *fmt, ...) __fmtstring(1, 2);
-extern void __dect_hexdump(const char *prefix, const uint8_t *buf, size_t size);
-
-#ifdef DEBUG
-#define dect_debug(fmt, ...)		__dect_debug(fmt, ## __VA_ARGS__)
-#define dect_hexdump(pfx, buf, size)	__dect_hexdump(pfx, buf, size)
-#else
-#define dect_debug(fmt, ...)		({ if (0) __dect_debug(fmt, ## __VA_ARGS__); })
-#define dect_hexdump(pfx, buf, size)	({ if (0) __dect_hexdump(pfx, buf, size); })
-#endif
-
-struct dect_trans_tbl {
-	uint64_t	val;
-	const char	*str;
-};
-
-#define TRANS_TBL(_val, _str)	{ .val = (_val), .str = (_str) }
-
-extern const char *__dect_flags2str(const struct dect_trans_tbl *tbl, unsigned int nelem,
-				    char *buf, size_t size, uint64_t val);
-
-#define dect_val2str(trans, buf, val) \
-	__dect_val2str(trans, array_size(trans), buf, sizeof(buf), val)
-
-extern const char *__dect_val2str(const struct dect_trans_tbl *tbl, unsigned int nelem,
-				  char *buf, size_t len, uint64_t val);
-
-#define dect_flags2str(trans, buf, val) \
-	__dect_flags2str(trans, array_size(trans), buf, sizeof(buf), val)
 
 struct dect_handle;
 extern void *dect_malloc(const struct dect_handle *dh, size_t size);

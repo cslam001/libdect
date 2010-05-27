@@ -49,7 +49,7 @@ static DECT_SFMT_MSG_DESC(lce_page_reject,
 static const struct dect_nwk_protocol *protocols[DECT_PD_MAX + 1];
 
 #define lce_debug(fmt, args...) \
-	dect_debug("LCE: " fmt, ## args)
+	dect_debug(DECT_DEBUG_LCE, "LCE: " fmt, ## args)
 
 void dect_lce_register_protocol(const struct dect_nwk_protocol *protocol)
 {
@@ -139,7 +139,7 @@ static int dect_lce_broadcast(const struct dect_handle *dh,
 {
 	ssize_t size;
 
-	dect_hexdump("LCE: BCAST TX", msg, len);
+	dect_hexdump(DECT_DEBUG_LCE, "LCE: BCAST TX", msg, len);
 	size = send(dh->b_sap->fd, msg, len, 0);
 	assert(size == (ssize_t)len);
 	return 0;
@@ -202,7 +202,7 @@ static void dect_lce_bsap_event(struct dect_handle *dh, struct dect_fd *dfd,
 
 	if (dect_mbuf_rcv(dfd, &msg, mb) < 0)
 		return;
-	dect_mbuf_dump(mb, "LCE: BCAST RX");
+	dect_mbuf_dump(DECT_DEBUG_LCE, mb, "LCE: BCAST RX");
 
 	switch (mb->len) {
 	case 3:
@@ -462,7 +462,7 @@ static int dect_send(const struct dect_handle *dh,
 {
 	ssize_t len;
 
-	dect_mbuf_dump(mb, "LCE: TX");
+	dect_mbuf_dump(DECT_DEBUG_LCE, mb, "LCE: TX");
 	len = send(ddl->dfd->fd, mb->data, mb->len, 0);
 	if (len < 0)
 		ddl_debug(ddl, "send %u bytes: %s", mb->len, strerror(errno));
@@ -805,7 +805,7 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 		}
 	}
 
-	dect_mbuf_dump(mb, "LCE: RX");
+	dect_mbuf_dump(DECT_DEBUG_LCE, mb, "LCE: RX");
 
 	if (mb->len < DECT_S_HDR_SIZE)
 		return;
@@ -852,7 +852,7 @@ static void dect_lce_data_link_event(struct dect_handle *dh,
 {
 	struct dect_data_link *ddl = dfd->data;
 
-	dect_debug("\n");
+	dect_debug(DECT_DEBUG_LCE, "\n");
 	if (events & DECT_FD_WRITE) {
 		switch (ddl->state) {
 		case DECT_DATA_LINK_ESTABLISH_PENDING:
@@ -987,7 +987,7 @@ static void dect_lce_ssap_listener_event(struct dect_handle *dh,
 	struct dect_data_link *ddl;
 	struct dect_fd *nfd;
 
-	dect_debug("\n");
+	dect_debug(DECT_DEBUG_LCE, "\n");
 	ddl = dect_ddl_alloc(dh);
 	if (ddl == NULL)
 		goto err1;

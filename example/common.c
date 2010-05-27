@@ -13,7 +13,8 @@ void pexit(const char *str)
 
 void dect_common_init(struct dect_ops *ops)
 {
-	dummy_ops_init(ops);
+	dect_debug_init();
+	dect_dummy_ops_init(ops);
 
 	if (dect_event_ops_init(ops))
 		pexit("dect_event_ops_init");

@@ -19,6 +19,7 @@ dect-obj	+= io.o
 dect-obj	+= timer.o
 dect-obj	+= utils.o
 dect-obj	+= raw.o
+dect-obj	+= debug.o
 
 dect-obj	+= ccitt-adpcm/g711.o
 dect-obj	+= ccitt-adpcm/g72x.o

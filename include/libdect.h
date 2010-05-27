@@ -3,6 +3,7 @@
 
 #include <linux/dect_netlink.h>
 #include <dect/libdect.h>
+#include <debug.h>
 #include <list.h>
 
 struct dect_fp_capabilities {

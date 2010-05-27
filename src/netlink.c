@@ -25,9 +25,9 @@
 #include <utils.h>
 
 #define nl_debug_entry(fmt, args...) \
-	dect_debug("\nnetlink: " fmt, ## args)
+	dect_debug(DECT_DEBUG_NL, "\nnetlink: " fmt, ## args)
 #define nl_debug(fmt, args...) \
-	dect_debug("netlink: " fmt, ## args)
+	dect_debug(DECT_DEBUG_NL, "netlink: " fmt, ## args)
 
 struct dect_netlink_handler {
 	struct dect_handle	*dh;
@@ -47,7 +47,7 @@ static void __maybe_unused dect_netlink_obj_dump(struct nl_object *obj)
 
 	buf[0] = '\0';
 	nl_object_dump(obj, &dp);
-	dect_debug("%s", buf);
+	dect_debug(DECT_DEBUG_NL, "%s", buf);
 #endif
 }
 
@@ -305,7 +305,8 @@ err2:
 	nl_close(dh->nlsock);
 	nl_socket_free(dh->nlsock);
 err1:
-	dect_debug("dect_netlink_init: %s\n", err == 0 ? strerror(errno) : nl_geterror(err));
+	dect_debug(DECT_DEBUG_NL, "dect_netlink_init: %s\n",
+		   err == 0 ? strerror(errno) : nl_geterror(err));
 	return -1;
 }
 

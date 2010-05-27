@@ -18,6 +18,7 @@
 #include <dect/cc.h>
 #include <dect/mm.h>
 #include <dect/ss.h>
+#include <dect/debug.h>
 #include <list.h>
 
 #ifdef __cplusplus
@@ -139,8 +140,6 @@ extern struct dect_handle *dect_alloc_handle(struct dect_ops *ops);
 extern void dect_close_handle(struct dect_handle *dh);
 
 extern int dect_init(struct dect_handle *dh);
-
-extern void dect_set_debug_hook(int (*fn)(const char *fmt, va_list ap));
 
 #ifdef __cplusplus
 }

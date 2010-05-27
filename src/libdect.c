@@ -9,36 +9,12 @@
  */
 
 #include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
 #include <unistd.h>
 
 #include <libdect.h>
 #include <netlink.h>
 #include <utils.h>
 #include <lce.h>
-
-static int __fmtstring(1, 0) (*debug_hook)(const char *fmt, va_list ap);
-
-void dect_set_debug_hook(int (*fn)(const char *fmt, va_list ap))
-{
-	debug_hook = fn;
-}
-EXPORT_SYMBOL(dect_set_debug_hook);
-
-#ifdef DEBUG
-void __fmtstring(1, 2) __dect_debug(const char *fmt, ...)
-{
-	va_list ap;
-
-	va_start(ap, fmt);
-	if (debug_hook != NULL)
-		debug_hook(fmt, ap);
-	else
-		vprintf(fmt, ap);
-	va_end(ap);
-}
-#endif
 
 struct dect_handle *dect_alloc_handle(struct dect_ops *ops)
 {
