@@ -316,9 +316,10 @@ enum dect_sfmt_variable_length_ies {
 /* Call information IE */
 
 enum dect_sfmt_ie_status {
-	DECT_SFMT_IE_NONE,
-	DECT_SFMT_IE_OPTIONAL,
-	DECT_SFMT_IE_MANDATORY
+	DECT_SFMT_IE_NONE		= 0,
+	/* -1 indicates generic errors */
+	DECT_SFMT_IE_OPTIONAL		= -2,
+	DECT_SFMT_IE_MANDATORY		= -3,
 };
 
 enum dect_sfmt_ie_flags {

@@ -1868,7 +1868,7 @@ int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	 * TPUI or NWK identity assignment begins an identity assignment
 	 * procedure.
 	 */
-	if (accept &&
+	if (accept && param->portable_identity &&
 	    (param->portable_identity->type == DECT_PORTABLE_ID_TYPE_TPUI ||
 	     param->nwk_assigned_identity)) {
 		mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;

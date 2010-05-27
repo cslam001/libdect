@@ -2245,10 +2245,6 @@ enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,
 		if (dect_parse_sfmt_ie_header(ie, mb) < 0)
 			return -1;
 
-		/* Treat empty variable length IEs as absent */
-		if (!(ie->id & DECT_SFMT_IE_FIXED_LEN) && ie->len == 2)
-			goto next;
-
 		/* Locate a matching member in the description and apply
 		 * policy checks. */
 		while (1) {
@@ -2281,6 +2277,13 @@ enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,
 			dect_msg_ie_init(desc, dst);
 		}
 found:
+		/* Treat empty variable length IEs as absent */
+		if (!(ie->id & DECT_SFMT_IE_FIXED_LEN) && ie->len == 2) {
+			dect_debug("  IE: <%s> id: %x len: %u (empty)\n",
+				   dect_ie_handlers[ie->id].name, ie->id, ie->len);
+			goto next;
+		}
+
 		/* Ignore corrupt optional IEs */
 		if (dect_parse_sfmt_ie(dh, desc, dst, ie) < 0 &&
 		    dect_rx_status(dh, desc) == DECT_SFMT_IE_MANDATORY)
@@ -2388,12 +2391,13 @@ enum dect_sfmt_error dect_build_sfmt_msg(const struct dect_handle *dh,
 				if (err != DECT_SFMT_OK)
 					return err;
 			}
-		} else {
-			if (*src == NULL)
-				goto next;
+		} else if (*src != NULL) {
 			err = dect_build_sfmt_ie(dh, desc, mb, *src);
 			if (err != DECT_SFMT_OK)
 				return err;
+		} else {
+			if (dect_tx_status(dh, desc) == DECT_SFMT_IE_MANDATORY)
+				goto err_mandatory;
 		}
 next:
 		src = next;
@@ -2401,6 +2405,11 @@ next:
 	}
 
 	return DECT_SFMT_OK;
+
+err_mandatory:
+	dect_debug("  IE <%s> id: %x missing\n",
+		   dect_ie_handlers[desc->type].name, desc->type);
+	return DECT_SFMT_MANDATORY_IE_MISSING;
 }
 
 void dect_msg_free(const struct dect_handle *dh,

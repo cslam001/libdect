@@ -481,13 +481,16 @@ int dect_lce_send(const struct dect_handle *dh,
 {
 	struct dect_data_link *ddl = ta->link;
 	struct dect_msg_buf *mb;
+	int err;
 
 	mb = dect_mbuf_alloc(dh);
 	if (mb == NULL)
 		return -1;
 
 	dect_mbuf_reserve(mb, DECT_S_HDR_SIZE);
-	dect_build_sfmt_msg(dh, desc, msg, mb);
+	err = dect_build_sfmt_msg(dh, desc, msg, mb);
+	if (err < 0)
+		return err;
 
 	if (ddl->sdu_timer && dect_timer_running(ddl->sdu_timer))
 		dect_ddl_stop_sdu_timer(dh, ddl);

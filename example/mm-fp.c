@@ -123,6 +123,7 @@ static void mm_authenticate_cfm(struct dect_handle *dh,
 	} else {
 		debug("authentication failure\n");
 err:
+		mm_locate_res(dh, mme);
 		dect_ie_collection_put(dh, priv->locate);
 	}
 }
