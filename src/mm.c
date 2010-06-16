@@ -2353,8 +2353,7 @@ int dect_mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	if (mp->type != DECT_MMP_NONE)
 		return -1;
 
-	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
-					DECT_PD_MM);
+	err = dect_mm_procedure_initiate(dh, mme, DECT_MMP_PARAMETER_RETRIEVAL);
 	if (err < 0)
 		goto err1;
 
@@ -2376,7 +2375,7 @@ int dect_mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		if (err < 0)
 			goto err2;
 
-		dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+		dect_mm_procedure_complete(dh, mme, mp);
 	} else {
 		struct dect_mm_info_request_msg msg;
 
@@ -2395,13 +2394,12 @@ int dect_mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 				       &msg.common, DECT_MM_INFO_REQUEST);
 		if (err < 0)
 			goto err2;
-
-		mp->type = DECT_MMP_PARAMETER_RETRIEVAL;
 	}
 
 	return 0;
+
 err2:
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_mm_procedure_cancel(dh, mme, mp);
 err1:
 	return err;
 }
