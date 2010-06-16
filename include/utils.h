@@ -9,10 +9,10 @@
 #include <timer.h>
 
 #ifndef AF_DECT
-#define AF_DECT 37
+#define AF_DECT 38
 #endif
 #ifndef SOL_DECT
-#define SOL_DECT 278
+#define SOL_DECT 279
 #endif
 
 #define __init			__attribute__((constructor))
