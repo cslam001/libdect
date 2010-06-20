@@ -393,7 +393,8 @@ static int dect_mm_procedure_initiate(struct dect_handle *dh,
 
 	mp->type     = type;
 	mp->priority = priority;
-	dect_start_timer(dh, mp->timer, proc->param[dh->mode].timeout);
+	if (proc->param[dh->mode].timeout)
+		dect_start_timer(dh, mp->timer, proc->param[dh->mode].timeout);
 	mme->current = mp;
 	return 0;
 }
@@ -2036,11 +2037,7 @@ int dect_mm_detach_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	int err;
 
 	mm_debug_entry(mme, "MM_DETACH-req");
-	if (mp->type != DECT_MMP_NONE)
-		return -1;
-
-	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
-				        DECT_PD_MM);
+	err = dect_mm_procedure_initiate(dh, mme, DECT_MMP_DETACH);
 	if (err < 0)
 		goto err1;
 
@@ -2053,7 +2050,7 @@ int dect_mm_detach_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	err = dect_mm_send_msg(dh, mp, &mm_detach_msg_desc,
 			       &msg.common, DECT_MM_DETACH);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_mm_procedure_complete(dh, mme, mp);
 err1:
 	return err;
 }
@@ -2068,19 +2065,19 @@ static void dect_mm_rcv_detach(struct dect_handle *dh,
 	struct dect_mm_detach_msg msg;
 
 	mm_debug(mme, "MM_DETACH");
-	if (mp->type != DECT_MMP_NONE)
+	if (dect_mm_procedure_respond(dh, mme, DECT_MMP_DETACH) < 0)
 		return;
 
 	if (dect_parse_sfmt_msg(dh, &mm_detach_msg_desc,
 				&msg.common, mb) < 0)
-		return;
+		goto err1;
 
 	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
-		return;
+		goto err2;
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
-		goto err1;
+		goto err2;
 
 	param->portable_identity	= dect_ie_hold(msg.portable_identity);
 	param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity);
@@ -2093,8 +2090,10 @@ static void dect_mm_rcv_detach(struct dect_handle *dh,
 	dh->ops->mm_ops->mm_detach_ind(dh, mme, param);
 
 	dect_ie_collection_put(dh, param);
-err1:
+err2:
 	dect_msg_free(dh, &mm_detach_msg_desc, &msg.common);
+err1:
+	dect_mm_procedure_complete(dh, mme, mp);
 }
 
 /**
@@ -3003,6 +3002,14 @@ static const struct dect_mm_proc dect_mm_proc[DECT_MMP_MAX + 1] = {
 			[DECT_MODE_PP] = {
 				.priority	= 3,
 				.timeout	= 20,
+			},
+		},
+	},
+	[DECT_MMP_DETACH] = {
+		.name	= "detach",
+		.param	= {
+			[DECT_MODE_PP] = {
+				.priority	= 3,
 			},
 		},
 	},
