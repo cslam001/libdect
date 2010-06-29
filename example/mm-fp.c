@@ -221,7 +221,6 @@ int main(int argc, char **argv)
 	dect_common_init(&ops);
 
 	dect_event_loop();
-	dect_close_handle(dh);
 
 	dect_common_cleanup(dh);
 	close(rand_fd);
