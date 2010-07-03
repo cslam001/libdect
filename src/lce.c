@@ -540,10 +540,9 @@ static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
 	if (ddl == NULL)
 		goto err1;
 	ddl->state = DECT_DATA_LINK_ESTABLISH_PENDING;
+	ddl->ipui  = *ipui;
 
 	if (dh->mode == DECT_MODE_FP) {
-		memcpy(&ddl->ipui, ipui, sizeof(ddl->ipui));
-
 		ddl->page_timer = dect_alloc_timer(dh);
 		if (ddl->page_timer == NULL)
 			goto err2;
