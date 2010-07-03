@@ -16,6 +16,11 @@ extern void dummy_ops_init(struct dect_ops *ops);
 extern void dect_common_init(struct dect_ops *ops);
 extern void dect_common_cleanup(struct dect_handle *dh);
 
+extern int dect_write_uak(const struct dect_ipui *ipui,
+			  const uint8_t uak[DECT_AUTH_KEY_LEN]);
+extern int dect_read_uak(const struct dect_ipui *ipui,
+			 uint8_t uak[DECT_AUTH_KEY_LEN]);
+
 extern void pexit(const char *str);
 
 #include "../src/ccitt-adpcm/g72x.h"

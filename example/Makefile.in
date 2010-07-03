@@ -1,10 +1,10 @@
 CFLAGS		+= $(EVENT_CFLAGS)
 LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect $(EVENT_LDFLAGS)
-PROGRAMS	+= cc ss mm-fp mm-pp discover hijack
+PROGRAMS	+= cc ss mm-fp mm-pp pp-access-rights discover hijack
 
 destdir		:= usr/share/dect/examples
 
-common-obj	+= common.o event_ops.o dummy_ops.o
+common-obj	+= common.o event_ops.o keys.o dummy_ops.o
 
 cc-destdir	:= $(destdir)
 cc-obj		+= $(common-obj)
@@ -19,6 +19,10 @@ ss-obj		+= ss.o
 mm-fp-destdir	:= $(destdir)
 mm-fp-obj	+= $(common-obj)
 mm-fp-obj	+= mm-fp.o
+
+pp-access-rights-destdir	:= $(destdir)
+pp-access-rights-obj		+= $(common-obj)
+pp-access-rights-obj		+= pp-access-rights.o
 
 mm-pp-destdir	:= $(destdir)
 mm-pp-obj	+= $(common-obj)
