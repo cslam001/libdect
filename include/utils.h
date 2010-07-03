@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include <timer.h>
+#include <file.h>
 
 #ifndef AF_DECT
 #define AF_DECT 38
@@ -59,24 +60,6 @@ struct dect_handle;
 extern void *dect_malloc(const struct dect_handle *dh, size_t size);
 extern void *dect_zalloc(const struct dect_handle *dh, size_t size);
 extern void dect_free(const struct dect_handle *dh, void *ptr);
-
-extern struct dect_fd *dect_alloc_fd(const struct dect_handle *dh);
-extern void dect_setup_fd(struct dect_fd *fd,
-			  void (*cb)(struct dect_handle *, struct dect_fd *, uint32_t),
-			  void *data);
-extern void dect_close(const struct dect_handle *dh, struct dect_fd *dfd);
-
-#include <sys/socket.h> // FIXME: socklen_t
-extern struct dect_fd *dect_socket(const struct dect_handle *dh,
-				   int type, int protocol);
-extern struct dect_fd *dect_accept(const struct dect_handle *dh,
-				   const struct dect_fd *dfd,
-				   struct sockaddr *addr, socklen_t len);
-
-extern int dect_register_fd(const struct dect_handle *dh, struct dect_fd *dfd,
-			    uint32_t events);
-extern void dect_unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd);
-
 #define EXPORT_SYMBOL(x)	typeof(x) (x) __visible
 #define BUG()			assert(0)
 

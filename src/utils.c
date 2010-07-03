@@ -129,6 +129,12 @@ struct dect_fd *dect_alloc_fd(const struct dect_handle *dh)
 }
 EXPORT_SYMBOL(dect_alloc_fd);
 
+void *dect_fd_priv(struct dect_fd *fd)
+{
+	return fd->priv;
+}
+EXPORT_SYMBOL(dect_fd_priv);
+
 void dect_setup_fd(struct dect_fd *fd,
 		   void (*cb)(struct dect_handle *, struct dect_fd *, uint32_t),
 		   void *data)
@@ -150,6 +156,12 @@ void dect_unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd)
 	dh->ops->event_ops->unregister_fd(dh, dfd);
 }
 EXPORT_SYMBOL(dect_unregister_fd);
+
+void dect_handle_fd(struct dect_handle *dh, struct dect_fd *dfd, uint32_t events)
+{
+	dfd->callback(dh, dfd, events);
+}
+EXPORT_SYMBOL(dect_handle_fd);
 
 void dect_close(const struct dect_handle *dh, struct dect_fd *dfd)
 {

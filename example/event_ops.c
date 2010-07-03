@@ -20,7 +20,7 @@ static void event_callback(int fd, short mask, void *data)
 	if (mask & EV_WRITE)
 		events |= DECT_FD_WRITE;
 
-	dfd->callback(dh, dfd, events);
+	dect_handle_fd(dh, dfd, events);
 }
 
 static int register_fd(const struct dect_handle *dh, struct dect_fd *dfd,

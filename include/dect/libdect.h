@@ -72,21 +72,10 @@ enum dect_fd_events {
 	DECT_FD_WRITE	= 0x2
 };
 
-/**
- * struct dect_fd - libdect file descriptor
- *
- * @callback:		callback to invoke for events
- * @fd:			file descriptor numer
- * @data:		libdect internal data
- * @priv:		libdect user private file-descriptor storage
- */
-struct dect_fd {
-	void		(*callback)(struct dect_handle *,
-				    struct dect_fd *, uint32_t);
-	int		fd;
-	void		*data;
-	uint8_t		priv[];
-};
+struct dect_fd;
+extern void *dect_fd_priv(struct dect_fd *dfd);
+extern void dect_handle_fd(struct dect_handle *dh, struct dect_fd *dfd,
+			   uint32_t events);
 
 struct dect_timer;
 extern void *dect_timer_priv(struct dect_timer *timer);
