@@ -1464,6 +1464,80 @@ static int dect_sfmt_build_duration(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static const struct dect_trans_tbl dect_iwu_to_iwu_sr[] = {
+	TRANS_TBL(false,							"Rejection of message"),
+	TRANS_TBL(true,								"Transmission of message"),
+};
+
+static const struct dect_trans_tbl dect_iwu_to_iwu_pds[] = {
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_USER_SPECIFIC,				"User Specific"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_OSI_HIGHER_LAYER,				"OSI high layer protocols"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_ITU_T_X263,				"ITU-T Recommendation X.263"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_LIST_ACCESS,				"List Access"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_IA5_CHARACTERS,				"IA5 characters"),
+	TRANS_TBL(DECt_IWU_TO_IWU_PD_LDS_SUOTA,					"Light data service, Software Upgrade Over The Air (SUOTA)"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_ITU_T_V120,				"ITU-T Recommendation V.120 Rate adaption"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_ITU_T_Q931_MESSAGE,			"ITU-T Recommendation Q.931 [i.15] (I.451), message"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_ITU_T_Q931_IE,				"ITU-T Recommendation Q.931 [i.15] (I.451), information element(s)"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_ITU_T_Q931_PARTIAL_MESSAGE,		"ITU-T Recommendation Q.931 [i.15] (I.451), partial message"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_GSM_MESSAGE,				"GSM, message"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_GSM_IE,					"GSM, information element(s)"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_UMTS_GPRS_IE,				"UMTS/GPRS information element(s)"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_UMTS_GPRS_MESSAGE,				"UMTS/GPRS, messages"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_LRMS,					"LRMS"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_RLL_ACCESS_PROFILE,			"RLL access profile"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_WRS,					"WRS"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_DECT_ISDN_C_PLANE_SPECIFIC,		"DECT/ISDN Intermediate System C-plane specific"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_DECT_ISDN_U_PLANE_SPECIFIC,		"DECT/ISDN Intermediate System U-plane specific"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_DECT_ISDN_OPERATION_AND_MAINTENANCE,	"DECT/ISDN Intermediate System Operation and Maintenance"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_TERMINAL_DATA,				"Terminal Data"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_DECT_IP_NETWORK_ACCESS_SPECIFIC,		"DECT access to IP Networks specific"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_MPEG4_ER_AAL_LD_CONFIGURATION,		"MPEG-4 ER AAC-LD Configuration Description"),
+	TRANS_TBL(DECT_IWU_TO_IWU_PD_UNKNOWN,					"Unknown"),
+};
+
+static void dect_sfmt_dump_iwu_to_iwu(const struct dect_ie_common *_ie)
+{
+	struct dect_ie_iwu_to_iwu *ie = dect_ie_container(ie, _ie);
+	char buf[64];
+
+	dect_debug("\tSend/Reject (S/R) bit: %s\n",
+		   dect_val2str(dect_iwu_to_iwu_sr, buf, ie->sr));
+	dect_debug("\tProtocol Discriminator: %s\n",
+		   dect_val2str(dect_iwu_to_iwu_pds, buf, ie->pd));
+}
+
+static int dect_sfmt_parse_iwu_to_iwu(const struct dect_handle *dh,
+				      struct dect_ie_common **ie,
+				      const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_iwu_to_iwu *dst = dect_ie_container(dst, *ie);
+
+	dst->sr  = src->data[2] & 0x40;
+	dst->pd  = src->data[2] & 0x3f;
+	if (!(src->data[2] & DECT_OCTET_GROUP_END))
+		return -1;
+
+	dst->len = src->len - 3;
+	if (dst->len > array_size(dst->data))
+		return -1;
+	memcpy(dst->data, src->data + 3, dst->len);
+	return 0;
+}
+
+static int dect_sfmt_build_iwu_to_iwu(struct dect_sfmt_ie *dst,
+				      const struct dect_ie_common *ie)
+{
+	struct dect_ie_iwu_to_iwu *src = dect_ie_container(src, ie);
+
+	dst->data[2]  = src->sr ? 0x40 : 0x0;
+	dst->data[2] |= src->pd;
+	dst->data[2] |= DECT_OCTET_GROUP_END;
+	memcpy(dst->data + 3, src->data, src->len);
+	dst->len = src->len + 3;
+	return 0;
+}
+
 static void dect_sfmt_dump_escape_to_proprietary(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_escape_to_proprietary *ie = dect_ie_container(ie, _ie);
@@ -1948,6 +2022,9 @@ static const struct dect_ie_handler {
 	[S_VL_IE_IWU_TO_IWU]			= {
 		.name	= "IWU-to-IWU",
 		.size	= sizeof(struct dect_ie_iwu_to_iwu),
+		.parse	= dect_sfmt_parse_iwu_to_iwu,
+		.build	= dect_sfmt_build_iwu_to_iwu,
+		.dump	= dect_sfmt_dump_iwu_to_iwu,
 	},
 	[S_VL_IE_MODEL_IDENTIFIER]		= {
 		.name	= "model identifier",
