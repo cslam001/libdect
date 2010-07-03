@@ -15,6 +15,7 @@ dect-obj	+= keypad.o
 dect-obj	+= auth.o
 dect-obj	+= dsaa.o
 dect-obj	+= netlink.o
+dect-obj	+= file.o
 dect-obj	+= timer.o
 dect-obj	+= utils.o
 dect-obj	+= raw.o
