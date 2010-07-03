@@ -258,11 +258,14 @@ static int dect_sfmt_parse_info_type(const struct dect_handle *dh,
 	struct dect_ie_info_type *dst = dect_ie_container(dst, *ie);
 	unsigned int n = 2;
 
-	while (dst->num < array_size(dst->type) && n < src->len) {
+	while (n < src->len) {
 		dst->type[dst->num++] = src->data[n] & ~DECT_OCTET_GROUP_END;
 		if (src->data[n] & DECT_OCTET_GROUP_END)
 			break;
 		n++;
+
+		if (dst->num == array_size(dst->type))
+			break;
 	}
 	return 0;
 }
@@ -914,7 +917,9 @@ static int dect_sfmt_parse_multi_display(const struct dect_handle *dh,
 	struct dect_ie_display *dst = dect_ie_container(dst, *ie);
 
 	dst->len = src->len - 2;
-	memcpy(dst->info, src->data + 2, src->len -2);
+	if (dst->len > array_size(dst->info))
+		return -1;
+	memcpy(dst->info, src->data + 2, dst->len);
 	return 0;
 }
 
@@ -935,7 +940,9 @@ static int dect_sfmt_parse_multi_keypad(const struct dect_handle *dh,
 	struct dect_ie_keypad *dst = dect_ie_container(dst, *ie);
 
 	dst->len = src->len - 2;
-	memcpy(dst->info, src->data + 2, src->len - 2);
+	if (dst->len > array_size(dst->info))
+		return -1;
+	memcpy(dst->info, src->data + 2, dst->len);
 	return 0;
 }
 
@@ -1382,7 +1389,11 @@ static int dect_sfmt_parse_called_party_number(const struct dect_handle *dh,
 
 	dst->type = (src->data[2] & 0x70) >> 4;
 	dst->npi  = (src->data[2] & 0x0f);
-	memcpy(dst->address, &src->data[3], src->len - 2);
+
+	dst->len  = src->len - 3;
+	if (dst->len > array_size(dst->address))
+		return -1;
+	memcpy(dst->address, src->data + 3, dst->len);
 	return 0;
 }
 
@@ -1394,7 +1405,7 @@ static int dect_sfmt_build_called_party_number(struct dect_sfmt_ie *dst,
 	dst->data[2]  = src->type << 4;
 	dst->data[2] |= src->npi;
 	dst->data[2] |= DECT_OCTET_GROUP_END;
-	memcpy(&dst->data[3], src->address, src->len);
+	memcpy(dst->data + 3, src->address, src->len);
 	dst->len = src->len + 3;
 	return 0;
 }
@@ -1473,7 +1484,7 @@ static int dect_sfmt_build_escape_to_proprietary(struct dect_sfmt_ie *dst,
 	dst->data[2]  = DECT_ESC_TO_PROPRIETARY_IE_DESC_EMC;
 	dst->data[2] |= DECT_OCTET_GROUP_END;
 	*(uint16_t *)&dst->data[3] = __cpu_to_be16(src->emc);
-	memcpy(&dst->data[5], src->content, src->len);
+	memcpy(dst->data + 5, src->content, src->len);
 	dst->len = 5 + src->len;
 	return 0;
 }
@@ -1489,7 +1500,10 @@ static int dect_sfmt_parse_escape_to_proprietary(const struct dect_handle *dh,
 	if (dtype != DECT_ESC_TO_PROPRIETARY_IE_DESC_EMC)
 		return -1;
 	dst->emc = __be16_to_cpu(*(__be16 *)&src->data[3]);
+
 	dst->len = src->len - 5;
+	if (dst->len > array_size(dst->content))
+		return -1;
 	memcpy(dst->content, src->data + 5, dst->len);
 	return 0;
 }
