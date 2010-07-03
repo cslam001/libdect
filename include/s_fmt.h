@@ -328,7 +328,7 @@ enum dect_sfmt_ie_flags {
  * @flags:	Global flags
  */
 struct dect_sfmt_ie_desc {
-	uint16_t			type;
+	uint8_t				type;
 	enum dect_sfmt_ie_status	fp_pp:8;
 	enum dect_sfmt_ie_status	pp_fp:8;
 	uint8_t				flags;
@@ -347,7 +347,7 @@ struct dect_sfmt_ie_desc {
 
 struct dect_sfmt_ie {
 	uint8_t			*data;
-	uint16_t		id;
+	uint8_t			id;
 	uint8_t			len;
 };
 
