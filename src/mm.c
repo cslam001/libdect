@@ -765,13 +765,18 @@ int dect_mm_authenticate_req(struct dect_handle *dh,
 			     const struct dect_mm_authenticate_param *param)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_procedure *mpr = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_authentication_request_msg msg;
 	int err;
 
 	mm_debug_entry(mme, "MM_AUTHENTICATE-req");
-	err = dect_mm_procedure_initiate(dh, mme, DECT_MMP_AUTHENTICATE);
-	if (err < 0)
-		goto err1;
+	if (mpr->type == DECT_MMP_KEY_ALLOCATION)
+		mp = mpr;
+	else {
+		err = dect_mm_procedure_initiate(dh, mme, DECT_MMP_AUTHENTICATE);
+		if (err < 0)
+			goto err1;
+	}
 
 	memset(&msg, 0, sizeof(msg));
 	msg.auth_type			= param->auth_type;
@@ -921,11 +926,14 @@ static void dect_mm_rcv_authentication_reply(struct dect_handle *dh,
 					     struct dect_msg_buf *mb)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_procedure *mpr = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_authentication_reply_msg msg;
 	struct dect_mm_authenticate_param *param;
 
 	mm_debug(mme, "AUTHENTICATION-REPLY");
-	if (mp->type != DECT_MMP_AUTHENTICATE)
+	if (mpr->type == DECT_MMP_KEY_ALLOCATION)
+		mp = mpr;
+	else if (mp->type != DECT_MMP_AUTHENTICATE)
 		return;
 
 	if (dect_parse_sfmt_msg(dh, &mm_authentication_reply_msg_desc,
