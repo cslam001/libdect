@@ -76,6 +76,7 @@ static int dect_sfmt_build_empty_single_octet(struct dect_sfmt_ie *dst,
 }
 
 static const struct dect_trans_tbl dect_call_classes[] = {
+	TRANS_TBL(DECT_CALL_CLASS_LIA_SERVICE_SETUP,	"LiA service call setup"),
 	TRANS_TBL(DECT_CALL_CLASS_MESSAGE,		"message call"),
 	TRANS_TBL(DECT_CALL_CLASS_DECT_ISDN,		"DECT/ISDN IIP"),
 	TRANS_TBL(DECT_CALL_CLASS_NORMAL,		"normal call"),

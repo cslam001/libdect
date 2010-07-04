@@ -127,6 +127,7 @@ struct dect_ie_use_tpui {
 #define DECT_BASIC_SERVICE_CALL_CLASS_SHIFT		4
 
 enum dect_call_classes {
+	DECT_CALL_CLASS_LIA_SERVICE_SETUP		= 0x2,
 	DECT_CALL_CLASS_MESSAGE				= 0x4,
 	DECT_CALL_CLASS_DECT_ISDN			= 0x7,
 	DECT_CALL_CLASS_NORMAL				= 0x8,
