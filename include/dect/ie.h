@@ -7,6 +7,11 @@
 #ifndef _LIBDECT_DECT_IE_H
 #define _LIBDECT_DECT_IE_H
 
+/**
+ * @addtogroup ie
+ * @{
+ */
+
 #include <string.h>
 #include <dect/utils.h>
 
@@ -1171,5 +1176,7 @@ struct dect_ie_events_notification {
 struct dect_ie_call_information {
 	struct dect_ie_common		common;
 };
+
+/* @} */
 
 #endif /* _LIBDECT_DECT_IE_H */

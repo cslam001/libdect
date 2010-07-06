@@ -7,6 +7,11 @@
 #ifndef _LIBDECT_DECT_CC_H
 #define _LIBDECT_DECT_CC_H
 
+/**
+ * @addtogroup cc
+ * @{
+ */
+
 #include <dect/ie.h>
 
 /**
@@ -270,5 +275,7 @@ extern int dect_mncc_iwu_info_req(struct dect_handle *dh, struct dect_call *call
 
 extern int dect_dl_u_data_req(const struct dect_handle *dh, struct dect_call *call,
 			      struct dect_msg_buf *mb);
+
+/** @} */
 
 #endif /* _LIBDECT_DECT_CC_H */

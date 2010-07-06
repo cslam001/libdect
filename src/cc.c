@@ -8,6 +8,14 @@
  * published by the Free Software Foundation.
  */
 
+/**
+ * @defgroup cc Call Control
+ *
+ * This module implements the call control processes specified in
+ * ETSI EN 300 175-5, section 9.
+ * @{
+ */
+
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -1415,3 +1423,5 @@ static void __init dect_cc_init(void)
 {
 	dect_lce_register_protocol(&cc_protocol);
 }
+
+/** @} */

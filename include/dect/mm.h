@@ -7,8 +7,17 @@
 #ifndef _LIBDECT_DECT_MM_H
 #define _LIBDECT_DECT_MM_H
 
+/**
+ * @addtogroup mm
+ * @{
+ **/
+
 #include <dect/ie.h>
 
+/**
+ * @addtogroup mm_access_rights
+ * @{
+ */
 struct dect_mm_access_rights_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
@@ -27,7 +36,12 @@ struct dect_mm_access_rights_param {
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 	struct dect_ie_codec_list		*codec_list;
 };
+/** @} */
 
+/**
+ * @addtogroup mm_access_rights_terminate
+ * @{
+ */
 struct dect_mm_access_rights_terminate_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
@@ -37,7 +51,12 @@ struct dect_mm_access_rights_terminate_param {
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
+/** @} */
 
+/**
+ * @addtogroup mm_key_allocation
+ * @{
+ */
 struct dect_mm_key_allocate_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_allocation_type		*allocation_type;
@@ -45,7 +64,12 @@ struct dect_mm_key_allocate_param {
 	struct dect_ie_auth_value		*rs;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
+/** @} */
 
+/**
+ * @addtogroup mm_auth
+ * @{
+ */
 struct dect_mm_authenticate_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_auth_type		*auth_type;
@@ -60,7 +84,12 @@ struct dect_mm_authenticate_param {
 	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
+/** @} */
 
+/**
+ * @addtogroup mm_cipher
+ * @{
+ */
 struct dect_mm_cipher_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_cipher_info		*cipher_info;
@@ -70,7 +99,12 @@ struct dect_mm_cipher_param {
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
+/** @} */
 
+/**
+ * @addtogroup mm_location_registration
+ * @{
+ */
 struct dect_mm_locate_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
@@ -95,7 +129,12 @@ struct dect_mm_detach_param {
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
+/** @} */
 
+/**
+ * @addtogroup mm_identification
+ * @{
+ */
 struct dect_mm_identity_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_list			identity_type;
@@ -107,7 +146,12 @@ struct dect_mm_identity_param {
 	struct dect_ie_model_identifier		*model_identifier;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
+/** @} */
 
+/**
+ * @addtogroup mm_temporary_identity_assignment
+ * @{
+ */
 struct dect_mm_identity_assign_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
@@ -119,7 +163,12 @@ struct dect_mm_identity_assign_param {
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
+/** @} */
 
+/**
+ * @addtogroup mm_parameter_retrieval
+ * @{
+ */
 struct dect_mm_info_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_info_type		*info_type;
@@ -134,13 +183,19 @@ struct dect_mm_info_param {
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
+/** @} */
 
+/**
+ * @addtogroup mm_external_protocol_information
+ * @{
+ */
 struct dect_mm_iwu_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;
 	struct dect_ie_iwu_packet		*iwu_packet;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
+/** @} */
 
 struct dect_mm_endpoint;
 
@@ -271,5 +326,7 @@ extern int dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme
 
 extern int dect_mm_iwu_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			   const struct dect_mm_iwu_param *param);
+
+/** @} */
 
 #endif /* _LIBDECT_DECT_MM_H */

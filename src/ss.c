@@ -8,6 +8,11 @@
  * published by the Free Software Foundation.
  */
 
+/**
+ * @defgroup ss Supplementary Services
+ * @{
+ */
+
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -114,10 +119,10 @@ static struct dect_ss_endpoint *dect_ss_endpoint(struct dect_transaction *ta)
 /**
  * dect_mnss_setup_req - MNSS_SETUP-req primitive
  *
- * @dh:		libdect DECT handle
- * @sse:	Supplementary Services Endpoint
- * @ipui:	PT IPUI
- * @param:	Supplementary Services parameters
+ * @param dh		libdect DECT handle
+ * @param sse		Supplementary Services Endpoint
+ * @param ipui		PT IPUI
+ * @param param		Supplementary Services parameters
  */
 int dect_mnss_setup_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 			const struct dect_ipui *ipui,
@@ -157,9 +162,9 @@ EXPORT_SYMBOL(dect_mnss_setup_req);
 /**
  * dect_mnss_facility_req - MNSS_FACILITY-req primitive
  *
- * @dh:		libdect DECT handle
- * @sse:	Supplementary Services Endpoint
- * @param:	Supplementary Services parameters
+ * @param dh		libdect DECT handle
+ * @param sse		Supplementary Services Endpoint
+ * @param param		Supplementary Services parameters
  */
 int dect_mnss_facility_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 			   const struct dect_mnss_param *param)
@@ -210,9 +215,9 @@ out:
 /**
  * dect_mnss_release_req - MNSS_RELEASE-req primitive
  *
- * @dh:		libdect DECT handle
- * @sse:	Supplementary Services Endpoint
- * @param:	Supplementary Services parameters
+ * @param dh		libdect DECT handle
+ * @param sse		Supplementary Services Endpoint
+ * @param param		Supplementary Services parameters
  */
 int dect_mnss_release_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 			  const struct dect_mnss_param *param)
@@ -346,3 +351,5 @@ static void __init dect_ciss_init(void)
 {
 	dect_lce_register_protocol(&ciss_protocol);
 }
+
+/** @} */

@@ -1,6 +1,11 @@
 #ifndef _LIBDECT_DECT_AUTH_H
 #define _LIBDECT_DECT_AUTH_H
 
+/**
+ * @addtogroup security
+ * @{
+ */
+
 #define DECT_AUTH_KEY_LEN	16
 #define DECT_AUTH_RAND_LEN	8
 #define DECT_AUTH_RES_LEN	4
@@ -35,5 +40,7 @@ extern void dect_auth_a12(const uint8_t *ks, uint64_t rand_f, uint8_t *dck,
 			  uint32_t *res1);
 extern void dect_auth_a21(const uint8_t *k, uint64_t rs, uint8_t *ks);
 extern void dect_auth_a22(const uint8_t *ks, uint64_t rand_p, uint32_t *res2);
+
+/** @} */
 
 #endif /* _LIBDECT_DECT_AUTH_H */

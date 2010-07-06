@@ -8,6 +8,11 @@
  * published by the Free Software Foundation.
  */
 
+/**
+ * @defgroup mm Mobility Management
+ * @{
+ */
+
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -557,16 +562,74 @@ static int dect_mm_send_msg(const struct dect_handle *dh,
 	(void)0;						\
 })
 
-/*
- * Key Allocation
+/**
+ * @defgroup mm_key_allocation Key Allocation
+ *
+ * This module implements the key allocation procedure specified in
+ * ETSI EN 300 175-5 section 13.6. The procedure works by performing
+ * mutual authentication and storing the resulting session key as UAK:
+ *
+ * - The F-IWU invokes the \ref dect_mm_key_allocate_req() "MM_KEY_ALLOCATE-req"
+ *   primitive, the F-MM entity sends a KEY-ALLOCATE message to the P-MM containing
+ *   a \ref dect_ie_auth_value "RAND", \ref dect_ie_auth_value "RS" and
+ *   \ref dect_ie_allocation_type "ALLOCATION-TYPE" information element.
+ *
+ * - The P-MM invokes the \ref dect_mm_ops::mm_key_allocate_ind()
+ *   "MM_KEY_ALLOCATE-ind" primitive, the P-IWU responds with a
+ *   \ref dect_mm_authenticate_req() "MM_AUTHENTICATE-req" primitive and sends
+ *   a AUTHENTICATION-REQUEST message to the F-MM containing a
+ *   \ref dect_ie_auth_value "RAND" and \ref dect_ie_auth_res "RES" information
+ *   element.
+ *
+ * - The F-MM invokes the \ref dect_mm_ops::mm_authenticate_ind()
+ *   "MM_AUTHENTICATE-ind" primitive. If the \ref dect_ie_auth_res "RES" value
+ *   matches the expected value, the PT authentication is considered successful.
+ *   The F-IWU responds with a \ref dect_mm_authenticate_res() "MM_AUTHENTICATE-res"
+ *   primitive, the F-MM sends an AUTHENTICATION-REPLY message to the P-MM
+ *   containing a \ref dect_ie_auth_res "RES" information element.
+ *
+ * - The P-MM invokes the \ref dect_mm_ops::mm_authenticate_cfm()
+ *   "MM_AUTHENTICATE-cfm" primitive. If the \ref dect_ie_auth_res "RES" value
+ *   matches the expected value, the FT authentication is considered successful.
+ *   The P-IWU stores the reverse session key KS' as a new user authentication
+ *   key under the UAK-number given in the \ref dect_ie_allocation_type
+ *   "ALLOCATION-TYPE" information element.
+ *
+ * \msc
+ *  "F-IWU", "F-MM", "P-MM", "P-IWU";
+ *
+ *  "F-IWU" => "F-MM"    [label="MM_KEY_ALLOCATE-req", URL="\ref dect_mm_key_allocate_req()"];
+ *  "F-MM"  -> "P-MM"    [label="KEY-ALLOCATE"];
+ *  "P-MM" =>> "P-IWU"   [label="MM_KEY_ALLOCATE-ind", URL="\ref dect_mm_ops::mm_key_allocate_ind"];
+ *  "P-IWU" => "P-MM"    [label="MM_AUTHENTICATE-req", URL="\ref dect_mm_authenticate_req()"];
+ *  "P-MM"  -> "F-MM"    [label="AUTHENTICATION-REQUEST"];
+ *  "F-MM" =>> "F-IWU"   [label="MM_AUTHENTICATE-ind", URL="\ref dect_mm_ops::mm_authenticate_ind"];
+ *  "F-IWU" => "F-MM"    [label="MM_AUTHENTICATE-res", URL="\ref dect_mm_authenticate_res()"];
+ *  "F-MM"  -> "P-MM"    [label="AUTHENTICATION-REPLY"];
+ *  "P-MM" =>> "P-IWU"   [label="MM_AUTHENTICATE-cfm", URL="\ref dect_mm_ops::mm_authenticate_cfm"];
+ * \endmsc
+ *
+ * @sa ETSI EN 300 175-7 (DECT Common Interface - Security Features)
+ *
+ * @{
  */
 
 /**
  * dect_mm_key_allocate_req - MM_KEY_ALLOCATE-req primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @param:	key allocate request parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param param		key allocate request parameters
+ *
+ * Begin a key allocation procedure and send a KEY-ALLOCATE message to the PT.
+ *
+ * When the procedure is successfully accepted by the PT, it will respond by
+ * requesting authentication, in which case the #dect_mm_ops::mm_authenticate_ind()
+ * callback will be invoked. If the procedure is rejected or an error occurs,
+ * the #dect_mm_ops::mm_authenticate_cfm() callback will be invoked with an 'accept'
+ * parameter value of 'false'.
+ *
+ * The key allocation procedure may only be invoked by the FT.
  */
 int dect_mm_key_allocate_req(struct dect_handle *dh,
 			     struct dect_mm_endpoint *mme,
@@ -638,16 +701,61 @@ err1:
 	dect_mm_procedure_cancel(dh, mme, mp);
 }
 
-/*
- * Authentication
+/**
+ * @}
+ * @defgroup mm_auth Authentication
+ *
+ * This module implements the authentication procedures specified in
+ * ETSI EN 300 175-5 section 13.3. Authentication may be invoked by either
+ * side, the procedure works as follows:
+ *
+ * - The IWU-1 invokes the \ref dect_mm_authenticate_req() "MM_AUTHENTICATE-req"
+ *   primitive, the MM-1 sends a AUTHENTICATION-REQUEST message to the MM-2
+ *   containing a \ref dect_ie_auth_value "RAND" and \ref dect_ie_auth_value "RS"
+ *   information element.
+ *
+ * - The MM-2 invokes the \ref dect_mm_ops::mm_authenticate_ind()
+ *   "MM_AUTHENTICATE-ind" primitive. The IWU-2 responds with a \ref dect_mm_authenticate_res()
+ *   "MM_AUTHENTICATE-res" primitive, the MM-2 sends an AUTHENTICATION-REPLY
+ *   message to the MM-1 containing a \ref dect_ie_auth_res "RES" information
+ *   element.
+ *
+ * - The MM-1 invokes the \ref dect_mm_ops::mm_authenticate_cfm() "MM_AUTHENTICATE-cfm"
+ *   primitive. If the \ref dect_ie_auth_res "RES" value matches the expected value,
+ *   the authentication is considered successful.
+ *
+ * \msc
+ *  "IWU-1", "MM-1", "MM-2", "IWU-2";
+ *
+ *  "IWU-1" => "MM-1"    [label="MM_AUTHENTICATE-req", URL="\ref dect_mm_authenticate_req()"];
+ *  "MM-1"  -> "MM-2"    [label="AUTHENTICATION-REQUEST"];
+ *  "MM-2" =>> "IWU-2"   [label="MM_AUTHENTICATE-ind", URL="\ref dect_mm_ops::mm_authenticate_ind"];
+ *  "IWU-2" => "MM-2"    [label="MM_AUTHENTICATE-res", URL="\ref dect_mm_authenticate_res()"];
+ *  "MM-2"  -> "MM-1"    [label="AUTHENTICATION-REPLY"];
+ *  "MM-1" =>> "IWU-1"   [label="MM_AUTHENTICATE-cfm", URL="\ref dect_mm_ops::mm_authenticate_cfm"];
+ * \endmsc
+ *
+ * @sa ETSI EN 300 175-7 (DECT Common Interface - Security Features)
+ *
+ * @{
  */
 
 /**
  * dect_mm_authenticate_req - MM_AUTHENTICATE-req primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @param:	authenticate request parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param param		authenticate request parameters
+ *
+ * Begin an authentication procedure and send an AUTHENTICATION-REQUEST message
+ * to the peer.
+ *
+ * When the procedure is successfully accepted by the peer, it will respond
+ * with an AUTHENTICATION-REPLY message, in which case the
+ * #dect_mm_ops::mm_authenticate_cfm() callback will be invoked with an 'accept'
+ * parameter value of 'true'. If the procedure is rejected or an error occurs,
+ * the dect_mm_ops::mm_authenticate_cfm() callback will be invoked with an
+ * 'accept' parameter value of 'false'.
  */
 int dect_mm_authenticate_req(struct dect_handle *dh,
 			     struct dect_mm_endpoint *mme,
@@ -719,12 +827,14 @@ static int dect_mm_send_authenticate_reject(const struct dect_handle *dh,
 }
 
 /**
- * dect_mm_authenticate_req - MM_AUTHENTICATE-res primitive
+ * dect_mm_authenticate_res - MM_AUTHENTICATE-res primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @accept:	accept/reject authentication
- * @param:	authenticate response parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param accept	accept/reject authentication
+ * @param param		authenticate response parameters
+ *
+ * Respond to an authentication request and complete the authentication procedure.
  */
 int dect_mm_authenticate_res(struct dect_handle *dh,
 			     struct dect_mm_endpoint *mme, bool accept,
@@ -871,17 +981,39 @@ err1:
 	dect_msg_free(dh, &mm_authentication_reject_msg_desc, &msg.common);
 }
 
-/*
- * Ciphering
+/**
+ * @}
+ * @defgroup mm_cipher Ciphering
+ *
+ * This module implements the ciphering related procedure specified in
+ * ETSI EN 300 175-5 section 13.8.
+ *
+ * \msc
+ *  "F-IWU", "F-MM", "F-DLC", "P-DLC", "P-MM", "P-IWU";
+ *
+ *  "F-IWU"  => "F-MM"   [label="MM_CIPHER-req", URL="\ref dect_mm_cipher_req()"];
+ *  "F-MM"   => "F-DLC"  [label="DL_ENC_KEY-req"];
+ *  "F-MM"   -> "P-MM"   [label="CIPHER-REQUEST"];
+ *  "P-MM"  =>> "P-IWU"  [label="MM_CIPHER-ind", URL="\ref dect_mm_ops::mm_ciphere_ind"];
+ *  "P-IWU"  => "P-MM"   [label="MM_CIPHER-res", URL="\ref dect_mm_cipher_res()"];
+ *  "P-MM"   => "P-DLC"  [label="DL_ENC_KEY-req"];
+ *  "P-MM"   => "P-DLC"  [label="DL_ENCRYPT-req"];
+ *  ...                  [label="Establish MAC bearer encryption"];
+ *  "P-DLC" =>> "P-MM"   [label="DL_ENCRYPT-cfm"];
+ *  "F-DLC" =>> "F-MM"   [label="DL_ENCRYPT-ind"];
+ *  "F-MM"  =>> "F-IWU"  [label="MM_CIPHER-cfm", URL="\ref dect_mm_ops::mm_cipher_cfm"];
+ * \endmsc
+ *
+ * @{
  */
 
 /**
  * dect_mm_cipher_req - MM_CIPHER-req primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @param:	cipher request parameters
- * @ck:		cipher key
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param param		cipher request parameters
+ * @param ck		cipher key
  */
 int dect_mm_cipher_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		       const struct dect_mm_cipher_param *param,
@@ -944,11 +1076,11 @@ static int dect_mm_send_cipher_reject(const struct dect_handle *dh,
 /**
  * dect_mm_cipher_res - MM_CIPHER-res primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @accept:	accept/reject ciphering
- * @param:	cipher respond parameters
- * @ck:		cipher key
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param accept	accept/reject ciphering
+ * @param param		cipher respond parameters
+ * @param ck		cipher key
  */
 int dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		       bool accept, const struct dect_mm_cipher_param *param,
@@ -1120,16 +1252,22 @@ static void dect_mm_encrypt_ind(struct dect_handle *dh, struct dect_transaction 
 		dect_mm_cipher_cfm(dh, mme);
 }
 
-/*
- * Access rights requests
+/**
+ * @}
+ * @defgroup mm_access_rights Access Rights requests
+ *
+ * This module implements the access rights procedure specified in
+ * ETSI EN 300 175-5 section 13.5.1.
+ *
+ * @{
  */
 
 /**
  * dect_mm_access_rights_req - MM_ACCESS_RIGHTS-req primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @param:	access rights request parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param param		access rights request parameters
  */
 int dect_mm_access_rights_req(struct dect_handle *dh,
 			      struct dect_mm_endpoint *mme,
@@ -1215,10 +1353,10 @@ static int dect_mm_send_access_rights_reject(const struct dect_handle *dh,
 /**
  * dect_mm_access_rights_res - MM_ACCESS_RIGHTS-res primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @accept:	accept/reject access rights request
- * @param:	access rights response parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param accept	accept/reject access rights request
+ * @param param		access rights response parameters
  */
 int dect_mm_access_rights_res(struct dect_handle *dh,
 			      struct dect_mm_endpoint *mme, bool accept,
@@ -1371,16 +1509,22 @@ err1:
 	dect_msg_free(dh, &mm_access_rights_reject_msg_desc, &msg.common);
 }
 
-/*
- * Access rights termination
+/**
+ * @}
+ * @defgroup mm_access_rights_terminate Access rights termination
+ *
+ * This module implements the access rights termination procedure specified in
+ * ETSI EN 300 175-5 section 13.5.2.
+ *
+ * @{
  */
 
 /**
  * dect_mm_access_rights_terminate_req - MM_ACCESS_RIGHTS_TERMINATE-req primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @param:	access rights terminate request parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param param		access rights terminate request parameters
  */
 int dect_mm_access_rights_terminate_req(struct dect_handle *dh,
 					struct dect_mm_endpoint *mme,
@@ -1450,12 +1594,12 @@ static int dect_mm_send_access_rights_terminate_reject(const struct dect_handle 
 }
 
 /**
- * dect_mm_access_rights_terminate_res - MM_ACCESS_RUGHTS_TERMINATE-res primitive
+ * dect_mm_access_rights_terminate_res - MM_ACCESS_RIGHTS_TERMINATE-res primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @accept:	accept/reject access rights termination
- * @param:	access rights terminate response parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param accept	accept/reject access rights termination
+ * @param param		access rights terminate response parameters
  */
 int dect_mm_access_rights_terminate_res(struct dect_handle *dh,
 					struct dect_mm_endpoint *mme, bool accept,
@@ -1594,16 +1738,22 @@ err1:
 	dect_msg_free(dh, &mm_access_rights_terminate_reject_msg_desc, &msg.common);
 }
 
-/*
- * Location registration
+/**
+ * @}
+ * @defgroup mm_location_registration Location registration
+ *
+ * This module implements the location registration procedure specified in
+ * ETSI EN 300 175-5 section 13.4.1.
+ *
+ * @{
  */
 
 /**
  * dect_mm_locate_req - MM_LOCATE-req primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @param:	locate request parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param param		locate request parameters
  */
 int dect_mm_locate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		       const struct dect_mm_locate_param *param)
@@ -1686,10 +1836,10 @@ static int dect_mm_send_locate_reject(const struct dect_handle *dh,
 /**
  * dect_mm_locate_res - MM_LOCATE-res primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @accept:	accept/reject location registration/update
- * @param:	access rights response parameters
+ * @param dh		libdect DECT handle
+ * @param mme		obility Management Endpoint
+ * @param accept	accept/reject location registration/update
+ * @param param		ccess rights response parameters
  */
 int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		       bool accept, const struct dect_mm_locate_param *param)
@@ -1869,9 +2019,9 @@ err1:
 /**
  * dect_mm_detach_req - MM_DETACH-req primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @param:	detach parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param param		detach parameters
  */
 int dect_mm_detach_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		       struct dect_mm_detach_param *param)
@@ -1942,16 +2092,22 @@ err1:
 	dect_msg_free(dh, &mm_detach_msg_desc, &msg.common);
 }
 
-/*
- * Identification
+/**
+ * @}
+ * @defgroup mm_identification Identification
+ *
+ * This module implements the identification procedure specified in
+ * ETSI EN 300 175-5 section 13.2.1.
+ *
+ * @{
  */
 
 /**
  * dect_mm_identity_req - MM_IDENTITY-req primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @param:	identity request parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param param		identity request parameters
  */
 int dect_mm_identity_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			 const struct dect_mm_identity_param *param)
@@ -1988,9 +2144,9 @@ EXPORT_SYMBOL(dect_mm_identity_req);
 /**
  * dect_mm_identity_res - MM_IDENTITY_res primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @param:	identity response parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param param		identity response parameters
  */
 int dect_mm_identity_res(struct dect_handle *dh,
 			 struct dect_mm_endpoint *mme,
@@ -2105,16 +2261,22 @@ err1:
 	dect_msg_free(dh, &mm_identity_reply_msg_desc, &msg.common);
 }
 
-/*
- * Temporary identity assignment
+/**
+ * @}
+ * @defgroup mm_temporary_identity_assignment Temporary Identity assigment
+ *
+ * This module implements the temporary identity assigment procedure specified
+ * in ETSI EN 300 175-5 section 13.2.2.
+ *
+ * @{
  */
 
 /**
  * dect_mm_identity_assign_req - MM_IDENTITY_ASSIGN-req primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @param:	identity  request parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param param		identity request parameters
  */
 int dect_mm_identity_assign_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 				const struct dect_mm_identity_assign_param *param)
@@ -2180,10 +2342,10 @@ static int dect_mm_send_temporary_identity_assign_rej(const struct dect_handle *
 /**
  * dect_mm_identity_assign_res - MM_IDENTITY_ASSIGN-res primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @accept:	accept/reject identity assignment
- * @param:	identity assigment response parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param accept	accept/reject identity assignment
+ * @param param		identity assigment response parameters
  */
 int dect_mm_identity_assign_res(struct dect_handle *dh,
 				struct dect_mm_endpoint *mme, bool accept,
@@ -2332,16 +2494,22 @@ err1:
 	dect_msg_free(dh, &mm_temporary_identity_assign_rej_msg_desc, &msg.common);
 }
 
-/*
- * Parameter retrieval
+/**
+ * @}
+ * @defgroup mm_parameter_retrieval Parameter retrieval
+ *
+ * This module implements the parameter retrieval procedure specified in
+ * ETSI EN 300 175-5 section 13.7.
+ *
+ * @{
  */
 
 /**
  * dect_mm_info_req - MM_INFO-req primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @param:	info parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param param		info parameters
  */
 int dect_mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		     struct dect_mm_info_param *param)
@@ -2442,10 +2610,10 @@ static int dect_mm_send_info_reject(const struct dect_handle *dh,
 /**
  * dect_mm_info_res - MM_INFO-res primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @accept:	accept/reject info request
- * @param:	info parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param accept	accept/reject info request
+ * @param param		info parameters
  */
 int dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		     bool accept, struct dect_mm_info_param *param)
@@ -2635,16 +2803,22 @@ err1:
 	dect_msg_free(dh, &mm_info_suggest_msg_desc, &msg.common);
 }
 
-/*
- * External protocol information
+/**
+ * @}
+ * @defgroup mm_external_protocol_information External protocol information
+ *
+ * This module implements the external protocol information procedure specified
+ * in ETSI EN 300 175-5 section 13.9.
+ *
+ * @{
  */
 
 /**
  * dect_mm_iwu_req - MM_IWU-req primitive
  *
- * @dh:		libdect DECT handle
- * @mme:	Mobility Management Endpoint
- * @param:	IWU request parameters
+ * @param dh		libdect DECT handle
+ * @param mme		Mobility Management Endpoint
+ * @param param		IWU request parameters
  */
 int dect_mm_iwu_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		    const struct dect_mm_iwu_param *param)
@@ -2707,6 +2881,8 @@ static void dect_mm_rcv_iwu(struct dect_handle *dh,
 err1:
 	dect_msg_free(dh, &mm_iwu_msg_desc, &msg.common);
 }
+
+/** @} */
 
 static const struct dect_mm_proc dect_mm_proc[DECT_MMP_MAX + 1] = {
 	[DECT_MMP_ACCESS_RIGHTS] = {
@@ -2969,3 +3145,5 @@ static void __init dect_mm_init(void)
 {
 	dect_lce_register_protocol(&mm_protocol);
 }
+
+/** @} */

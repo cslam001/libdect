@@ -8,6 +8,11 @@
  * published by the Free Software Foundation.
  */
 
+/**
+ * @defgroup ie Information Elements
+ * @{
+ */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -192,3 +197,5 @@ struct dect_ie_collection *__dect_ie_collection_hold(struct dect_ie_collection *
 	return iec;
 }
 EXPORT_SYMBOL(__dect_ie_collection_hold);
+
+/** @} */

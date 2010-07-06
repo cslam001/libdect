@@ -8,6 +8,14 @@
  * published by the Free Software Foundation.
  */
 
+/**
+ * @defgroup security Security features
+ *
+ * This module implements the security processes specified in ETSI EN 300 175-7.
+ *
+ * @{
+ */
+
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,12 +29,14 @@
 /**
  * dect_pin_to_ac - convert PIN to authentication code
  *
- * @pin:	PIN code
- * @ac:		buffer to store authentication code
- * @ac_len:	length of destination buffer
+ * @param pin		PIN code
+ * @param ac		buffer to store authentication code
+ * @param ac_len	length of destination buffer
  *
  * Convert a PIN to an authentication code, which is the BCD encoded PIN,
  * left-padded with 0xf. The number of PIN digits must not exceed 2 * ac_len.
+ *
+ * @sa ETSI EN 300 444 (GAP), section 14.2.
  */
 void dect_pin_to_ac(const char *pin, uint8_t *ac, unsigned int ac_len)
 {
@@ -46,9 +56,9 @@ EXPORT_SYMBOL(dect_pin_to_ac);
 /**
  * dect_auth_b1 - derive authentication key K from UAK/AC
  *
- * @val:	user authentication key (UAK) or authentication code (AC)
- * @len:	length of UAK/AC
- * @k:		buffer to store authentication key of size DECT_AUTH_KEY_LEN
+ * @param val		user authentication key (UAK) or authentication code (AC)
+ * @param len		length of UAK/AC
+ * @param k		buffer to store authentication key of size DECT_AUTH_KEY_LEN
  *
  * Derive an authentication key from a user authentication key or an
  * authentication code.
@@ -65,11 +75,11 @@ EXPORT_SYMBOL(dect_auth_b1);
 /**
  * dect_auth_b2 - derive authentication key K from UAK and UPI
  *
- * @uak:	user authentication key (UAK)
- * @uak_len:	length of UAK
- * @upi:	user personal identity (UPI)
- * @upi_len:	length of UPI
- * @k:		buffer to store authentication key of size DECT_AUTH_KEY_LEN
+ * @param uak		user authentication key (UAK)
+ * @param uak_len	length of UAK
+ * @param upi		user personal identity (UPI)
+ * @param upi_len	length of UPI
+ * @param k		buffer to store authentication key of size DECT_AUTH_KEY_LEN
  *
  * Derive an authentication key from a user authentication key and an user
  * personal identity.
@@ -102,9 +112,9 @@ static void dect_auth_calc(const uint8_t *key, uint64_t val, uint8_t *e)
 /**
  * dect_auth_a11 - derive authentication session key
  *
- * @k:		authentication key K
- * @rs:		random seed
- * @ks:		buffer to store session authentication key of size DECT_AUTH_KEY_LEN
+ * @param k		authentication key K
+ * @param rs		random seed
+ * @param ks		buffer to store session authentication key of size DECT_AUTH_KEY_LEN
  *
  * Derive the session authentication keys KS from the authentication key K
  * and random seed RS.
@@ -118,10 +128,10 @@ EXPORT_SYMBOL(dect_auth_a11);
 /**
  * dect_auth_a12 - derive cipher key and authentication response
  *
- * @ks:		session authentication key KS
- * @rand_f:	FP random value
- * @dck:	buffer to store derived cipher key (DCK) of size DECT_CIPHER_KEY_LEN
- * @res1:	buffer to store authentication response
+ * @param ks		session authentication key KS
+ * @param rand_f	FP random value
+ * @param dck		buffer to store derived cipher key (DCK) of size DECT_CIPHER_KEY_LEN
+ * @param res1		buffer to store authentication response
  *
  * Derive the derived cipher key DCK and authentication response RES1 from the
  * session authentication key KS and the random value rand_f.
@@ -139,9 +149,9 @@ EXPORT_SYMBOL(dect_auth_a12);
 /**
  * dect_auth_a21 - derive authentication session key
  *
- * @k:		authentication key K
- * @rs:		random seed
- * @ks:		buffer to store session authentication key of size DECT_AUTH_KEY_LEN
+ * @param k		authentication key K
+ * @param rs		random seed
+ * @param ks		buffer to store session authentication key of size DECT_AUTH_KEY_LEN
  *
  * Derive the session authentication keys KS' from the authentication key K
  * and random seed RS.
@@ -159,9 +169,9 @@ EXPORT_SYMBOL(dect_auth_a21);
 /**
  * dect_auth_a22 - derive authentication response
  *
- * @ks:		session authentication key KS'
- * @rand_p:	PP random value
- * @res2:	buffer to store authentication response
+ * @param ks		session authentication key KS'
+ * @param rand_p	PP random value
+ * @param res2		buffer to store authentication response
  *
  * Derive the authentication response RES2 from the session authentication
  * key KS' and the random value rand_p.
@@ -174,6 +184,8 @@ void dect_auth_a22(const uint8_t *ks, uint64_t rand_p, uint32_t *res2)
 	memcpy(res2, e + 12, DECT_AUTH_RES_LEN);
 }
 EXPORT_SYMBOL(dect_auth_a22);
+
+/** @} */
 
 /*
  * DSAA/DSC key allocation test from ETS EN 300 175-7 Annex K

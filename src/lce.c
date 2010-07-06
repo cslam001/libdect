@@ -382,8 +382,8 @@ static void dect_ddl_shutdown(struct dect_handle *dh,
 /**
  * dect_ddl_set_cipher_key - set cipher key for datalink
  *
- * @ddl:	Datalink
- * @ck:		Cipher key
+ * @param ddl	Datalink
+ * @param ck		Cipher key
  */
 int dect_ddl_set_cipher_key(const struct dect_data_link *ddl,
 			    const uint8_t ck[DECT_CIPHER_KEY_LEN])
@@ -401,8 +401,8 @@ int dect_ddl_set_cipher_key(const struct dect_data_link *ddl,
 /**
  * dect_ddl_encrypt_req - enable/disable encryption for a datalink
  *
- * @ddl:	Datalink
- * @status:	desired ciphering state (enabled/disabled)
+ * @param ddl	Datalink
+ * @param status	desired ciphering state (enabled/disabled)
  */
 int dect_ddl_encrypt_req(const struct dect_data_link *ddl,
 			 enum dect_cipher_states status)
