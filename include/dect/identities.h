@@ -7,6 +7,10 @@
 #ifndef _LIBDECT_DECT_IDENTITIES_H
 #define _LIBDECT_DECT_IDENTITIES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * Acess Rights Identity (ARI)
  */
@@ -183,4 +187,7 @@ extern void dect_dump_tpui(const struct dect_tpui *tpui);
 /* Collective broadcast identifier */
 #define DECT_TPUI_CBI		0xcfff
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* _LIBDECT_DECT_IDENTITIES_H */

@@ -7,6 +7,10 @@
 #ifndef _LIBDECT_DECT_AUTH_H
 #define _LIBDECT_DECT_AUTH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @addtogroup security
  * @{
@@ -49,4 +53,7 @@ extern void dect_auth_a22(const uint8_t *ks, uint64_t rand_p, uint32_t *res2);
 
 /** @} */
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* _LIBDECT_DECT_AUTH_H */

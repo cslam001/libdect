@@ -1,6 +1,10 @@
 #ifndef _LIBDECT_DECT_TERMINAL
 #define _LIBDECT_DECT_TERMINAL
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * DECT Standard 8-bit characters
  *
@@ -67,4 +71,7 @@ enum dect_control_characters {
 
 #define DECT_TABSIZE	10
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* _LIBDECT_DECT_TERMINAL */

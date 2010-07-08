@@ -20,6 +20,10 @@
 #include <dect/ss.h>
 #include <list.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct dect_handle;
 
 /**
@@ -138,4 +142,7 @@ extern int dect_init(struct dect_handle *dh);
 
 extern void dect_set_debug_hook(int (*fn)(const char *fmt, va_list ap));
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #endif /* _LIBDECT_DECT_LIBDECT_H */

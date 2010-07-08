@@ -9,6 +9,10 @@
 
 #include <dect/ie.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct dect_lce_page_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
@@ -26,4 +30,7 @@ struct dect_lce_ops {
 extern int dect_lce_group_ring(struct dect_handle *dh,
 			       enum dect_ring_patterns pattern);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* _LIBDECT_DECT_LCE_H */

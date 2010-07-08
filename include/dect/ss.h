@@ -7,6 +7,10 @@
 #ifndef _LIBDECT_DECT_SS_H
 #define _LIBDECT_DECT_SS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <dect/ie.h>
 
 struct dect_mnss_param {
@@ -43,4 +47,7 @@ extern int dect_mnss_facility_req(struct dect_handle *dh, struct dect_ss_endpoin
 extern int dect_mnss_release_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 				 const struct dect_mnss_param *param);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* _LIBDECT_DECT_SS_H */

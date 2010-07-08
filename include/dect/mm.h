@@ -7,6 +7,10 @@
 #ifndef _LIBDECT_DECT_MM_H
 #define _LIBDECT_DECT_MM_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @addtogroup mm
  * @{
@@ -329,4 +333,7 @@ extern int dect_mm_iwu_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 
 /** @} */
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* _LIBDECT_DECT_MM_H */

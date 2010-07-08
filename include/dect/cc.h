@@ -7,6 +7,10 @@
 #ifndef _LIBDECT_DECT_CC_H
 #define _LIBDECT_DECT_CC_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @addtogroup cc
  * @{
@@ -278,4 +282,7 @@ extern int dect_dl_u_data_req(const struct dect_handle *dh, struct dect_call *ca
 
 /** @} */
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* _LIBDECT_DECT_CC_H */

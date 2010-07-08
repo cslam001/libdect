@@ -7,6 +7,10 @@
 #ifndef _LIBDECT_DECT_IE_H
 #define _LIBDECT_DECT_IE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @addtogroup ie
  * @{
@@ -1187,4 +1191,7 @@ struct dect_ie_call_information {
 
 /* @} */
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* _LIBDECT_DECT_IE_H */
