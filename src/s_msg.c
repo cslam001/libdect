@@ -838,7 +838,7 @@ static int dect_sfmt_build_auth_res(struct dect_sfmt_ie *dst,
 
 static const struct dect_trans_tbl dect_cipher_algs[] = {
 	TRANS_TBL(DECT_CIPHER_STANDARD_1,		"DECT Standard Cipher 1"),
-	TRANS_TNL(DECT_CIPHER_GPRS_NO_CIPHERING,	"GPRS ciphering not used"),
+	TRANS_TBL(DECT_CIPHER_GPRS_NO_CIPHERING,	"GPRS ciphering not used"),
 	TRANS_TBL(DECT_CIPHER_GRPS_GEA_1,		"GPRS GEA/1"),
 	TRANS_TBL(DECT_CIPHER_GRPS_GEA_2,		"GPRS GEA/2"),
 	TRANS_TBL(DECT_CIPHER_GRPS_GEA_3,		"GPRS GEA/3"),
