@@ -76,26 +76,28 @@ static int dect_sfmt_build_empty_single_octet(struct dect_sfmt_ie *dst,
 }
 
 static const struct dect_trans_tbl dect_call_classes[] = {
-	TRANS_TBL(DECT_CALL_CLASS_LIA_SERVICE_SETUP,	"LiA service call setup"),
-	TRANS_TBL(DECT_CALL_CLASS_MESSAGE,		"message call"),
-	TRANS_TBL(DECT_CALL_CLASS_DECT_ISDN,		"DECT/ISDN IIP"),
-	TRANS_TBL(DECT_CALL_CLASS_NORMAL,		"normal call"),
-	TRANS_TBL(DECT_CALL_CLASS_INTERNAL,		"internal call"),
-	TRANS_TBL(DECT_CALL_CLASS_EMERGENCY,		"emergency call"),
-	TRANS_TBL(DECT_CALL_CLASS_SERVICE,		"service call"),
-	TRANS_TBL(DECT_CALL_CLASS_EXTERNAL_HO,		"external handover call"),
-	TRANS_TBL(DECT_CALL_CLASS_SUPPLEMENTARY_SERVICE,"supplementary service call"),
-	TRANS_TBL(DECT_CALL_CLASS_QA_M,			"QA&M call"),
+	TRANS_TBL(DECT_CALL_CLASS_LIA_SERVICE_SETUP,		"LiA service call setup"),
+	TRANS_TBL(DECT_CALL_CLASS_MESSAGE,			"message call"),
+	TRANS_TBL(DECT_CALL_CLASS_DECT_ISDN,			"DECT/ISDN IIP"),
+	TRANS_TBL(DECT_CALL_CLASS_NORMAL,			"normal call"),
+	TRANS_TBL(DECT_CALL_CLASS_INTERNAL,			"internal call"),
+	TRANS_TBL(DECT_CALL_CLASS_EMERGENCY,			"emergency call"),
+	TRANS_TBL(DECT_CALL_CLASS_SERVICE,			"service call"),
+	TRANS_TBL(DECT_CALL_CLASS_EXTERNAL_HO,			"external handover call"),
+	TRANS_TBL(DECT_CALL_CLASS_SUPPLEMENTARY_SERVICE,	"supplementary service call"),
+	TRANS_TBL(DECT_CALL_CLASS_QA_M,				"QA&M call"),
 };
 
 static const struct dect_trans_tbl dect_basic_services[] = {
-	TRANS_TBL(DECT_SERVICE_BASIC_SPEECH_DEFAULT,	"basic speech default attributes"),
-	TRANS_TBL(DECT_SERVICE_DECT_GSM_IWP,		"DECT GSM IWP profile"),
-	TRANS_TBL(DECT_SERVICE_UMTS_IWP,		"DECT UMTS IWP"),
-	TRANS_TBL(DECT_SERVICE_LRMS,			"LRMS (E-profile) service"),
-	TRANS_TBL(DECT_SERVICE_GSM_IWP_SMS,		"GSM IWP SMS"),
-	TRANS_TBL(DECT_SERVICE_WIDEBAND_SPEECH,		"Wideband speech"),
-	TRANS_TBL(DECT_SERVICE_OTHER,			"Other"),
+	TRANS_TBL(DECT_SERVICE_BASIC_SPEECH_DEFAULT,		"basic speech default attributes"),
+	TRANS_TBL(DECT_SERVICE_DECT_GSM_IWP,			"DECT GSM IWP profile"),
+	TRANS_TBL(DECT_SERVICE_UMTS_IWP,			"DECT UMTS IWP"),
+	TRANS_TBL(DECT_SERVICE_LRMS,				"LRMS (E-profile) service"),
+	TRANS_TBL(DECT_SERVICE_GSM_IWP_SMS,			"GSM IWP SMS"),
+	TRANS_TBL(DECT_SERVICE_WIDEBAND_SPEECH,			"Wideband speech"),
+	TRANS_TBL(DECT_SERVICE_SUOTA_CLASS_4_DPRS_MANAGEMENT,	"SUOTA, Class 4 DPRS management, default attributes"),
+	TRANS_TBL(DECT_SERVICE_SUOTA_CLASS_3_DPRS_MANAGEMENT,	"SUOTA, Class 3 DPRS management, default attributes"),
+	TRANS_TBL(DECT_SERVICE_OTHER,				"Other"),
 };
 
 static void dect_sfmt_dump_basic_service(const struct dect_ie_common *_ie)
