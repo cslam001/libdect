@@ -1,5 +1,5 @@
 /*
- * libdect file handling functions
+ * libdect IO functions
  *
  * Copyright (c) 2009-2010 Patrick McHardy <kaber@trash.net>
  *

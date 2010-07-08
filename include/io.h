@@ -1,11 +1,11 @@
 /*
- * libdect file descriptor handling
+ * libdect IO handling
  *
  * Copyright (c) 2009-2010 Patrick McHardy <kaber@trash.net>
  */
 
-#ifndef _LIBDECT_FILE_H
-#define _LIBDECT_FILE_H
+#ifndef _LIBDECT_IO_H
+#define _LIBDECT_IO_H
 
 #include <sys/socket.h>
 
@@ -42,4 +42,4 @@ extern int dect_register_fd(const struct dect_handle *dh, struct dect_fd *dfd,
 			    uint32_t events);
 extern void dect_unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd);
 
-#endif /* _LIBDECT_FILE_H */
+#endif /* _LIBDECT_IO_H */
