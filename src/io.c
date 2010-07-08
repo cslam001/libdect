@@ -8,6 +8,26 @@
  * published by the Free Software Foundation.
  */
 
+/**
+ * @defgroup io IO
+ *
+ * libdect file and socket IO.
+ *
+ * libdect uses various file descriptors for IO internally. The application
+ * using libdect must register the callback functions
+ * dect_event_ops::register_fd() and dect_event_ops::unregister_fd() in
+ * struct dect_event_ops to allow libdect to register it's file descriptors
+ * with the applications event handler. When an event occurs, the function
+ * dect_handle_fd() must be invoked with a bitmask of enum #dect_fd_events
+ * specifying the events that occured.
+ *
+ * Each libdect file descriptor contains a storage area of the size specified
+ * in dect_event_ops::fd_priv_size, which can be used by the application to
+ * associate data with the file descriptor.
+ *
+ * @{
+ */
+
 #include <stdint.h>
 #include <inttypes.h>
 #include <fcntl.h>
@@ -34,18 +54,23 @@ struct dect_fd *dect_alloc_fd(const struct dect_handle *dh)
 }
 EXPORT_SYMBOL(dect_alloc_fd);
 
-void *dect_fd_priv(struct dect_fd *fd)
+/**
+ * Get a pointer to the private data from a DECT file descriptor
+ *
+ * @param dfd		DECT file descriptor
+ */
+void *dect_fd_priv(struct dect_fd *dfd)
 {
-	return fd->priv;
+	return dfd->priv;
 }
 EXPORT_SYMBOL(dect_fd_priv);
 
-void dect_setup_fd(struct dect_fd *fd,
+void dect_setup_fd(struct dect_fd *dfd,
 		   void (*cb)(struct dect_handle *, struct dect_fd *, uint32_t),
 		   void *data)
 {
-	fd->callback = cb;
-	fd->data = data;
+	dfd->callback = cb;
+	dfd->data = data;
 }
 EXPORT_SYMBOL(dect_setup_fd);
 
@@ -62,6 +87,16 @@ void dect_unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd)
 }
 EXPORT_SYMBOL(dect_unregister_fd);
 
+/**
+ * Process DECT file descriptor events
+ *
+ * @param dh		libdect DECT handle
+ * @param dfd		DECT file descriptor
+ * @param events	Bitmask of file descriptor events (#dect_fd_events)
+ *
+ * Process the events specified by the events bitmask for the given file
+ * descriptor.
+ */
 void dect_handle_fd(struct dect_handle *dh, struct dect_fd *dfd, uint32_t events)
 {
 	dfd->callback(dh, dfd, events);
@@ -119,3 +154,5 @@ err2:
 err1:
 	return NULL;
 }
+
+/** @} */

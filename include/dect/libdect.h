@@ -62,10 +62,15 @@ static inline void dect_mbuf_reserve(struct dect_msg_buf *mb, unsigned int len)
 }
 
 /**
+ * @addtogroup io
+ * @{
+ */
+
+/**
  * enum dect_fd_events - file descriptor events
  *
- * @DECT_FD_READ:	fd readable
- * @DECT_FD_WRITE:	fd writable
+ * @arg DECT_FD_READ:	fd readable
+ * @arg DECT_FD_WRITE:	fd writable
  */
 enum dect_fd_events {
 	DECT_FD_READ	= 0x1,
@@ -76,6 +81,7 @@ struct dect_fd;
 extern void *dect_fd_priv(struct dect_fd *dfd);
 extern void dect_handle_fd(struct dect_handle *dh, struct dect_fd *dfd,
 			   uint32_t events);
+/** @} */
 
 struct dect_timer;
 extern void *dect_timer_priv(struct dect_timer *timer);
