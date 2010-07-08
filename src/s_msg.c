@@ -380,6 +380,9 @@ static const struct dect_trans_tbl dect_release_reasons[] = {
 	TRANS_TBL(DECT_RELEASE_INSUFFICIENT_RESOURCES,		"insufficient resources"),
 	TRANS_TBL(DECT_RELEASE_INSUFFICIENT_BEARERS_AVAILABLE,	"insufficient bearers available"),
 	TRANS_TBL(DECT_RELEASE_IWU_CONGESTION,			"IWU congestion"),
+	TRANS_TBL(DECT_RELEASE_SECURITY_ATTACK_ASSUMED,		"Security attack assumed"),
+	TRANS_TBL(DECT_RELEASE_ENCRYPTION_ACTIVATION_FAILED,	"Encryption activation failed"),
+	TRANS_TBL(DECT_RELEASE_REKEYING_FAILED,			"Rekeying failed"),
 };
 
 static void dect_sfmt_dump_release_reason(const struct dect_ie_common *_ie)
