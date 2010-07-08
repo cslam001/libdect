@@ -204,6 +204,9 @@ enum dect_sfmt_variable_length_ies {
 
 #define S_VL_IE_FIXED_IDENTITY_MIN_SIZE		2
 
+#define S_VL_IE_FIXED_IDENTITY_TYPE_MASK	0x7f
+#define S_VL_IE_FIXED_IDENTITY_LENGTH_MASK	0x7f
+
 /* Identity type IE */
 
 /* Info type IE */
