@@ -84,9 +84,21 @@ extern void dect_handle_fd(struct dect_handle *dh, struct dect_fd *dfd,
 			   uint32_t events);
 /** @} */
 
+/**
+ * @addtogroup timer
+ * @{
+ */
+
 struct dect_timer;
 extern void *dect_timer_priv(struct dect_timer *timer);
 extern void dect_run_timer(struct dect_handle *dh, struct dect_timer *timer);
+
+/** @} */
+
+/**
+ * @addtogroup events
+ * @{
+ */
 
 struct timeval;
 struct dect_event_ops {
@@ -105,6 +117,8 @@ struct dect_event_ops {
 	void		(*stop_timer)(const struct dect_handle *dh,
 				      struct dect_timer *timer);
 };
+
+/** @} */
 
 struct dect_ops {
 	void				*(*malloc)(size_t size);

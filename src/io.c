@@ -9,6 +9,9 @@
  */
 
 /**
+ * @addtogroup events
+ * @{
+ *
  * @defgroup io IO
  *
  * libdect file and socket IO.
@@ -17,7 +20,7 @@
  * using libdect must register the callback functions
  * dect_event_ops::register_fd() and dect_event_ops::unregister_fd() in
  * struct dect_event_ops to allow libdect to register it's file descriptors
- * with the applications event handler. When an event occurs, the function
+ * with the applications' event handler. When an event occurs, the function
  * dect_handle_fd() must be invoked with a bitmask of enum #dect_fd_events
  * specifying the events that occured.
  *
@@ -166,4 +169,5 @@ err1:
 	return NULL;
 }
 
+/** @} */
 /** @} */

@@ -8,6 +8,27 @@
  * published by the Free Software Foundation.
  */
 
+/**
+ * @defgroup events Event handling
+ * @{
+ *
+ * @defgroup timer Timers
+ *
+ * libdect timers.
+ *
+ * libdect uses various timers internally. The application using libdect must
+ * register the callback functions dect_event_ops::start_timer() and
+ * dect_event_ops::stop_timer() to allow libdect to register it's timers with
+ * the applications' event handler. When a timeout occurs, the function
+ * dect_run_timer() must be invoked.
+ *
+ * Each libdect timer contains a storage area of the size specified in
+ * dect_event_ops::timer_priv_size, which can be used by the application to
+ * associate data with the timer.
+ *
+ * @{
+ */
+
 #include <libdect.h>
 #include <utils.h>
 
@@ -18,6 +39,11 @@ struct dect_timer *dect_alloc_timer(const struct dect_handle *dh)
 }
 EXPORT_SYMBOL(dect_alloc_timer);
 
+/**
+ * Get a pointer to the private data from a DECT timer
+ *
+ * @param timer		DECT timer
+ */
 void *dect_timer_priv(struct dect_timer *timer)
 {
 	return timer->priv;
@@ -63,9 +89,18 @@ bool dect_timer_running(const struct dect_timer *timer)
 }
 EXPORT_SYMBOL(dect_timer_running);
 
+/**
+ * Run the timer on timeout expiration
+ *
+ * @param dh		libdect DECT handle
+ * @param timer		DECT timer
+ */
 void dect_run_timer(struct dect_handle *dh, struct dect_timer *timer)
 {
 	timer->state = DECT_TIMER_STOPPED;
 	timer->callback(dh, timer);
 }
 EXPORT_SYMBOL(dect_run_timer);
+
+/** @} */
+/** @} */
