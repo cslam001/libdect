@@ -204,7 +204,8 @@ extern void dect_dump_tpui(const struct dect_tpui *tpui);
 /* Collective broadcast identifier */
 #define DECT_TPUI_CBI		0xcfff
 
-/** @}@} */
+/** @} */
+/** @} */
 
 #ifdef __cplusplus
 }

@@ -609,7 +609,8 @@ static int dect_mm_send_msg(const struct dect_handle *dh,
  *  "P-MM" =>> "P-IWU"   [label="MM_AUTHENTICATE-cfm", URL="\ref dect_mm_ops::mm_authenticate_cfm"];
  * \endmsc
  *
- * @sa ETSI EN 300 175-7 (DECT Common Interface - Security Features)
+ * @sa \ref security "Security Features",
+ * ETSI EN 300 175-7 (DECT Common Interface - Security Features)
  *
  * @{
  */
@@ -735,7 +736,8 @@ err1:
  *  "MM-1" =>> "IWU-1"   [label="MM_AUTHENTICATE-cfm", URL="\ref dect_mm_ops::mm_authenticate_cfm"];
  * \endmsc
  *
- * @sa ETSI EN 300 175-7 (DECT Common Interface - Security Features)
+ * @sa \ref security "Security Features",
+ * ETSI EN 300 175-7 (DECT Common Interface - Security Features)
  *
  * @{
  */
@@ -1003,6 +1005,9 @@ err1:
  *  "F-DLC" =>> "F-MM"   [label="DL_ENCRYPT-ind"];
  *  "F-MM"  =>> "F-IWU"  [label="MM_CIPHER-cfm", URL="\ref dect_mm_ops::mm_cipher_cfm"];
  * \endmsc
+ *
+ * @sa \ref security "Security Features",
+ * ETSI EN 300 175-7 (DECT Common Interface - Security Features)
  *
  * @{
  */
@@ -1511,7 +1516,7 @@ err1:
 
 /**
  * @}
- * @defgroup mm_access_rights_terminate Access rights termination
+ * @defgroup mm_access_rights_terminate Access Rights termination
  *
  * This module implements the access rights termination procedure specified in
  * ETSI EN 300 175-5 section 13.5.2.

@@ -24,10 +24,10 @@ extern "C" {
 /**
  * struct dect_aalg - DECT authentication algorithm
  *
- * @type:	algorithm ID
- * @d1_len:	length of input D1
- * @d2_len:	length of input D2
- * @calc:	function to calculate output E
+ * @arg type		algorithm ID
+ * @arg d1_len		length of input D1
+ * @arg d2_len		length of input D2
+ * @arg calc		function to calculate output E
  */
 struct dect_aalg {
 	uint8_t		type;

@@ -29,11 +29,11 @@ struct dect_handle;
 /**
  * struct dect_msg_buf - DECT message buffer
  *
- * @list:	Data link TX queue node
- * @type:	Message type
- * @len:	Data length
- * @data:	Data pointer
- * @head:	Storage area for on-stack buffers
+ * @arg list	Data link TX queue node
+ * @arg type	Message type
+ * @arg len	Data length
+ * @arg data	Data pointer
+ * @arg head	Storage area for on-stack buffers
  */
 struct dect_msg_buf {
 	struct list_head	list;
