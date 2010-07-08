@@ -1,3 +1,8 @@
+/*
+ * DECT B-Format messages
+ *
+ * Copyright (c) 2009-2010 Patrick McHardy <kaber@trash.net>
+ */
 #ifndef _LIBDECT_B_FMT_H
 #define _LIBDECT_B_FMT_H
 

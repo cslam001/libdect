@@ -1,7 +1,7 @@
 /*
- * DECT Call Control
+ * DECT Call Control (CC)
  *
- * Copyright (c) 2009 Patrick McHardy <kaber@trash.net>
+ * Copyright (c) 2009-2010 Patrick McHardy <kaber@trash.net>
  */
 
 #ifndef _LIBDECT_CC_H

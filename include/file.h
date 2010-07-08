@@ -1,3 +1,9 @@
+/*
+ * libdect file descriptor handling
+ *
+ * Copyright (c) 2009-2010 Patrick McHardy <kaber@trash.net>
+ */
+
 #ifndef _LIBDECT_FILE_H
 #define _LIBDECT_FILE_H
 

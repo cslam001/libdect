@@ -1,3 +1,9 @@
+/*
+ * DECT authentication functions
+ *
+ * Copyright (c) 2009-2010 Patrick McHardy <kaber@trash.net>
+ */
+
 #ifndef _LIBDECT_DECT_AUTH_H
 #define _LIBDECT_DECT_AUTH_H
 

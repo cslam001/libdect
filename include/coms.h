@@ -1,3 +1,9 @@
+/*
+ * DECT Connection Oriented Message Service (COMS)
+ *
+ * Copyright (c) 2009-2010 Patrick McHardy <kaber@trash.net>
+ */
+
 #ifndef _LIBDECT_COMS_H
 #define _LIBDECT_COMS_H
 

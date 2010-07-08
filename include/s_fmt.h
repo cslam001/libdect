@@ -1,3 +1,9 @@
+/*
+ * DECT S-Format messages
+ *
+ * Copyright (c) 2009-2010 Patrick McHardy <kaber@trash.net>
+ */
+
 #ifndef _LIBDECT_S_FMT_H
 #define _LIBDECT_S_FMT_H
 

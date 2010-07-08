@@ -1,7 +1,7 @@
 /*
  * DECT Suplementary Services (SS) NWK <-> IWU interface
  *
- * Copyright (c) 2009 Patrick McHardy <kaber@trash.net>
+ * Copyright (c) 2009-2010 Patrick McHardy <kaber@trash.net>
  */
 
 #ifndef _LIBDECT_DECT_SS_H

@@ -1,3 +1,9 @@
+/*
+ * DECT identities
+ *
+ * Copyright (c) 2009-2010 Patrick McHardy <kaber@trash.net>
+ */
+
 #ifndef _LIBDECT_IDENTITIES_H
 #define _LIBDECT_IDENTITIES_H
 
