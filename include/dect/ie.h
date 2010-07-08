@@ -358,6 +358,7 @@ enum dect_auth_key_flags {
 
 enum dect_auth_flags {
 	DECT_AUTH_FLAG_INC			= 0x80,
+	DECT_AUTH_FLAG_DEF			= 0x40,
 	DECT_AUTH_FLAG_TXC			= 0x20,
 	DECT_AUTH_FLAG_UPC			= 0x10,
 };

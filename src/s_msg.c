@@ -729,8 +729,9 @@ static void dect_sfmt_dump_auth_type(const struct dect_ie_common *_ie)
 		   dect_val2str(dect_auth_key_types, buf, ie->auth_key_type));
 	dect_debug("\tauthentication key number: %u\n", ie->auth_key_num);
 	dect_debug("\tcipher key number: %u\n", ie->cipher_key_num);
-	dect_debug("\tINC: %u TXC: %u UPC: %u\n",
+	dect_debug("\tINC: %u DEF: %u TXC: %u UPC: %u\n",
 		   ie->flags & DECT_AUTH_FLAG_INC ? 1 : 0,
+		   ie->flags & DECT_AUTH_FLAG_DEF ? 1 : 0,
 		   ie->flags & DECT_AUTH_FLAG_TXC ? 1 : 0,
 		   ie->flags & DECT_AUTH_FLAG_UPC ? 1 : 0);
 }
