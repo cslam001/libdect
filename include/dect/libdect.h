@@ -79,6 +79,7 @@ enum dect_fd_events {
 
 struct dect_fd;
 extern void *dect_fd_priv(struct dect_fd *dfd);
+extern int dect_fd_num(const struct dect_fd *dfd);
 extern void dect_handle_fd(struct dect_handle *dh, struct dect_fd *dfd,
 			   uint32_t events);
 /** @} */

@@ -65,6 +65,17 @@ void *dect_fd_priv(struct dect_fd *dfd)
 }
 EXPORT_SYMBOL(dect_fd_priv);
 
+/**
+ * Get the file descriptor number from a DECT file descriptor.
+ *
+ * @param dfd		DECT file descriptor
+ */
+int dect_fd_num(const struct dect_fd *dfd)
+{
+	return dfd->fd;
+}
+EXPORT_SYMBOL(dect_fd_num);
+
 void dect_setup_fd(struct dect_fd *dfd,
 		   void (*cb)(struct dect_handle *, struct dect_fd *, uint32_t),
 		   void *data)
