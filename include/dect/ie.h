@@ -436,6 +436,7 @@ struct dect_ie_calling_party_number {
 
 enum dect_cipher_algs {
 	DECT_CIPHER_STANDARD_1		= 0x1,
+	DECT_CIPHER_GPRS_NO_CIPHERING	= 0x28,
 	DECT_CIPHER_GRPS_GEA_1		= 0x29,
 	DECT_CIPHER_GRPS_GEA_2		= 0x2a,
 	DECT_CIPHER_GRPS_GEA_3		= 0x2b,
