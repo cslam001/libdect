@@ -994,7 +994,7 @@ err1:
  *  "F-IWU"  => "F-MM"   [label="MM_CIPHER-req", URL="\ref dect_mm_cipher_req()"];
  *  "F-MM"   => "F-DLC"  [label="DL_ENC_KEY-req"];
  *  "F-MM"   -> "P-MM"   [label="CIPHER-REQUEST"];
- *  "P-MM"  =>> "P-IWU"  [label="MM_CIPHER-ind", URL="\ref dect_mm_ops::mm_ciphere_ind"];
+ *  "P-MM"  =>> "P-IWU"  [label="MM_CIPHER-ind", URL="\ref dect_mm_ops::mm_cipher_ind"];
  *  "P-IWU"  => "P-MM"   [label="MM_CIPHER-res", URL="\ref dect_mm_cipher_res()"];
  *  "P-MM"   => "P-DLC"  [label="DL_ENC_KEY-req"];
  *  "P-MM"   => "P-DLC"  [label="DL_ENCRYPT-req"];
