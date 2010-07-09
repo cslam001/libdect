@@ -11,27 +11,33 @@
 extern "C" {
 #endif
 
-/*
- * Acess Rights Identity (ARI)
+/**
+ * @defgroup identity Identities
+ *
+ * This module implements the NWK-Layer identities specified in ETSI EN 300 175-6.
+ *
+ * @{
+ */
+
+/**
+ * @defgroup identity_ari Access Rights Identity (ARI)
+ * @{
  */
 
 /**
  * DECT ARI classes
- *
- * @DECT_ARC_A:	Residential and private (PBX) single- and small multiple cell systems
- * @DECT_ARC_B:	Private (PABXs) multiple cell
- * @DECT_ARC_C: Public single and multiple cell systems
- * @DECT_ARC_D: Public DECT access to a GSM network
- * @DECT_ARC_E: PP to PP direct communication (private)
  */
 enum dect_ari_classes {
-	DECT_ARC_A		= 0x0,
-	DECT_ARC_B		= 0x1,
-	DECT_ARC_C		= 0x2,
-	DECT_ARC_D		= 0x3,
-	DECT_ARC_E		= 0x4,
+	DECT_ARC_A		= 0x0, /**< Residential and private (PBX) single- and small multiple cell systems */
+	DECT_ARC_B		= 0x1, /**< Private (PABXs) multiple cell */
+	DECT_ARC_C		= 0x2, /**< Public single and multiple cell systems */
+	DECT_ARC_D		= 0x3, /**< Public DECT access to a GSM network */
+	DECT_ARC_E		= 0x4, /**< PP to PP direct communication (private) */
 };
 
+/**
+ * DECT Access Rights Identifier
+ */
 struct dect_ari {
 	enum dect_ari_classes	arc;
 	uint32_t		fpn;
@@ -59,10 +65,16 @@ extern uint64_t dect_build_ari(const struct dect_ari *ari);
 extern void dect_dump_ari(const struct dect_ari *ari);
 
 /**
- * struct dect_park - Portable access rights key
+ * @}
+ * @defgroup identity_park Portable Access Rights Key (PARK)
+ * @{
+ */
+
+/**
+ * DECT Portable access rights key
  *
- * @park:	FP ARI
- * @pli:	FP ARI prefix length
+ * @arg park	FP ARI
+ * @arg pli	FP ARI prefix length
  */
 struct dect_park {
 	struct dect_ari		park;
@@ -70,10 +82,16 @@ struct dect_park {
 };
 
 /**
- * struct dect_ipei - International portable equipment ID
+ * @}
+ * @defgroup identity_ipui International Portable User ID (IPUI)
+ * @{
+ */
+
+/**
+ * DECT International portable equipment ID
  *
- * @emc:	Equipment Manufacturer Code
- * @psn:	Portable Equipment Serial Number
+ * @arg emc	Equipment Manufacturer Code
+ * @arg psn	Portable Equipment Serial Number
  */
 struct dect_ipei {
 	uint16_t	emc;
@@ -86,29 +104,24 @@ struct dect_ipei {
 #define DECT_IPUI_PUT_SHIFT		4
 
 /**
- * @DECT_IPUI_N:	Portable user identity type N (residential/default)
- * @DECT_IPUI_O:	Portable user identity type O (private)
- * @DECT_IPUI_P:	Portable user identity type P (public/public access service)
- * @DECT_IPUI_Q:	Portable user identity type Q (public/general)
- * @DECT_IPUI_R:	Portable user identity type R (public/IMSI)
- * @DECT_IPUI_S:	Portable user identity type S (PSTN/ISDN)
- * @DECT_IPUI_T:	Portable user identity type T (private extended)
- * @DECT_IPUI_U:	Portable user identity type U (public/general)
+ * DECT International portable User ID types
  */
 enum dect_ipui_types {
-	DECT_IPUI_N	= 0x0 << DECT_IPUI_PUT_SHIFT,
-	DECT_IPUI_O	= 0x1 << DECT_IPUI_PUT_SHIFT,
-	DECT_IPUI_P	= 0x2 << DECT_IPUI_PUT_SHIFT,
-	DECT_IPUI_Q	= 0x3 << DECT_IPUI_PUT_SHIFT,
-	DECT_IPUI_R	= 0x4 << DECT_IPUI_PUT_SHIFT,
-	DECT_IPUI_S	= 0x5 << DECT_IPUI_PUT_SHIFT,
-	DECT_IPUI_T	= 0x6 << DECT_IPUI_PUT_SHIFT,
-	DECT_IPUI_U	= 0x7 << DECT_IPUI_PUT_SHIFT,
+	DECT_IPUI_N	= 0x0 << DECT_IPUI_PUT_SHIFT, /**< Portable user identity type N (residential/default) */
+	DECT_IPUI_O	= 0x1 << DECT_IPUI_PUT_SHIFT, /**< Portable user identity type O (private) */
+	DECT_IPUI_P	= 0x2 << DECT_IPUI_PUT_SHIFT, /**< Portable user identity type P (public/public access service) */
+	DECT_IPUI_Q	= 0x3 << DECT_IPUI_PUT_SHIFT, /**< Portable user identity type Q (public/general) */
+	DECT_IPUI_R	= 0x4 << DECT_IPUI_PUT_SHIFT, /**< Portable user identity type R (public/IMSI) */
+	DECT_IPUI_S	= 0x5 << DECT_IPUI_PUT_SHIFT, /**< Portable user identity type S (PSTN/ISDN) */
+	DECT_IPUI_T	= 0x6 << DECT_IPUI_PUT_SHIFT, /**< Portable user identity type T (private extended) */
+	DECT_IPUI_U	= 0x7 << DECT_IPUI_PUT_SHIFT, /**< Portable user identity type U (public/general) */
 };
 
 /**
- * @put:	Portable User Identity Type
- * @pun:	Type specific data
+ * DECT International portable User ID
+ *
+ * @arg put	Portable User Identity Type
+ * @arg pun	Type specific data
  */
 struct dect_ipui {
 	enum dect_ipui_types	put;
@@ -147,23 +160,27 @@ extern bool dect_ipui_cmp(const struct dect_ipui *u1,
 			  const struct dect_ipui *u2);
 
 /**
- * @DECT_TPUI_INDIVIDUAL_ASSIGNED:	Assigned individual TPUI
- * @DECT_TPUI_CONNECTIONLESS_GROUP:	Connectionless group TPUI
- * @DECT_TPUI_CALL_GROUP:		Call group TPUI
- * @DECT_TPUI_INDIVIDUAL_DEFAULT:	Default individual TPUI
- * @DECT_TPUI_EMERGENCY:		Emergency TPUI
+ * @}
+ * @defgroup identity_tpui Temporary Portable User ID (TPUI)
+ * @{
+ */
+
+/**
+ * DECT Temporary User ID types
  */
 enum dect_tpui_types {
-	DECT_TPUI_INDIVIDUAL_ASSIGNED,
-	DECT_TPUI_CONNECTIONLESS_GROUP,
-	DECT_TPUI_CALL_GROUP,
-	DECT_TPUI_INDIVIDUAL_DEFAULT,
-	DECT_TPUI_EMERGENCY,
+	DECT_TPUI_INDIVIDUAL_ASSIGNED,	/**< Assigned individual TPUI */
+	DECT_TPUI_CONNECTIONLESS_GROUP, /**< Connectionless group TPUI */
+	DECT_TPUI_CALL_GROUP,		/**< Call group TPUI */
+	DECT_TPUI_INDIVIDUAL_DEFAULT,	/**< Default individual TPUI */
+	DECT_TPUI_EMERGENCY,		/**< Emergency TPUI */
 };
 
 /**
- * @type:	TPUI type
- * @tpui:	type specific value (12/16/20 bits)
+ * DECT Temporary Portable User ID
+ *
+ * @arg type	TPUI type
+ * @arg tpui	type specific value (12/16/20 bits)
  */
 struct dect_tpui {
 	enum dect_tpui_types	type;
@@ -186,6 +203,8 @@ extern void dect_dump_tpui(const struct dect_tpui *tpui);
 
 /* Collective broadcast identifier */
 #define DECT_TPUI_CBI		0xcfff
+
+/** @}@} */
 
 #ifdef __cplusplus
 }
