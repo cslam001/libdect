@@ -41,3 +41,6 @@ CFLAGS		+= -Waggregate-return -Wunused -Wwrite-strings
 ifeq ($(DEBUG),y)
 CFLAGS		+= -g -DDEBUG
 endif
+
+EVENT_CFLAGS	+= @EVENT_CFLAGS@
+EVENT_LDFLAGS	+= @EVENT_LDFLAGS@

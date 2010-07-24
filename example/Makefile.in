@@ -1,4 +1,5 @@
-LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect -levent
+CFLAGS		+= $(EVENT_CFLAGS)
+LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect $(EVENT_LDFLAGS)
 PROGRAMS	+= cc ss mm-fp mm-pp discover hijack
 
 destdir		:= usr/share/dect/examples

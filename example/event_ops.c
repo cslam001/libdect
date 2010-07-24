@@ -2,7 +2,6 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <signal.h>
-#include <event.h>
 
 #include <libdect.h>
 #include "common.h"

@@ -32,6 +32,14 @@ AC_CHECK_LIB([nl], [nl_socket_alloc], ,
 AC_CHECK_LIB([nl-dect], [nl_dect_cluster_alloc], ,
 	     AC_MSG_ERROR([No suitable version of libnl-dect found]))
 
+AC_CHECK_LIB(ev, event_init,
+	     [EVENTLIB="-lev"],
+	     AC_CHECK_LIB(event, event_init,
+			  [EVENTLIB="-levent"],
+			  AC_ERROR(libev or libevent not found)))
+EVENT_LDFLAGS=$EVENTLIB
+AC_SUBST(EVENT_LDFLAGS)
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_ASSERT
@@ -42,6 +50,14 @@ AC_CHECK_HEADERS([fcntl.h inttypes.h libintl.h limits.h malloc.h \
 AC_CHECK_HEADERS([linux/dect.h linux/dect_netlink.h], ,
 		 AC_MSG_ERROR([DECT kernel header files not found]),
 		 [#include <sys/socket.h>])
+
+AC_CHECK_HEADER(event.h,
+		[EVENTINC="-include event.h"],
+		AC_CHECK_HEADER(libev/event.h,
+				[EVENTINC="-include libev/event.h"],
+				AC_MSG_ERROR([event.h not found])))
+EVENT_CFLAGS=$EVENTINC
+AC_SUBST(EVENT_CFLAGS)
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
