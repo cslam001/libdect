@@ -9,7 +9,7 @@
 
 struct dect_handle *dh;
 
-static void event_callback(int fd, short mask, void *data)
+static void event_io_callback(int fd, short mask, void *data)
 {
 	struct dect_fd *dfd = data;
 	uint32_t events;
@@ -35,7 +35,7 @@ static int register_fd(const struct dect_handle *dh, struct dect_fd *dfd,
 	if (events & DECT_FD_WRITE)
 		mask |= EV_WRITE;
 
-	event_set(ev, dfd->fd, mask, event_callback, dfd);
+	event_set(ev, dect_fd_num(dfd), mask, event_io_callback, dfd);
 	event_add(ev, NULL);
 	return 0;
 }
@@ -47,7 +47,7 @@ static void unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd)
 	event_del(ev);
 }
 
-static void timer_expire(int fd, short mask, void *data)
+static void event_timer_callback(int fd, short mask, void *data)
 {
 	dect_run_timer(dh, data);
 }
@@ -58,7 +58,7 @@ static void start_timer(const struct dect_handle *dh,
 {
 	struct event *ev = dect_timer_priv(timer);
 
-	evtimer_set(ev, timer_expire, timer);
+	evtimer_set(ev, event_timer_callback, timer);
 	evtimer_add(ev, (struct timeval *)tv);
 }
 

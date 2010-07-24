@@ -3,7 +3,6 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/time.h>
-#include <event.h>
 
 #include <dect/libdect.h>
 #include <dect/terminal.h>
@@ -13,7 +12,7 @@
 struct call {
 	struct dect_keypad_buffer	*keybuf;
 	struct dect_audio_handle	*audio;
-	struct event			event;
+	struct dect_timer		*timer;
 	enum {
 		BLINK0,
 		RING,
@@ -49,19 +48,18 @@ static const struct dect_ipui ipuis[] = {
 	},
 };
 
-static void dect_mncc_timer(int fd, short even, void *data);
-static void dect_mncc_timer_schedule(struct dect_call *call)
+static void dect_mncc_timer(struct dect_handle *dh, struct dect_timer *timer);
+static void dect_mncc_timer_schedule(struct dect_handle *dh, struct dect_call *call)
 {
 	struct call *priv = dect_call_priv(call);
-	struct timeval tv = { .tv_sec = 1 };
 
-	evtimer_set(&priv->event, dect_mncc_timer, call);
-	evtimer_add(&priv->event, &tv);
+	dect_setup_timer(priv->timer, dect_mncc_timer, call);
+	dect_start_timer(dh, priv->timer, 1);
 }
 
-static void dect_mncc_timer(int fd, short even, void *data)
+static void dect_mncc_timer(struct dect_handle *dh, struct dect_timer *timer)
 {
-	struct dect_call *call = data;
+	struct dect_call *call = timer->data;
 	struct dect_ie_display display;
 	struct dect_ie_signal signal;
 	struct dect_mncc_info_param info = {
@@ -77,7 +75,7 @@ static void dect_mncc_timer(int fd, short even, void *data)
 	dect_display_append_char(&display, code++);
 
 	dect_mncc_info_req(dh, call, &info);
-	dect_mncc_timer_schedule(call);
+	dect_mncc_timer_schedule(dh, call);
 }
 
 static void dect_keypad_complete(struct dect_handle *dh, void *call,
@@ -103,6 +101,7 @@ static void dect_mncc_setup_ind(struct dect_handle *dh, struct dect_call *call,
 	dect_ie_init(&signal);
 	signal.code = DECT_SIGNAL_DIAL_TONE_ON;
 
+	priv->timer  = dect_alloc_timer(dh);
 	priv->keybuf = dect_keypad_buffer_init(dh, 3, dect_keypad_complete, call);
 	priv->audio  = dect_audio_open();
 
@@ -176,28 +175,28 @@ static void dect_mncc_send_call_info(struct dect_call *call)
 	dect_mncc_info_req(dh, call, &info);
 }
 
-static void dect_mncc_info_timer(int fd, short even, void *data);
-static void dect_mncc_info_timer_schedule(struct dect_call *call)
+static void dect_mncc_info_timer(struct dect_handle *dh, struct dect_timer *timer);
+static void dect_mncc_info_timer_schedule(struct dect_handle *dh, struct dect_call *call)
 {
 	struct call *priv = dect_call_priv(call);
-	struct timeval tv = { .tv_usec = 500000 };
 
-	evtimer_set(&priv->event, dect_mncc_info_timer, call);
-	evtimer_add(&priv->event, &tv);
+	dect_setup_timer(priv->timer, dect_mncc_info_timer, call);
+	dect_start_timer(dh, priv->timer, 1);
 }
 
-static void dect_mncc_info_timer(int fd, short even, void *data)
+static void dect_mncc_info_timer(struct dect_handle *dh, struct dect_timer *timer)
 {
-	struct dect_call *call = data;
+	struct dect_call *call = timer->data;
 
 	dect_mncc_send_call_info(call);
-	dect_mncc_info_timer_schedule(call);
+	dect_mncc_info_timer_schedule(dh, call);
 }
 
 static void dect_mncc_alert_ind(struct dect_handle *dh, struct dect_call *call,
 				struct dect_mncc_alert_param *param)
 {
-	dect_mncc_info_timer(0, 0, call);
+	dect_mncc_send_call_info(call);
+	dect_mncc_info_timer_schedule(dh, call);
 }
 
 static void dect_mncc_reject_ind(struct dect_handle *dh, struct dect_call *call,
@@ -205,7 +204,7 @@ static void dect_mncc_reject_ind(struct dect_handle *dh, struct dect_call *call,
 {
 	struct call *priv = dect_call_priv(call);
 
-	event_del(&priv->event);
+	dect_stop_timer(dh, priv->timer);
 }
 
 static void dect_mncc_release_ind(struct dect_handle *dh, struct dect_call *call,

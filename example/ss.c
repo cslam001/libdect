@@ -3,7 +3,6 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/time.h>
-#include <event.h>
 
 #include <dect/libdect.h>
 #include "common.h"
