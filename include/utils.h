@@ -15,6 +15,9 @@
 #ifndef SOL_DECT
 #define SOL_DECT 279
 #endif
+#ifndef NETLINK_DECT
+#define NETLINK_DECT 20
+#endif
 
 #define __init			__attribute__((constructor))
 #define __exit			__attribute__((destructor))
