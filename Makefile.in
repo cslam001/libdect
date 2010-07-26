@@ -1,8 +1,6 @@
 SUBDIRS		+= include
 SUBDIRS		+= src
 SUBDIRS		+= example
-
-docs:
-	make SUBDIRS=doc
+SUBDIRS		+= doc
 
 include Makefile.rules

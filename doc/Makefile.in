@@ -1,4 +1,8 @@
 all:	doxygen
 
 doxygen:
-	$(DOXYGEN) $(SUBDIR)Doxyfile
+	if test -n "$(DOXYGEN)"; then					\
+		$(DOXYGEN) $(SUBDIR)Doxyfile;				\
+	else								\
+		echo "Doxygen not found, can not build documentation";	\
+	fi

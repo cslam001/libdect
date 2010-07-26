@@ -14,7 +14,7 @@ AC_DEFINE([_GNU_SOURCE], [], [Enable various GNU extensions])
 AC_DEFINE([_STDC_FORMAT_MACROS], [], [printf-style format macros])
 
 AC_ARG_ENABLE([debug],
-	      AS_HELP_STRING([--enable-debug], [Enable debugging]),
+	      AS_HELP_STRING([--enable-debug], [enable debugging [yes]]),
 	      [CONFIG_DEBUG="$(echo $enableval | cut -b1)"],
 	      [CONFIG_DEBUG="y"])
 AC_SUBST([CONFIG_DEBUG])
@@ -24,6 +24,13 @@ AC_PROG_CC
 AC_PROG_MKDIR_P
 AC_PROG_INSTALL
 AC_PROG_LN_S
+AC_PROG_SED
+
+AC_ARG_ENABLE([doc],
+	      AS_HELP_STRING([--enable-doc], [build documentation [no]]),
+	      AC_CHECK_PROG(DOXYGEN, doxygen, doxygen),
+	      AC_MSG_NOTICE([Documentation build disabled])
+	      DOXYGEN=/bin/true)
 
 # Checks for libraries.
 AC_CHECK_LIB([nl], [nl_socket_alloc], ,
@@ -63,8 +70,11 @@ AC_SUBST(EVENT_CFLAGS)
 AC_HEADER_STDBOOL
 AC_C_CONST
 AC_C_INLINE
+AC_C_TYPEOF
+
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
 AC_TYPE_UID_T
 AC_TYPE_INT8_T
 AC_TYPE_INT16_T
