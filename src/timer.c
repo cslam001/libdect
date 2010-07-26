@@ -32,6 +32,7 @@
 
 #include <libdect.h>
 #include <utils.h>
+#include <timer.h>
 
 struct dect_timer *dect_alloc_timer(const struct dect_handle *dh)
 {

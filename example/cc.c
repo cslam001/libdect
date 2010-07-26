@@ -7,6 +7,7 @@
 #include <dect/libdect.h>
 #include <dect/terminal.h>
 #include <dect/keypad.h>
+#include <timer.h>
 #include "common.h"
 
 struct call {

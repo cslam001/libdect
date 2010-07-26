@@ -6,7 +6,6 @@
 #include <stdbool.h>
 #include <unistd.h>
 
-#include <timer.h>
 #include <io.h>
 
 #ifndef AF_DECT

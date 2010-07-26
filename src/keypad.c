@@ -10,9 +10,11 @@
 
 #include <stdio.h>
 #include <stdint.h>
+
 #include <libdect.h>
 #include <dect/keypad.h>
 #include <utils.h>
+#include <timer.h>
 
 struct dect_keypad_buffer {
 	struct dect_timer	*timer;

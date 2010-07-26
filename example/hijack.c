@@ -6,6 +6,7 @@
 
 #include <dect/libdect.h>
 #include <dect/raw.h>
+#include <timer.h>
 #include "common.h"
 #include "mac.h"
 #include <lce.h>
