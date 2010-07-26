@@ -34,6 +34,7 @@
  * @{
  */
 
+#include <unistd.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <fcntl.h>
