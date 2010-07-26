@@ -30,6 +30,8 @@
  * @{
  */
 
+#include <sys/time.h>
+
 #include <libdect.h>
 #include <utils.h>
 #include <timer.h>

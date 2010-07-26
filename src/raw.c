@@ -27,6 +27,7 @@
 
 #include <libdect.h>
 #include <utils.h>
+#include <io.h>
 #include <dect/raw.h>
 
 /**

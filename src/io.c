@@ -42,6 +42,7 @@
 
 #include <libdect.h>
 #include <utils.h>
+#include <io.h>
 
 #ifndef SOCK_NONBLOCK
 #define SOCK_NONBLOCK O_NONBLOCK

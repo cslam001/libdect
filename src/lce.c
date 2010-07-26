@@ -29,6 +29,7 @@
 #include <identities.h>
 #include <utils.h>
 #include <timer.h>
+#include <io.h>
 #include <s_fmt.h>
 #include <b_fmt.h>
 #include <lce.h>

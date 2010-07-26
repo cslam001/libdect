@@ -25,7 +25,7 @@ static void event_io_callback(int fd, short mask, void *data)
 static int register_fd(const struct dect_handle *dh, struct dect_fd *dfd,
 		       uint32_t events)
 {
-	struct event *ev = (struct event *)dfd->priv;
+	struct event *ev = dect_fd_priv(dfd);
 	unsigned short mask;
 
 	mask = EV_PERSIST;
@@ -41,7 +41,7 @@ static int register_fd(const struct dect_handle *dh, struct dect_fd *dfd,
 
 static void unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd)
 {
-	struct event *ev = (struct event *)dfd->priv;
+	struct event *ev = dect_fd_priv(dfd);
 
 	event_del(ev);
 }

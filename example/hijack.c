@@ -7,6 +7,7 @@
 #include <dect/libdect.h>
 #include <dect/raw.h>
 #include <timer.h>
+#include <io.h>
 #include "common.h"
 #include "mac.h"
 #include <lce.h>
@@ -51,7 +52,8 @@ static struct dect_lce_ops lce_ops = {
 static void raw_sock_event(struct dect_handle *dh, struct dect_fd *dfd,
 			   uint32_t events)
 {
-	uint8_t slot = (unsigned long)dfd->data;
+	void *priv = dect_fd_priv(dfd);
+	uint8_t slot = (unsigned long)priv;
 	unsigned int i;
 
 	for (i = 0; ; i++) {

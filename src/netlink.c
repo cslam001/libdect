@@ -23,6 +23,7 @@
 #include <libdect.h>
 #include <netlink.h>
 #include <utils.h>
+#include <io.h>
 
 #define nl_debug_entry(fmt, args...) \
 	dect_debug(DECT_DEBUG_NL, "\nnetlink: " fmt, ## args)

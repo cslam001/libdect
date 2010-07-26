@@ -24,6 +24,7 @@
 #include <libdect.h>
 #include <utils.h>
 #include <timer.h>
+#include <io.h>
 #include <s_fmt.h>
 #include <lce.h>
 #include <mm.h>

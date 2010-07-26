@@ -7,7 +7,7 @@
 #ifndef _LIBDECT_LCE_H
 #define _LIBDECT_LCE_H
 
-#include <assert.h>
+#include <sys/socket.h>
 #include <linux/dect.h>
 #include <list.h>
 #include <s_fmt.h>

@@ -23,6 +23,7 @@
 
 #include <libdect.h>
 #include <utils.h>
+#include <io.h>
 #include <s_fmt.h>
 #include <lce.h>
 #include <ss.h>

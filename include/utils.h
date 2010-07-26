@@ -6,8 +6,6 @@
 #include <stdbool.h>
 #include <unistd.h>
 
-#include <io.h>
-
 #ifndef AF_DECT
 #define AF_DECT 38
 #endif
