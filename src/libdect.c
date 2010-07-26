@@ -8,6 +8,11 @@
  * published by the Free Software Foundation.
  */
 
+/**
+ * @defgroup init Initialization
+ * @{
+ */
+
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -65,3 +70,5 @@ void dect_close_handle(struct dect_handle *dh)
 	dect_free(dh, dh);
 }
 EXPORT_SYMBOL(dect_close_handle);
+
+/** @} */

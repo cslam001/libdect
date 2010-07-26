@@ -12,21 +12,24 @@
  * @addtogroup events
  * @{
  *
- * @defgroup io IO
+ * @defgroup io I/O
  *
- * libdect file and socket IO.
+ * libdect file and socket I/O.
  *
- * libdect uses various file descriptors for IO internally. The application
+ * libdect uses various file descriptors for I/O internally. The application
  * using libdect must register the callback functions
  * dect_event_ops::register_fd() and dect_event_ops::unregister_fd() in
  * struct dect_event_ops to allow libdect to register it's file descriptors
- * with the applications' event handler. When an event occurs, the function
+ * with the application's event handler. The function dect_fd_num() can be used
+ * to get the file decriptor number. When an event occurs, the function
  * dect_handle_fd() must be invoked with a bitmask of enum #dect_fd_events
- * specifying the events that occured.
+ * specifying the events that occured. All events except the file descriptor
+ * becoming writable map to #DECT_FD_READ.
  *
  * Each libdect file descriptor contains a storage area of the size specified
  * in dect_event_ops::fd_priv_size, which can be used by the application to
- * associate data with the file descriptor.
+ * associate data with the file descriptor. The function dect_fd_priv() returns
+ * a pointer to this data area.
  *
  * @{
  */

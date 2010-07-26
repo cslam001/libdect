@@ -8,6 +8,14 @@
  * published by the Free Software Foundation.
  */
 
+/**
+ * @defgroup identity Identities
+ *
+ * This module implements the NWK-Layer identities specified in ETSI EN 300 175-6.
+ *
+ * @{
+ */
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -367,3 +375,5 @@ uint32_t dect_build_pmid(const struct dect_pmid *pmid)
 	}
 	return p;
 }
+
+/** @} */

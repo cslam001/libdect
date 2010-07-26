@@ -12,15 +12,12 @@ extern "C" {
 #endif
 
 /**
- * @defgroup identity Identities
- *
- * This module implements the NWK-Layer identities specified in ETSI EN 300 175-6.
- *
+ * @addtogroup identity
  * @{
- */
-
-/**
  * @defgroup identity_ari Access Rights Identity (ARI)
+ *
+ * @sa ETSI EN 300 175-6 (DECT Common Interface - Identities and addressing),
+ *     section 5
  * @{
  */
 
@@ -67,6 +64,10 @@ extern void dect_dump_ari(const struct dect_ari *ari);
 /**
  * @}
  * @defgroup identity_park Portable Access Rights Key (PARK)
+ *
+ * @sa ETSI EN 300 175-6 (DECT Common Interface - Identities and addressing),
+ *     section 6.1
+ *
  * @{
  */
 
@@ -84,6 +85,10 @@ struct dect_park {
 /**
  * @}
  * @defgroup identity_ipui International Portable User ID (IPUI)
+ *
+ * @sa ETSI EN 300 175-6 (DECT Common Interface - Identities and addressing),
+ *     section 6.2
+ *
  * @{
  */
 
@@ -162,6 +167,10 @@ extern bool dect_ipui_cmp(const struct dect_ipui *u1,
 /**
  * @}
  * @defgroup identity_tpui Temporary Portable User ID (TPUI)
+ *
+ * @sa ETSI EN 300 175-6 (DECT Common Interface - Identities and addressing),
+ *     section 6.3
+ *
  * @{
  */
 

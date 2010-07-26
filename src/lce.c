@@ -8,6 +8,11 @@
  * published by the Free Software Foundation.
  */
 
+/**
+ * @defgroup lce Link Control Entity
+ * @{
+ */
+
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -1092,3 +1097,5 @@ void dect_lce_exit(struct dect_handle *dh)
 	dect_unregister_fd(dh, dh->b_sap);
 	dect_close(dh, dh->b_sap);
 }
+
+/** @} */

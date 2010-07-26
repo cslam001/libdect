@@ -8,6 +8,15 @@
  * published by the Free Software Foundation.
  */
 
+/**
+ * @defgroup raw Raw sockets
+ *
+ * libdect RAW sockets can be used to transmit or receive raw DECT
+ * MAC frames.
+ *
+ * @{
+ */
+
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -20,6 +29,13 @@
 #include <utils.h>
 #include <dect/raw.h>
 
+/**
+ * Transmit a DECT frame on the specified slot
+ *
+ * @param dfd	libdect raw socket file descriptor
+ * @param slot	slot number to transmit on
+ * @param mb	libdect message buffer
+ */
 ssize_t dect_raw_transmit(const struct dect_fd *dfd, uint8_t slot,
 			  const struct dect_msg_buf *mb)
 {
@@ -57,6 +73,11 @@ ssize_t dect_raw_transmit(const struct dect_fd *dfd, uint8_t slot,
 }
 EXPORT_SYMBOL(dect_raw_transmit);
 
+/**
+ * Open a new DECT raw socket
+ *
+ * @param dh	libdect handle
+ */
 struct dect_fd *dect_raw_socket(struct dect_handle *dh)
 {
 	struct sockaddr_dect da;
@@ -81,3 +102,5 @@ err1:
 	return NULL;
 }
 EXPORT_SYMBOL(dect_raw_socket);
+
+/** @} */

@@ -19,12 +19,13 @@
  * libdect uses various timers internally. The application using libdect must
  * register the callback functions dect_event_ops::start_timer() and
  * dect_event_ops::stop_timer() to allow libdect to register it's timers with
- * the applications' event handler. When a timeout occurs, the function
+ * the application's event handler. When a timeout occurs, the function
  * dect_run_timer() must be invoked.
  *
  * Each libdect timer contains a storage area of the size specified in
  * dect_event_ops::timer_priv_size, which can be used by the application to
- * associate data with the timer.
+ * associate data with the timer. The function dect_timer_priv() returns
+ * a pointer to this data area.
  *
  * @{
  */
