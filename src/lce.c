@@ -977,6 +977,7 @@ void dect_transaction_get_ulei(struct sockaddr_dect_lu *addr,
 
 	memset(addr, 0, sizeof(*addr));
 	addr->dect_family = AF_DECT;
+	addr->dect_index  = ddl->dlei.dect_index;
 	addr->dect_ari    = ddl->dlei.dect_ari;
 	addr->dect_pmid   = ddl->dlei.dect_pmid;
 	addr->dect_lcn    = ddl->dlei.dect_lcn;
