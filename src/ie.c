@@ -19,11 +19,8 @@
 #include <inttypes.h>
 #include <asm/byteorder.h>
 
+#include <dect/ie.h>
 #include <libdect.h>
-#include <identities.h>
-#include <utils.h>
-#include <s_fmt.h>
-#include <lce.h>
 
 #if 0
 #define refcnt_debug(fmt, ...)	dect_debug(fmt, ## __VA_ARGS__)

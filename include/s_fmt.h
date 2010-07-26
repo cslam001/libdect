@@ -7,6 +7,8 @@
 #ifndef _LIBDECT_S_FMT_H
 #define _LIBDECT_S_FMT_H
 
+#include <dect/ie.h>
+
 /*
  * S-Format message header
  */
@@ -406,8 +408,6 @@ static inline enum dect_reject_reasons dect_sfmt_reject_reason(enum dect_sfmt_er
 struct dect_msg_common {
 	struct dect_ie_common		*ie[0];
 };
-
-extern void *dect_ie_collection_alloc(const struct dect_handle *dh, unsigned int size);
 
 struct dect_msg_buf;
 extern enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,

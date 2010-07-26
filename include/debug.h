@@ -2,6 +2,7 @@
 #define _LIBDECT_DEBUG_H
 
 #include <utils.h>
+#include <dect/debug.h>
 
 extern void __dect_debug(enum dect_debug_subsys subsys, const char *fmt, ...) __fmtstring(2, 3);
 extern void __dect_hexdump(enum dect_debug_subsys subsys, const char *prefix,

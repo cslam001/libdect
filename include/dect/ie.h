@@ -16,8 +16,11 @@ extern "C" {
  * @{
  */
 
+#include <stdbool.h>
 #include <string.h>
+
 #include <dect/utils.h>
+#include <dect/identities.h>
 
 struct dect_handle;
 
@@ -33,6 +36,8 @@ struct dect_ie_collection {
 	unsigned int			size;
 	struct dect_ie_common		*ie[];
 };
+
+extern void *dect_ie_collection_alloc(const struct dect_handle *dh, unsigned int size);
 
 extern struct dect_ie_collection *__dect_ie_collection_hold(struct dect_ie_collection *iec);
 

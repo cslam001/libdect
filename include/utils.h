@@ -2,6 +2,8 @@
 #define _LIBDECT_UTILS_H
 
 #include <assert.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #ifndef AF_DECT
 #define AF_DECT 38
