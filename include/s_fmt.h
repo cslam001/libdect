@@ -7,9 +7,6 @@
 #ifndef _LIBDECT_S_FMT_H
 #define _LIBDECT_S_FMT_H
 
-#include <assert.h>
-#include <identities.h>
-
 /*
  * S-Format message header
  */
