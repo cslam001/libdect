@@ -95,4 +95,5 @@ AC_CONFIG_FILES([include/Makefile])
 AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([example/Makefile])
 AC_CONFIG_FILES([doc/Makefile doc/Doxyfile])
+AC_CONFIG_FILES([libdect-0.0.1.pc])
 AC_OUTPUT

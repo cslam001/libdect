@@ -12,6 +12,7 @@ config.h.in~
 config.log
 config.status
 configure
+libdect-0.0.1.pc
 autom4te.cache
 
 # Debian package build temporary files

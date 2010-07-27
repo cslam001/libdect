@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libdect
+Description: DECT Network Layer library
+Version: @PACKAGE_VERSION@
+Requires: libnl-2.0
+Libs: -L${libdir} -ldect
+Cflags: -I${includedir}
