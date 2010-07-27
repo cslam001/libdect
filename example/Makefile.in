@@ -1,7 +1,7 @@
 CFLAGS		+= $(EVENT_CFLAGS)
 LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect $(EVENT_LDFLAGS)
 PROGRAMS	+= cc ss mm-fp mm-pp discover hijack
-PROGRAMS	+= pp-access-rights pp-location-update pp-detach pp-list-access
+PROGRAMS	+= pp-access-rights pp-location-update pp-detach pp-list-access pp-wait-page
 
 destdir		:= usr/share/dect/examples
 
@@ -37,6 +37,10 @@ pp-detach-obj			+= pp-detach.o
 pp-list-access-destdir		:= $(destdir)
 pp-list-access-obj		+= $(pp-common-obj)
 pp-list-access-obj		+= pp-list-access.o
+
+pp-wait-page-destdir		:= $(destdir)
+pp-wait-page-obj		+= $(common-obj)
+pp-wait-page-obj		+= pp-wait-page.o
 
 mm-pp-destdir	:= $(destdir)
 mm-pp-obj	+= $(common-obj)
