@@ -10,20 +10,27 @@
 #include <sys/socket.h>
 #include <utils.h>
 
+enum dect_fd_state {
+	DECT_FD_UNREGISTERED,
+	DECT_FD_REGISTERED,
+};
+
 /**
  * struct dect_fd - libdect file descriptor
  *
  * @callback:		callback to invoke for events
  * @fd:			file descriptor numer
+ * @state:		file descriptor registration state (debugging)
  * @data:		libdect internal data
  * @priv:		libdect user private file-descriptor storage
  */
 struct dect_fd {
-	void		(*callback)(struct dect_handle *,
-				    struct dect_fd *, uint32_t);
-	int		fd;
-	void		*data;
-	uint8_t		priv[] __aligned(__alignof__(uint64_t));
+	void			(*callback)(struct dect_handle *,
+					    struct dect_fd *, uint32_t);
+	int			fd;
+	enum dect_fd_state	state;
+	void			*data;
+	uint8_t			priv[] __aligned(__alignof__(uint64_t));
 };
 
 extern struct dect_fd *dect_alloc_fd(const struct dect_handle *dh);

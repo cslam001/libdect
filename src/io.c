@@ -57,7 +57,8 @@ struct dect_fd *dect_alloc_fd(const struct dect_handle *dh)
 			  dh->ops->event_ops->fd_priv_size);
 	if (dfd == NULL)
 		return NULL;
-	dfd->fd = -1;
+	dfd->fd    = -1;
+	dfd->state = DECT_FD_UNREGISTERED;
 	return dfd;
 }
 EXPORT_SYMBOL(dect_alloc_fd);
@@ -96,13 +97,21 @@ EXPORT_SYMBOL(dect_setup_fd);
 int dect_register_fd(const struct dect_handle *dh, struct dect_fd *dfd,
 		     uint32_t events)
 {
-	return dh->ops->event_ops->register_fd(dh, dfd, events);
+	int err;
+
+	assert(dfd->state == DECT_FD_UNREGISTERED);
+	err = dh->ops->event_ops->register_fd(dh, dfd, events);
+	if (err == 0)
+		dfd->state = DECT_FD_REGISTERED;
+	return err;
 }
 EXPORT_SYMBOL(dect_register_fd);
 
 void dect_unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd)
 {
+	assert(dfd->state == DECT_FD_REGISTERED);
 	dh->ops->event_ops->unregister_fd(dh, dfd);
+	dfd->state = DECT_FD_UNREGISTERED;
 }
 EXPORT_SYMBOL(dect_unregister_fd);
 
@@ -118,12 +127,14 @@ EXPORT_SYMBOL(dect_unregister_fd);
  */
 void dect_handle_fd(struct dect_handle *dh, struct dect_fd *dfd, uint32_t events)
 {
+	assert(dfd->state == DECT_FD_REGISTERED);
 	dfd->callback(dh, dfd, events);
 }
 EXPORT_SYMBOL(dect_handle_fd);
 
 void dect_close(const struct dect_handle *dh, struct dect_fd *dfd)
 {
+	assert(dfd->state == DECT_FD_UNREGISTERED);
 	if (dfd->fd >= 0)
 		close(dfd->fd);
 	dect_free(dh, dfd);
