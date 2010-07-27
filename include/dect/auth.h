@@ -17,8 +17,6 @@ extern "C" {
  */
 
 #define DECT_AUTH_KEY_LEN	16
-#define DECT_AUTH_RAND_LEN	8
-#define DECT_AUTH_RES_LEN	4
 #define DECT_CIPHER_KEY_LEN	8
 
 /**
