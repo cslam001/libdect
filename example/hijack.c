@@ -59,7 +59,7 @@ static void raw_sock_event(struct dect_handle *dh, struct dect_fd *dfd,
 	for (i = 0; ; i++) {
 		printf("\rqueueing bearer information messages: %u", i);
 
-		if (dect_raw_transmit(dfd, slot, &msg) < 0) {
+		if (dect_raw_transmit(dh, dfd, slot, &msg) < 0) {
 			if (errno == EAGAIN)
 				break;
 			pexit("raw_tx");

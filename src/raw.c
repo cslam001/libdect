@@ -12,7 +12,8 @@
  * @defgroup raw Raw sockets
  *
  * libdect RAW sockets can be used to transmit or receive raw DECT
- * MAC frames.
+ * MAC frames. For raw frame reception, a callback function for
+ * #dect_raw_ops::raw_rcv() must be provided by the user.
  *
  * @{
  */
@@ -30,16 +31,26 @@
 #include <io.h>
 #include <dect/raw.h>
 
+static void dect_raw_fill_sockaddr(struct dect_handle *dh,
+				   struct sockaddr_dect *da)
+{
+	memset(da, 0, sizeof(*da));
+	da->dect_family = AF_DECT;
+	da->dect_index  = dh->index;
+}
+
 /**
  * Transmit a DECT frame on the specified slot
  *
+ * @param dh	libdect handle
  * @param dfd	libdect raw socket file descriptor
  * @param slot	slot number to transmit on
  * @param mb	libdect message buffer
  */
-ssize_t dect_raw_transmit(const struct dect_fd *dfd, uint8_t slot,
-			  const struct dect_msg_buf *mb)
+ssize_t dect_raw_transmit(struct dect_handle *dh, struct dect_fd *dfd,
+			  uint8_t slot, struct dect_msg_buf *mb)
 {
+	struct sockaddr_dect da;
 	struct iovec iov;
 	struct msghdr msg;
 	struct dect_raw_auxdata aux;
@@ -49,8 +60,10 @@ ssize_t dect_raw_transmit(const struct dect_fd *dfd, uint8_t slot,
 		char			buf[CMSG_SPACE(sizeof(aux))];
 	} cmsg_buf;
 
-	msg.msg_name		= NULL;
-	msg.msg_namelen		= 0;
+	dect_raw_fill_sockaddr(dh, &da);
+
+	msg.msg_name		= &da;
+	msg.msg_namelen		= sizeof(da);
 	msg.msg_iov		= &iov;
 	msg.msg_iovlen		= 1;
 	msg.msg_control		= &cmsg_buf;
@@ -74,6 +87,60 @@ ssize_t dect_raw_transmit(const struct dect_fd *dfd, uint8_t slot,
 }
 EXPORT_SYMBOL(dect_raw_transmit);
 
+static void dect_raw_event(struct dect_handle *dh, struct dect_fd *dfd,
+			   uint32_t events)
+{
+	struct dect_msg_buf _mb, *mb = &_mb;
+	struct msghdr msg;
+	struct dect_raw_auxdata *aux;
+	struct cmsghdr *cmsg;
+	char cmsg_buf[4 * CMSG_SPACE(16)];
+	struct iovec iov;
+	ssize_t len;
+
+	assert(!(events & ~DECT_FD_READ));
+
+	memset(mb, 0, sizeof(*mb));
+	mb->data = mb->head;
+
+	msg.msg_name		= NULL;
+	msg.msg_namelen		= 0;
+	msg.msg_control		= cmsg_buf;
+	msg.msg_controllen	= sizeof(cmsg_buf);
+	msg.msg_iov		= &iov;
+	msg.msg_iovlen		= 1;
+	msg.msg_flags		= 0;
+
+	iov.iov_base		= mb->data;
+	iov.iov_len		= sizeof(mb->head);
+
+	len = recvmsg(dfd->fd, &msg, 0);
+	if (len < 0)
+		return;
+	mb->len = len;
+
+	aux = NULL;
+	for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
+		if (cmsg->cmsg_level != SOL_DECT)
+			continue;
+
+		switch (cmsg->cmsg_type) {
+		case DECT_RAW_AUXDATA:
+			if (cmsg->cmsg_len < CMSG_LEN(sizeof(*aux)))
+				continue;
+			aux = (struct dect_raw_auxdata *)CMSG_DATA(cmsg);
+			continue;
+		default:
+			continue;
+		}
+	}
+
+	if (aux == NULL)
+		return;
+
+	dh->ops->raw_ops->raw_rcv(dh, dfd, aux->slot, mb);
+}
+
 /**
  * Open a new DECT raw socket
  *
@@ -88,13 +155,20 @@ struct dect_fd *dect_raw_socket(struct dect_handle *dh)
 	if (dfd == NULL)
 		goto err1;
 
-	memset(&da, 0, sizeof(da));
-	da.dect_family = AF_DECT;
-	da.dect_index  = dh->index;
+	/* Only bind socket if user wants to receive packets */
+	if (dh->ops->raw_ops == NULL ||
+	    dh->ops->raw_ops->raw_rcv == NULL)
+		goto out;
+
+	dect_raw_fill_sockaddr(dh, &da);
 
 	if (bind(dfd->fd, (struct sockaddr *)&da, sizeof(da)) < 0)
 		goto err2;
 
+	dect_setup_fd(dfd, dect_raw_event, dfd);
+	if (dect_register_fd(dh, dfd, DECT_FD_READ) < 0)
+		goto err2;
+out:
 	return dfd;
 
 err2:

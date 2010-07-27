@@ -134,6 +134,7 @@ struct dect_ops {
 	const struct dect_cc_ops	*cc_ops;
 	const struct dect_mm_ops	*mm_ops;
 	const struct dect_ss_ops	*ss_ops;
+	const struct dect_raw_ops	*raw_ops;
 };
 
 extern struct dect_handle *dect_alloc_handle(struct dect_ops *ops);
