@@ -372,7 +372,7 @@ struct dect_mm_endpoint {
 	struct dect_data_link			*link;
 	struct dect_mm_procedure		procedure[DECT_TRANSACTION_MAX + 1];
 	struct dect_mm_procedure		*current;
-	uint8_t					priv[];
+	uint8_t					priv[] __aligned(__alignof__(uint64_t));
 };
 
 #endif /* _LIBDECT_MM_H */

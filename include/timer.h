@@ -7,6 +7,8 @@
 #ifndef _LIBDECT_TIMER_H
 #define _LIBDECT_TIMER_H
 
+#include <utils.h>
+
 struct dect_handle;
 
 enum dect_timer_state {
@@ -27,7 +29,7 @@ struct dect_timer {
 					    struct dect_timer *);
 	void			*data;
 	enum dect_timer_state	state;
-	uint8_t			priv[];
+	uint8_t			priv[] __aligned(__alignof__(uint64_t));
 };
 
 extern struct dect_timer *dect_alloc_timer(const struct dect_handle *dh);

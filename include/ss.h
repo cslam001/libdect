@@ -60,7 +60,7 @@ struct dect_ciss_register_msg {
  */
 struct dect_ss_endpoint {
 	struct dect_transaction			transaction;
-	uint8_t					priv[];
+	uint8_t					priv[] __aligned(__alignof__(uint64_t));
 };
 
 extern void dect_clss_rcv(struct dect_handle *dh, struct dect_msg_buf *mb);

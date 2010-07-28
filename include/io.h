@@ -8,6 +8,7 @@
 #define _LIBDECT_IO_H
 
 #include <sys/socket.h>
+#include <utils.h>
 
 /**
  * struct dect_fd - libdect file descriptor
@@ -22,7 +23,7 @@ struct dect_fd {
 				    struct dect_fd *, uint32_t);
 	int		fd;
 	void		*data;
-	uint8_t		priv[];
+	uint8_t		priv[] __aligned(__alignof__(uint64_t));
 };
 
 extern struct dect_fd *dect_alloc_fd(const struct dect_handle *dh);
