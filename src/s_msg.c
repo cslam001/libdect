@@ -1057,7 +1057,7 @@ static void dect_sfmt_dump_reject_reason(const struct dect_ie_common *_ie)
 	struct dect_ie_reject_reason *ie = dect_ie_container(ie, _ie);
 	char buf[64];
 
-	sfmt_debug("\treject reason: %s (%x)\n",
+	sfmt_debug("\treject reason: %s\n",
 		   dect_val2str(dect_reject_reasons, buf, ie->reason),
 		   ie->reason);
 }
