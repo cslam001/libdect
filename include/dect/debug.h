@@ -30,7 +30,7 @@ extern void dect_set_debug_hook(void (*fn)(enum dect_debug_subsys subsys,
 					   const char *fmt, va_list ap)
 				__fmtstring(2, 0));
 
-/**< @} */
+/** @} */
 
 #ifdef __cplusplus
 }
