@@ -55,6 +55,9 @@
 #define DECT_ARI_E_FPN_MASK	0x00001ffe00000000ULL
 #define DECT_ARI_E_FPN_SHIFT	33
 
+extern uint8_t dect_parse_ari(struct dect_ari *ari, uint64_t a);
+extern uint64_t dect_build_ari(const struct dect_ari *ari);
+extern void dect_dump_ari(const struct dect_ari *ari);
 
 /*
  * IPEI
