@@ -336,6 +336,7 @@ static DECT_SFMT_MSG_DESC(crss_hold,
 	__cc_debug(call, "\n", fmt, ## args)
 
 static const char * const call_states[DECT_CC_STATE_MAX + 1] = {
+	[DECT_CC_NULL]				= "NULL",
 	[DECT_CC_CALL_INITIATED]		= "CALL INITIATED",
 	[DECT_CC_OVERLAP_SENDING]		= "OVERLAP SENDING",
 	[DECT_CC_CALL_PROCEEDING]		= "CALL PROCEEDING",
