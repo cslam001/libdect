@@ -1125,6 +1125,7 @@ int dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	} else
 		err = dect_mm_send_cipher_reject(dh, mp, param);
 
+	dect_mm_procedure_complete(dh, mme, mp);
 	return 0;
 
 err1:
