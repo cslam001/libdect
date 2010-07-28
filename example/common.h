@@ -22,6 +22,13 @@ extern int dect_write_uak(const struct dect_ipui *ipui,
 extern int dect_read_uak(const struct dect_ipui *ipui,
 			 uint8_t uak[DECT_AUTH_KEY_LEN]);
 
+extern void dect_pp_auth_init(struct dect_ops *ops,
+			      const struct dect_ipui *ipui);
+
+struct mm_auth_priv {
+	uint8_t         dck[DECT_CIPHER_KEY_LEN];
+};
+
 extern void pexit(const char *str);
 
 #include "../src/ccitt-adpcm/g72x.h"

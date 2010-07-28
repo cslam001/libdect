@@ -38,28 +38,38 @@ int dect_write_uak(const struct dect_ipui *ipui,
 int dect_read_uak(const struct dect_ipui *ipui, uint8_t _uak[DECT_AUTH_KEY_LEN])
 {
 	struct dect_ipui ripui;
-	uint8_t uak[16];
+	uint8_t uak[DECT_AUTH_KEY_LEN];
 	unsigned int i;
 	FILE *f;
 
 	f = dect_keyfile_open("r");
 	if (f == NULL)
-		return -1;
+		goto err;
 
-	if (fscanf(f, "N|%04hx|%05x|", &ripui.pun.n.ipei.emc, &ripui.pun.n.ipei.psn) != 2)
-		return -1;
+	memset(&ripui, 0, sizeof(ripui));
+	ripui.put = DECT_IPUI_N;
+
+	if (fscanf(f, "N|%04hx|%05x|",
+		   &ripui.pun.n.ipei.emc,
+		   &ripui.pun.n.ipei.psn) != 2)
+		goto err;
 
 	for (i = 0; i < DECT_AUTH_KEY_LEN; i++) {
 		if (fscanf(f, "%02hhx", &uak[i]) != 1)
-			return -1;
+			goto err;
 	}
 
-	if (ipui->pun.n.ipei.emc != ripui.pun.n.ipei.emc ||
-	    ipui->pun.n.ipei.psn != ripui.pun.n.ipei.psn)
-		return -1;
+	if (dect_ipui_cmp(ipui, &ripui))
+		goto err;
 
 	memcpy(_uak, uak, DECT_AUTH_KEY_LEN);
 
 	fclose(f);
 	return 0;
+
+err:
+	fprintf(stderr, "Could not find UAK for IPUI N %4x %5x, use "
+			"'pp-access-rights' to allocate a new one\n",
+		ipui->pun.n.ipei.emc, ipui->pun.n.ipei.psn);
+	return -1;
 }
