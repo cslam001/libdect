@@ -64,9 +64,9 @@ struct dect_fd *dect_alloc_fd(const struct dect_handle *dh)
 EXPORT_SYMBOL(dect_alloc_fd);
 
 /**
- * Get a pointer to the private data from a DECT file descriptor
+ * Get a pointer to the private data area from a libdect file descriptor
  *
- * @param dfd		DECT file descriptor
+ * @param dfd		libdect file descriptor
  */
 void *dect_fd_priv(struct dect_fd *dfd)
 {
@@ -75,9 +75,9 @@ void *dect_fd_priv(struct dect_fd *dfd)
 EXPORT_SYMBOL(dect_fd_priv);
 
 /**
- * Get the file descriptor number from a DECT file descriptor.
+ * Get the file descriptor number from a libdect file descriptor.
  *
- * @param dfd		DECT file descriptor
+ * @param dfd		libdect file descriptor
  */
 int dect_fd_num(const struct dect_fd *dfd)
 {
@@ -116,10 +116,10 @@ void dect_unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd)
 EXPORT_SYMBOL(dect_unregister_fd);
 
 /**
- * Process DECT file descriptor events
+ * Process libdect file descriptor events
  *
  * @param dh		libdect DECT handle
- * @param dfd		DECT file descriptor
+ * @param dfd		libdect file descriptor
  * @param events	Bitmask of file descriptor events (#dect_fd_events)
  *
  * Process the events specified by the events bitmask for the given file

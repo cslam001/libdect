@@ -44,7 +44,7 @@ struct dect_timer *dect_alloc_timer(const struct dect_handle *dh)
 EXPORT_SYMBOL(dect_alloc_timer);
 
 /**
- * Get a pointer to the private data from a DECT timer
+ * Get a pointer to the private data area from a DECT timer
  *
  * @param timer		DECT timer
  */

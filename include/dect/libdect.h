@@ -72,14 +72,11 @@ static inline void dect_mbuf_reserve(struct dect_msg_buf *mb, unsigned int len)
  */
 
 /**
- * enum dect_fd_events - file descriptor events
- *
- * @arg DECT_FD_READ:	file descriptor is readable
- * @arg DECT_FD_WRITE:	file descriptor is writable
+ * libdect file descriptor events
  */
 enum dect_fd_events {
-	DECT_FD_READ	= 0x1,
-	DECT_FD_WRITE	= 0x2
+	DECT_FD_READ	= 0x1,	/**< file descriptor is readable */
+	DECT_FD_WRITE	= 0x2	/**< file descriptor is writable */
 };
 
 struct dect_fd;

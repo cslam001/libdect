@@ -349,6 +349,11 @@ static const char * const call_states[DECT_CC_STATE_MAX + 1] = {
 	[DECT_CC_INCOMING_CALL_PROCEEDING]	= "INCOMING CALL PROCEEDING",
 };
 
+/**
+ * Get a pointer to the private data area from a Call Control Endpoint
+ *
+ * @param call		Call Control Endpoint
+ */
 void *dect_call_priv(struct dect_call *call)
 {
 	return call->priv;
@@ -361,6 +366,15 @@ const struct dect_ipui *dect_call_portable_identity(const struct dect_call *call
 }
 EXPORT_SYMBOL(dect_call_portable_identity);
 
+/**
+ * DL_U_DATA-req primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param mb		Message Buffer
+ *
+ * Pass U-plane data to the DLC.
+ */
 int dect_dl_u_data_req(const struct dect_handle *dh, struct dect_call *call,
 		       struct dect_msg_buf *mb)
 {
@@ -499,6 +513,19 @@ out:
 	dect_call_destroy(dh, call);
 }
 
+/**
+ * MNCC_SETUP-req primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param ipui		IPUI of PP
+ * @param param		call setup parameters
+ *
+ * Initiate call establishment by sending a {CC-SETUP} message to the remote
+ * side.
+ *
+ * @sa ETSI EN 300 175-5 (Network Layer), sections 9.3.1 and 9.3.2.
+ */
 int dect_mncc_setup_req(struct dect_handle *dh, struct dect_call *call,
 			const struct dect_ipui *ipui,
 			const struct dect_mncc_setup_param *param)
@@ -560,6 +587,18 @@ err1:
 }
 EXPORT_SYMBOL(dect_mncc_setup_req);
 
+/**
+ * MNCC_SETUP_ACK-req primitve
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param		call setup ACK parameters
+ *
+ * Accept call setup by sending a {CC-SETUP-ACK} message and enter "OVERLAP
+ * RECEIVING" state.
+ *
+ * @sa ETSI EN 300 175-5 (Network Layer), sections 9.3.1.5 and 9.3.2.5.
+ */
 int dect_mncc_setup_ack_req(struct dect_handle *dh, struct dect_call *call,
 			    const struct dect_mncc_setup_ack_param *param)
 {
@@ -586,6 +625,17 @@ int dect_mncc_setup_ack_req(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_setup_ack_req);
 
+/**
+ * MNCC_REJECT-req primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param		call release parameters
+ *
+ * Reject call setup by sending a {CC-RELEASE-COM} message and release the call.
+ *
+ * @sa ETSI EN 300 175-5 (Network Layer), sections 9.3.1.2 and 9.3.2.2.
+ */
 int dect_mncc_reject_req(struct dect_handle *dh, struct dect_call *call,
 			 const struct dect_mncc_release_param *param)
 {
@@ -613,6 +663,18 @@ int dect_mncc_reject_req(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_reject_req);
 
+/**
+ * MNCC_CALL_PROC-req primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param		call proceeding parameters
+ *
+ * Accept call setup by sending a {CC-CALL-PROC} message and enter "CALL
+ * PROCEEDING" state.
+ *
+ * @sa ETSI EN 300 175-5 (Network Layer), sections 9.3.1.6 and 9.3.2.6.
+ */
 int dect_mncc_call_proc_req(struct dect_handle *dh, struct dect_call *call,
 			    const struct dect_mncc_call_proc_param *param)
 {
@@ -636,6 +698,18 @@ int dect_mncc_call_proc_req(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_call_proc_req);
 
+/**
+ * MNCC_ALERT-req primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param		call alerting parameters
+ *
+ * Accept a call by sending a {CC-ALERTING} message and enter "CALL DELIVERED"
+ * state.
+ *
+ * @sa ETSI EN 300 175-5 (Network Layer), sections 9.3.1.7 and 9.3.2.7.
+ */
 int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 			const struct dect_mncc_alert_param *param)
 {
@@ -660,6 +734,17 @@ int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_alert_req);
 
+/**
+ * MNCC_CONNECT-req primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param		call connection parameters
+ *
+ * Connect a call by sending a {CC-CONNECT} message and enter "ACTIVE" state.
+ *
+ * @sa ETSI EN 300 175-5 (Network Layer), sections 9.3.1.8 and 9.3.2.8.
+ */
 int dect_mncc_connect_req(struct dect_handle *dh, struct dect_call *call,
 			  const struct dect_mncc_connect_param *param)
 {
@@ -686,6 +771,13 @@ int dect_mncc_connect_req(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_connect_req);
 
+/**
+ * MNCC_CONNECT-res primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param		call connection parameters
+ */
 int dect_mncc_connect_res(struct dect_handle *dh, struct dect_call *call,
 			  const struct dect_mncc_connect_param *param)
 {
@@ -712,6 +804,13 @@ err1:
 }
 EXPORT_SYMBOL(dect_mncc_connect_res);
 
+/**
+ * MNCC_RELEASE-req primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param		call release parameters
+ */
 int dect_mncc_release_req(struct dect_handle *dh, struct dect_call *call,
 			  const struct dect_mncc_release_param *param)
 {
@@ -733,6 +832,13 @@ int dect_mncc_release_req(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_release_req);
 
+/**
+ * MNCC_RELEASE-res primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param		call release parameters
+ */
 int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
 			  const struct dect_mncc_release_param *param)
 {
@@ -761,6 +867,13 @@ int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_release_res);
 
+/**
+ * MNCC_FACILITY-req primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param
+ */
 int dect_mncc_facility_req(struct dect_handle *dh, struct dect_call *call,
 			  const struct dect_mncc_facility_param *param)
 {
@@ -769,6 +882,13 @@ int dect_mncc_facility_req(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_facility_req);
 
+/**
+ * MNCC_INFO-req primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param
+ */
 int dect_mncc_info_req(struct dect_handle *dh, struct dect_call *call,
 		       const struct dect_mncc_info_param *param)
 {
@@ -800,6 +920,13 @@ int dect_mncc_info_req(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_info_req);
 
+/**
+ * MNCC_MODIFY-req primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param		call modification parameters
+ */
 int dect_mncc_modify_req(struct dect_handle *dh, struct dect_call *call,
 			 const struct dect_mncc_modify_param *param)
 {
@@ -808,6 +935,13 @@ int dect_mncc_modify_req(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_modify_req);
 
+/**
+ * MNCC_MODIFY-res primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param		call modification parameters
+ */
 int dect_mncc_modify_res(struct dect_handle *dh, struct dect_call *call,
 			 const struct dect_mncc_modify_param *param)
 {
@@ -816,6 +950,13 @@ int dect_mncc_modify_res(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_modify_res);
 
+/**
+ * MNCC_HOLD-req primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param		call hold parameters
+ */
 int dect_mncc_hold_req(struct dect_handle *dh, struct dect_call *call,
 		       const struct dect_mncc_hold_param *param)
 {
@@ -830,6 +971,13 @@ int dect_mncc_hold_req(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_hold_req);
 
+/**
+ * MNCC_HOLD-res primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param		call hold parameters
+ */
 int dect_mncc_hold_res(struct dect_handle *dh, struct dect_call *call,
 		       const struct dect_mncc_hold_param *param)
 {
@@ -838,6 +986,13 @@ int dect_mncc_hold_res(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_hold_res);
 
+/**
+ * MNCC_RETRIEVE-req primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param		call retrieve parameters
+ */
 int dect_mncc_retrieve_req(struct dect_handle *dh, struct dect_call *call,
 			   const struct dect_mncc_hold_param *param)
 {
@@ -846,6 +1001,13 @@ int dect_mncc_retrieve_req(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_retrieve_req);
 
+/**
+ * MNCC_RETRIEVE-res primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param		call retrieve parameters
+ */
 int dect_mncc_retrieve_res(struct dect_handle *dh, struct dect_call *call,
 			   const struct dect_mncc_hold_param *param)
 {
@@ -854,6 +1016,13 @@ int dect_mncc_retrieve_res(struct dect_handle *dh, struct dect_call *call,
 }
 EXPORT_SYMBOL(dect_mncc_retrieve_res);
 
+/**
+ * MNCC_IWU_INFO-req primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param call		Call Control Endpoint
+ * @param param
+ */
 int dect_mncc_iwu_info_req(struct dect_handle *dh, struct dect_call *call,
 			   const struct dect_mncc_iwu_info_param *param)
 {

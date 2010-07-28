@@ -19,7 +19,7 @@ extern "C" {
 #include <dect/ie.h>
 
 /**
- * struct dect_mncc_setup_param - MNCC_SETUP primitive parameters
+ * MNCC_SETUP primitive parameters
  */
 struct dect_mncc_setup_param {
 	struct dect_ie_collection		common;
