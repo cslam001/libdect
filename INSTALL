@@ -1,0 +1,40 @@
+Building and installing libdect
+-------------------------------
+
+Prerequisites:
+
+  - kernel header files from a kernel with DECT support in /usr/include/linux,
+    specifically:
+
+    - linux/socket.h
+    - linux/netlink.h
+    - linux/dect.h
+    - linux/dect_netlink.h
+
+  - libnl containing DECT support (libnl.so, libnl-dect.so)
+
+  - libevent or libev (for building example code)
+
+  - Doxygen and mscgen (optional, for building the API documentation)
+
+1) Run "sh autogen.sh"
+
+   This will generate the configure script from configure.ac.
+
+2) Run "sh configure"
+
+   This will verify that all required prerequisites are installed and generate
+   the makefiles. Options include:
+
+   --enable-doc=y/n   (default: no)  - enable documentation build
+   --enable-debug=y/n (default: yes) - enable debugging statements
+
+3) Run "make"
+
+   This will build libdect, the example code as well as the documentation, if
+   enabled.
+
+4) Run "make install"
+
+   This will install libdect and the example code.
+
