@@ -2152,7 +2152,7 @@ static int dect_parse_sfmt_ie_header(struct dect_sfmt_ie *ie,
 	}
 	ie->data = mb->data;
 
-//	sfmt_debug("found IE: <%s> (%x) len: %u\n", dect_ie_handlers[ie->id].name,
+//	sfmt_debug("found IE: <<%s>> (%x) len: %u\n", dect_ie_handlers[ie->id].name,
 //		   ie->id, ie->len);
 	return 0;
 }
@@ -2282,7 +2282,7 @@ enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,
 found:
 		/* Treat empty variable length IEs as absent */
 		if (!(ie->id & DECT_SFMT_IE_FIXED_LEN) && ie->len == 2) {
-			sfmt_debug("  IE: <%s> id: %x len: %u (empty)\n",
+			sfmt_debug("  IE: <<%s>> id: %x len: %u (empty)\n",
 				   dect_ie_handlers[ie->id].name, ie->id, ie->len);
 			goto next;
 		}
