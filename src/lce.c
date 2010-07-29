@@ -192,17 +192,75 @@ static int dect_lce_page(const struct dect_handle *dh,
 	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg));
 }
 
+static void dect_lce_send_page_response(struct dect_handle *dh)
+{
+	struct dect_ie_portable_identity portable_identity;
+	struct dect_ie_fixed_identity fixed_identity;
+	struct dect_lce_page_response_msg msg = {
+		.portable_identity	= &portable_identity,
+		.fixed_identity		= &fixed_identity,
+	};
+
+	portable_identity.type = DECT_PORTABLE_ID_TYPE_IPUI;
+	portable_identity.ipui = dh->ipui;
+
+	fixed_identity.type    = DECT_FIXED_ID_TYPE_PARK;
+	fixed_identity.ari     = dh->pari;
+
+	if (dect_open_transaction(dh, &dh->page_transaction, &dh->ipui,
+				  DECT_PD_LCE) < 0)
+		return;
+
+	dect_lce_send(dh, &dh->page_transaction, &lce_page_response_msg_desc,
+		      &msg.common, DECT_LCE_PAGE_RESPONSE);
+}
+
 static void dect_lce_rcv_short_page(struct dect_handle *dh,
 				    struct dect_msg_buf *mb)
 {
 	struct dect_short_page_msg *msg = (void *)mb->data;
-	uint8_t hdr;
+	struct dect_tpui tpui;
+	uint16_t info, t;
+	uint8_t hdr, pattern;
 	bool w;
 
-	w   = msg->hdr & DECT_LCE_PAGE_W_FLAG;
-	hdr = msg->hdr & DECT_LCE_PAGE_HDR_MASK;
-	lce_debug("short page: w=%u hdr=%u information=%x\n",
-		  w, hdr, __be16_to_cpu(msg->information));
+	w    = msg->hdr & DECT_LCE_PAGE_W_FLAG;
+	hdr  = msg->hdr & DECT_LCE_PAGE_HDR_MASK;
+	info = __be16_to_cpu(msg->information);
+	lce_debug("short page: w=%u hdr=%u information=%04x\n", w, hdr, info);
+
+	if (hdr == DECT_LCE_PAGE_UNKNOWN_RINGING) {
+		pattern = (info & DECT_LCE_SHORT_PAGE_RING_PATTERN_MASK) >>
+			  DECT_LCE_SHORT_PAGE_RING_PATTERN_SHIFT;
+
+		if (w == 0) {
+			/* assigned connectionless group TPUI or CBI */
+			if ((info ^ DECT_TPUI_CBI) &
+			    DECT_LCE_SHORT_PAGE_GROUP_MASK)
+				return;
+		} else {
+			/* group mask */
+			return;
+		}
+
+		lce_debug("LCE_GROUP_RING-ind: pattern: %x\n", pattern);
+		dh->ops->lce_ops->lce_group_ring_ind(dh, pattern);
+	} else {
+		if (w == 0) {
+			/* default individual TPUI */
+			dect_ipui_to_tpui(&tpui, &dh->ipui);
+			t = dect_build_tpui(&tpui);
+			if (info != t)
+				return;
+		} else {
+			/* assigned TPUI or CBI */
+			t = dect_build_tpui(&dh->tpui);
+			if (info != t && info != DECT_TPUI_CBI)
+				return;
+		}
+
+		dect_lce_send_page_response(dh);
+	}
 }
 
 static void dect_lce_bsap_event(struct dect_handle *dh, struct dect_fd *dfd,

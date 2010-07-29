@@ -71,4 +71,17 @@ void dect_close_handle(struct dect_handle *dh)
 }
 EXPORT_SYMBOL(dect_close_handle);
 
+/**
+ * Set the PP's IPUI
+ *
+ * @param dh		libdect DECT handle
+ * @param ipui		IPUI
+ */
+void dect_pp_set_ipui(struct dect_handle *dh, const struct dect_ipui *ipui)
+{
+	dh->ipui = *ipui;
+	dect_ipui_to_tpui(&dh->tpui, ipui);
+}
+EXPORT_SYMBOL(dect_pp_set_ipui);
+
 /** @} */

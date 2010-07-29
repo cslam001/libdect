@@ -25,11 +25,14 @@ struct dect_fp_capabilities {
  * @mode:	cluster mode
  * @pari:	FP's PARI
  * @fpc:	FP capabilities
+ * @ipui:	PP's IPUI
+ * @tpui:	PP's TPUI
  * @b_sap:	B-SAP socket
  * @s_sap:	S-SAP listener socket
  * @links:	list of data links
  * @mme_list:	MM endpoint list
  */
+#include <lce.h>
 struct dect_handle {
 	const struct dect_ops		*ops;
 
@@ -40,6 +43,10 @@ struct dect_handle {
 	enum dect_cluster_modes		mode;
 	struct dect_ari			pari;
 	struct dect_fp_capabilities	fpc;
+
+	struct dect_transaction		page_transaction;
+	struct dect_ipui		ipui;
+	struct dect_tpui		tpui;
 
 	struct dect_fd			*b_sap;
 	struct dect_fd			*s_sap;
