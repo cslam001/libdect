@@ -27,8 +27,8 @@ struct dect_lce_ops {
 				     struct dect_lce_page_param *param);
 };
 
-extern int dect_lce_group_ring(struct dect_handle *dh,
-			       enum dect_ring_patterns pattern);
+extern int dect_lce_group_ring_req(struct dect_handle *dh,
+				   enum dect_ring_patterns pattern);
 
 #ifdef __cplusplus
 }

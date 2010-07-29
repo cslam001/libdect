@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 {
 	dect_common_init(&ops, argv[1]);
 
-	dect_lce_group_ring(dh, 0);
+	dect_lce_group_ring_req(dh, 0);
 	dect_event_loop();
 
 	dect_common_cleanup(dh);

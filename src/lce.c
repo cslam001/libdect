@@ -152,7 +152,14 @@ static int dect_lce_broadcast(const struct dect_handle *dh,
 	return 0;
 }
 
-int dect_lce_group_ring(struct dect_handle *dh, enum dect_ring_patterns pattern)
+/**
+ * Request collective or group ringing
+ *
+ * @param dh		libdect DECT handle
+ * @param pattern	ring pattern
+ */
+int dect_lce_group_ring_req(struct dect_handle *dh,
+			    enum dect_ring_patterns pattern)
 {
 	struct dect_short_page_msg msg;
 	uint16_t page;
@@ -167,7 +174,7 @@ int dect_lce_group_ring(struct dect_handle *dh, enum dect_ring_patterns pattern)
 
 	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg));
 }
-EXPORT_SYMBOL(dect_lce_group_ring);
+EXPORT_SYMBOL(dect_lce_group_ring_req);
 
 static int dect_lce_page(const struct dect_handle *dh,
 			 const struct dect_ipui *ipui)
@@ -203,6 +210,8 @@ static void dect_lce_bsap_event(struct dect_handle *dh, struct dect_fd *dfd,
 {
 	struct dect_msg_buf _mb, *mb = &_mb;
 	struct msghdr msg;
+
+	dect_debug(DECT_DEBUG_LCE, "\n");
 
 	msg.msg_control		= NULL;
 	msg.msg_controllen	= 0;
@@ -640,12 +649,12 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 	dect_ddl_destroy(dh, req);
 }
 
-static int dect_send_reject(const struct dect_handle *dh,
-			    const struct dect_transaction *ta,
-			    enum dect_reject_reasons reason)
+static int dect_lce_send_page_reject(const struct dect_handle *dh,
+				     const struct dect_transaction *ta,
+				     enum dect_reject_reasons reason)
 {
 	struct dect_ie_reject_reason reject_reason;
-	struct dect_lce_page_reject msg = {
+	struct dect_lce_page_reject_msg msg = {
 		.portable_identity	= NULL,
 		.reject_reason		= &reject_reason,
 	};
@@ -661,7 +670,7 @@ static void dect_lce_rcv_page_response(struct dect_handle *dh,
 				       const struct dect_transaction *ta,
 				       struct dect_msg_buf *mb)
 {
-	struct dect_lce_page_response msg;
+	struct dect_lce_page_response_msg msg;
 	struct dect_data_link *i, *req = NULL;
 	enum dect_sfmt_error err;
 	bool reject = true;
@@ -670,7 +679,7 @@ static void dect_lce_rcv_page_response(struct dect_handle *dh,
 	err = dect_parse_sfmt_msg(dh, &lce_page_response_msg_desc,
 				  &msg.common, mb);
 	if (err < 0) {
-		dect_send_reject(dh, ta, dect_sfmt_reject_reason(err));
+		dect_lce_send_page_reject(dh, ta, dect_sfmt_reject_reason(err));
 		return dect_ddl_release(dh, ta->link);
 	}
 
@@ -706,7 +715,7 @@ err:
 	if (req != NULL)
 		dect_ddl_complete_indirect_establish(dh, ta->link, req);
 	else if (reject) {
-		dect_send_reject(dh, ta, DECT_REJECT_IPUI_UNKNOWN);
+		dect_lce_send_page_reject(dh, ta, DECT_REJECT_IPUI_UNKNOWN);
 		dect_ddl_release(dh, ta->link);
 	}
 
@@ -717,7 +726,7 @@ static void dect_lce_rcv_page_reject(struct dect_handle *dh,
 				     struct dect_transaction *ta,
 				     struct dect_msg_buf *mb)
 {
-	struct dect_lce_page_reject msg;
+	struct dect_lce_page_reject_msg msg;
 
 	ddl_debug(ta->link, "LCE-PAGE-REJECT");
 	if (dect_parse_sfmt_msg(dh, &lce_page_reject_msg_desc,

@@ -187,7 +187,7 @@ enum dect_lce_msg_types {
 };
 
 /**
- * struct dect_lce_page_response - LCE Page response S-Format message
+ * struct dect_lce_page_response_msg - LCE Page response S-Format message
  *
  * @common:			Message header
  * @portable_identity:		Portable Identity IE
@@ -196,7 +196,7 @@ enum dect_lce_msg_types {
  * @cipher_info:		Cipher Info IE (optional)
  * @escape_to_proprietary:	Escape to proprietary IE (optional)
  */
-struct dect_lce_page_response {
+struct dect_lce_page_response_msg {
 	struct dect_msg_common			common;
 	struct dect_ie_portable_identity	*portable_identity;
 	struct dect_ie_fixed_identity		*fixed_identity;
@@ -206,7 +206,7 @@ struct dect_lce_page_response {
 };
 
 /**
- * struct dect_lce_page_reject - LCE Page reject S-Format message
+ * struct dect_lce_page_reject_msg - LCE Page reject S-Format message
  *
  * @common:			Message header
  * @portable_identity:		Portable Identity IE
@@ -214,7 +214,7 @@ struct dect_lce_page_response {
  * @reject_reason:		Reject reason IE
  * @escape_to_proprietary:	Escape to proprietary IE (optional)
  */
-struct dect_lce_page_reject {
+struct dect_lce_page_reject_msg {
 	struct dect_msg_common			common;
 	struct dect_ie_portable_identity	*portable_identity;
 	struct dect_ie_fixed_identity		*fixed_identity;

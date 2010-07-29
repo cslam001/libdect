@@ -87,7 +87,7 @@ static void dect_build_msg(struct dect_msg_buf *mb, uint8_t sn, uint8_t cn)
 
 static void page_timer(struct dect_handle *dh, struct dect_timer *timer)
 {
-	dect_lce_group_ring(dh, 0);
+	dect_lce_group_ring_req(dh, 0);
 	dect_start_timer(dh, timer, 1);
 }
 
