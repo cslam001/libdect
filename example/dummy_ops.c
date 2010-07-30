@@ -2,6 +2,23 @@
 #include "common.h"
 
 /*
+ * LCE Ops
+ */
+
+static bool lce_page_response(struct dect_handle *dh,
+			      struct dect_lce_page_param *param)
+{
+	return true;
+}
+
+static void lce_group_ring_ind(struct dect_handle *dh,
+			       enum dect_ring_patterns pattern)
+{
+}
+
+static struct dect_lce_ops dummy_lce_ops;
+
+/*
  * CC Ops
  */
 
@@ -270,9 +287,19 @@ static struct dect_ss_ops dummy_ss_ops;
 
 void dect_dummy_ops_init(struct dect_ops *ops)
 {
+	struct dect_lce_ops *lce_ops;
 	struct dect_cc_ops *cc_ops;
 	struct dect_mm_ops *mm_ops;
 	struct dect_ss_ops *ss_ops;
+
+	if (!ops->lce_ops)
+		ops->lce_ops = &dummy_lce_ops;
+	lce_ops = (void *)ops->lce_ops;
+
+	if (!lce_ops->lce_page_response)
+		lce_ops->lce_page_response = lce_page_response;
+	if (!lce_ops->lce_group_ring_ind)
+		lce_ops->lce_group_ring_ind = lce_group_ring_ind;
 
 	if (!ops->cc_ops)
 		ops->cc_ops = &dummy_cc_ops;
