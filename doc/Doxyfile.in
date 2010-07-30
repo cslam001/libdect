@@ -580,6 +580,7 @@ INPUT                  = src/libdect.c \
 			 src/io.c \
 			 src/identities.c \
 			 src/ie.c \
+			 src/lce.c \
 			 src/mm.c \
 			 src/cc.c \
 			 src/ss.c \
