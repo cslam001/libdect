@@ -232,6 +232,8 @@ struct dect_lce_page_reject_msg {
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
+extern void dect_pp_change_pmid(struct dect_handle *dh);
+
 extern int dect_lce_init(struct dect_handle *dh);
 extern void dect_lce_exit(struct dect_handle *dh);
 

@@ -144,6 +144,8 @@ extern int dect_init(struct dect_handle *dh, const char *cluster);
 
 extern void dect_pp_set_ipui(struct dect_handle *dh,
 			     const struct dect_ipui *ipui);
+extern void dect_pp_set_tpui(struct dect_handle *dh,
+			     const struct dect_tpui *tpui);
 
 #ifdef __cplusplus
 }

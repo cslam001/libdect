@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <inttypes.h>
 #include <unistd.h>
 #include <string.h>
@@ -648,7 +649,7 @@ static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
 		ddl->dlei.dect_family = AF_DECT;
 		ddl->dlei.dect_index  = dh->index;
 		ddl->dlei.dect_ari = dect_build_ari(&dh->pari) >> 24;
-		ddl->dlei.dect_pmid = 0xe98a1;
+		ddl->dlei.dect_pmid = dh->pmid;
 		ddl->dlei.dect_lln = 1;
 		ddl->dlei.dect_sapi = 0;
 
@@ -1157,10 +1158,68 @@ void dect_transaction_get_ulei(struct sockaddr_dect_lu *addr,
 	addr->dect_lcn    = ddl->dlei.dect_lcn;
 }
 
+/*
+ * Identities
+ */
+static void dect_pp_set_default_pmid(struct dect_handle *dh)
+{
+	assert(!(dh->flags & DECT_PP_TPUI));
+	dh->pmid = DECT_PMID_DEFAULT_ID +
+		   (rand() & DECT_PMID_DEFAULT_NUM_MASK);
+	lce_debug("set default pmid %05x", dh->pmid);
+}
+
+void dect_pp_change_pmid(struct dect_handle *dh)
+{
+	dh->pmid = DECT_PMID_DEFAULT_ID +
+		   ((dh->pmid + 1) & DECT_PMID_DEFAULT_NUM_MASK);
+	lce_debug("change pmid %05x", dh->pmid);
+}
+
+static void dect_pp_set_assigned_pmid(struct dect_handle *dh)
+{
+	struct dect_pmid pmid;
+
+	assert(dh->flags & DECT_PP_TPUI &&
+	       dh->tpui.type == DECT_TPUI_INDIVIDUAL_ASSIGNED);
+	dh->pmid = dect_build_pmid(dect_tpui_to_pmid(&pmid, &dh->tpui));
+	lce_debug("set assigned pmid %05x", dh->pmid);
+}
+
+/**
+ * Set the PP's IPUI
+ *
+ * @param dh		libdect DECT handle
+ * @param ipui		IPUI
+ */
+void dect_pp_set_ipui(struct dect_handle *dh, const struct dect_ipui *ipui)
+{
+	dh->ipui = *ipui;
+	dh->flags |= DECT_PP_IPUI;
+}
+EXPORT_SYMBOL(dect_pp_set_ipui);
+
+/**
+ * Set the PP's TPUI
+ *
+ * @param dh		libdect DECT handle
+ * @param tpui		TPUI
+ */
+void dect_pp_set_tpui(struct dect_handle *dh, const struct dect_tpui *tpui)
+{
+	dh->tpui = *tpui;
+	dh->flags |= DECT_PP_TPUI;
+	dect_pp_set_assigned_pmid(dh);
+}
+EXPORT_SYMBOL(dect_pp_set_tpui);
+
 int dect_lce_init(struct dect_handle *dh)
 {
 	struct sockaddr_dect_ssap s_addr;
 	struct sockaddr_dect b_addr;
+
+	if (dh->mode == DECT_MODE_PP)
+		dect_pp_set_default_pmid(dh);
 
 	/* Open B-SAP socket */
 	dh->b_sap = dect_socket(dh, SOCK_DGRAM, DECT_B_SAP);
@@ -1227,4 +1286,5 @@ void dect_lce_exit(struct dect_handle *dh)
 	dect_close(dh, dh->b_sap);
 }
 
+/** @} */
 /** @} */

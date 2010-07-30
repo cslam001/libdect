@@ -15,6 +15,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <libdect.h>
 #include <netlink.h>
@@ -47,6 +48,8 @@ int dect_init(struct dect_handle *dh, const char *cluster)
 	if (cluster == NULL)
 		cluster = "cluster0";
 
+	srand(time(NULL));
+
 	err = dect_netlink_init(dh, cluster);
 	if (err < 0)
 		goto err1;
@@ -70,18 +73,5 @@ void dect_close_handle(struct dect_handle *dh)
 	dect_free(dh, dh);
 }
 EXPORT_SYMBOL(dect_close_handle);
-
-/**
- * Set the PP's IPUI
- *
- * @param dh		libdect DECT handle
- * @param ipui		IPUI
- */
-void dect_pp_set_ipui(struct dect_handle *dh, const struct dect_ipui *ipui)
-{
-	dh->ipui = *ipui;
-	dect_ipui_to_tpui(&dh->tpui, ipui);
-}
-EXPORT_SYMBOL(dect_pp_set_ipui);
 
 /** @} */
