@@ -68,5 +68,6 @@ int main(int argc, char **argv)
 	dect_event_loop();
 
 	dect_common_cleanup(dh);
+	dect_mm_endpoint_destroy(dh, mme);
 	return 0;
 }

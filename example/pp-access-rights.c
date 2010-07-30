@@ -188,8 +188,8 @@ int main(int argc, char **argv)
 	mm_access_rights_req(dh, mme);
 	dect_event_loop();
 
-	dect_mm_endpoint_destroy(dh, mme);
 	dect_common_cleanup(dh);
+	dect_mm_endpoint_destroy(dh, mme);
 	close(rand_fd);
 	return 0;
 }
