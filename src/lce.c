@@ -771,10 +771,9 @@ static int dect_lce_page(const struct dect_handle *dh,
 	struct dect_tpui tpui;
 	uint16_t page;
 
-	dect_ipui_to_tpui(&tpui, ipui);
-
 	msg.hdr = DECT_LCE_PAGE_GENERAL_VOICE;
-	page = dect_build_tpui(&tpui) & DECT_LCE_SHORT_PAGE_TPUI_MASK;
+	page = dect_build_tpui(dect_ipui_to_tpui(&tpui, ipui)) &
+	       DECT_LCE_SHORT_PAGE_TPUI_MASK;
 	msg.information = __cpu_to_be16(page);
 
 	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg));
@@ -935,8 +934,7 @@ static void dect_lce_rcv_short_page(struct dect_handle *dh,
 	} else {
 		if (w == 0) {
 			/* default individual TPUI */
-			dect_ipui_to_tpui(&tpui, &dh->ipui);
-			t = dect_build_tpui(&tpui);
+			t = dect_build_tpui(dect_ipui_to_tpui(&tpui, &dh->ipui));
 			if (info != t)
 				return;
 		} else {

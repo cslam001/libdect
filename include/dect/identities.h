@@ -206,8 +206,8 @@ struct dect_tpui {
 	};
 };
 
-extern void dect_ipui_to_tpui(struct dect_tpui *tpui,
-			      const struct dect_ipui *ipui);
+extern struct dect_tpui *dect_ipui_to_tpui(struct dect_tpui *tpui,
+					   const struct dect_ipui *ipui);
 extern void dect_dump_tpui(const struct dect_tpui *tpui);
 
 /* Collective broadcast identifier */

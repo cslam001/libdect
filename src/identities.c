@@ -243,7 +243,8 @@ bool dect_ipui_cmp(const struct dect_ipui *i1, const struct dect_ipui *i2)
 }
 EXPORT_SYMBOL(dect_ipui_cmp);
 
-void dect_ipui_to_tpui(struct dect_tpui *tpui, const struct dect_ipui *ipui)
+struct dect_tpui *dect_ipui_to_tpui(struct dect_tpui *tpui,
+				    const struct dect_ipui *ipui)
 {
 	tpui->type = DECT_TPUI_INDIVIDUAL_DEFAULT;
 
@@ -260,6 +261,8 @@ void dect_ipui_to_tpui(struct dect_tpui *tpui, const struct dect_ipui *ipui)
 	case DECT_IPUI_U:
 		break;
 	}
+
+	return tpui;
 }
 
 void dect_dump_tpui(const struct dect_tpui *tpui)
@@ -322,7 +325,8 @@ uint32_t dect_build_tpui(const struct dect_tpui *tpui)
 	return t;
 }
 
-void dect_tpui_to_pmid(struct dect_pmid *pmid, const struct dect_tpui *tpui)
+struct dect_pmid *dect_tpui_to_pmid(struct dect_pmid *pmid,
+				    const struct dect_tpui *tpui)
 {
 	uint32_t t;
 
@@ -340,6 +344,8 @@ void dect_tpui_to_pmid(struct dect_pmid *pmid, const struct dect_tpui *tpui)
 	default:
 		BUG();
 	}
+
+	return pmid;
 }
 
 void dect_parse_pmid(struct dect_pmid *pmid, uint32_t p)

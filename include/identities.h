@@ -132,7 +132,8 @@ struct dect_pmid {
 
 extern void dect_parse_pmid(struct dect_pmid *pmid, uint32_t p);
 
-extern void dect_tpui_to_pmid(struct dect_pmid *pmid, const struct dect_tpui *tpui);
+extern struct dect_pmid *dect_tpui_to_pmid(struct dect_pmid *pmid,
+					   const struct dect_tpui *tpui);
 extern uint32_t dect_build_pmid(const struct dect_pmid *pmid);
 
 #endif /* _LIBDECT_IDENTITIES_H */
