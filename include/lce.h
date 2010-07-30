@@ -33,6 +33,11 @@ enum dect_transaction_role {
 };
 #define DECT_TRANSACTION_MAX		(__DECT_TRANSACTION_MAX - 1)
 
+enum dect_transaction_state {
+	DECT_TRANSACTION_CLOSED,
+	DECT_TRANSACTION_OPEN,
+};
+
 /* Connectionless NWK layer transaction value */
 #define DECT_TV_CONNECTIONLESS		6
 
@@ -55,7 +60,8 @@ struct dect_transaction {
 	struct list_head		list;
 	struct dect_data_link		*link;
 	enum dect_pds			pd;
-	enum dect_transaction_role	role;
+	enum dect_transaction_role	role:8;
+	enum dect_transaction_state	state:8;
 	uint16_t			tv;
 };
 

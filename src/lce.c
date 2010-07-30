@@ -1025,10 +1025,11 @@ int dect_ddl_open_transaction(struct dect_handle *dh, struct dect_transaction *t
 		return -1;
 
 	ddl_debug(ddl, "open transaction: %s TV: %u", protocol->name, tv);
-	ta->link = ddl;
-	ta->pd	 = pd;
-	ta->role = DECT_TRANSACTION_INITIATOR;
-	ta->tv	 = tv;
+	ta->link  = ddl;
+	ta->pd	  = pd;
+	ta->role  = DECT_TRANSACTION_INITIATOR;
+	ta->state = DECT_TRANSACTION_OPEN;
+	ta->tv    = tv;
 
 	list_add_tail(&ta->list, &ddl->transactions);
 	return 0;
@@ -1049,10 +1050,11 @@ int dect_open_transaction(struct dect_handle *dh, struct dect_transaction *ta,
 void dect_confirm_transaction(struct dect_handle *dh, struct dect_transaction *ta,
 			      const struct dect_transaction *req)
 {
-	ta->link = req->link;
-	ta->tv   = req->tv;
-	ta->role = req->role;
-	ta->pd   = req->pd;
+	ta->link  = req->link;
+	ta->tv    = req->tv;
+	ta->role  = req->role;
+	ta->pd    = req->pd;
+	ta->state = DECT_TRANSACTION_OPEN;
 
 	ddl_debug(req->link, "confirm transaction: %s TV: %u Role: %u",
 		  protocols[ta->pd]->name, ta->tv, ta->role);
@@ -1066,7 +1068,9 @@ void dect_close_transaction(struct dect_handle *dh, struct dect_transaction *ta,
 
 	ddl_debug(ddl, "close transaction: %s TV: %u Role: %u",
 		  protocols[ta->pd]->name, ta->tv, ta->role);
+
 	list_del(&ta->list);
+	ta->state = DECT_TRANSACTION_CLOSED;
 
 	switch (ddl->state) {
 	case DECT_DATA_LINK_RELEASED:
