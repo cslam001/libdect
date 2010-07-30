@@ -138,155 +138,6 @@ static struct dect_lte *dect_lte_alloc(const struct dect_handle *dh,
 #endif
 
 /*
- * Paging
- */
-
-static int dect_lce_broadcast(const struct dect_handle *dh,
-			      const uint8_t *msg, size_t len)
-{
-	ssize_t size;
-
-	dect_hexdump(DECT_DEBUG_LCE, "LCE: BCAST TX", msg, len);
-	size = send(dh->b_sap->fd, msg, len, 0);
-	assert(size == (ssize_t)len);
-	return 0;
-}
-
-/**
- * Request collective or group ringing
- *
- * @param dh		libdect DECT handle
- * @param pattern	ring pattern
- */
-int dect_lce_group_ring_req(struct dect_handle *dh,
-			    enum dect_ring_patterns pattern)
-{
-	struct dect_short_page_msg msg;
-	uint16_t page;
-
-	msg.hdr  = DECT_LCE_PAGE_W_FLAG;
-	msg.hdr |= DECT_LCE_PAGE_GENERAL_VOICE;
-
-	page = pattern << DECT_LCE_SHORT_PAGE_RING_PATTERN_SHIFT;
-	page = 0;
-	page |= DECT_TPUI_CBI & DECT_LCE_SHORT_PAGE_TPUI_MASK;
-	msg.information = __cpu_to_be16(page);
-
-	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg));
-}
-EXPORT_SYMBOL(dect_lce_group_ring_req);
-
-static int dect_lce_page(const struct dect_handle *dh,
-			 const struct dect_ipui *ipui)
-{
-	struct dect_short_page_msg msg;
-	struct dect_tpui tpui;
-	uint16_t page;
-
-	dect_ipui_to_tpui(&tpui, ipui);
-
-	msg.hdr = DECT_LCE_PAGE_GENERAL_VOICE;
-	page = dect_build_tpui(&tpui) & DECT_LCE_SHORT_PAGE_TPUI_MASK;
-	msg.information = __cpu_to_be16(page);
-
-	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg));
-}
-
-static void dect_lce_send_page_response(struct dect_handle *dh)
-{
-	struct dect_ie_portable_identity portable_identity;
-	struct dect_ie_fixed_identity fixed_identity;
-	struct dect_lce_page_response_msg msg = {
-		.portable_identity	= &portable_identity,
-		.fixed_identity		= &fixed_identity,
-	};
-
-	portable_identity.type = DECT_PORTABLE_ID_TYPE_IPUI;
-	portable_identity.ipui = dh->ipui;
-
-	fixed_identity.type    = DECT_FIXED_ID_TYPE_PARK;
-	fixed_identity.ari     = dh->pari;
-
-	if (dect_open_transaction(dh, &dh->page_transaction, &dh->ipui,
-				  DECT_PD_LCE) < 0)
-		return;
-
-	dect_lce_send(dh, &dh->page_transaction, &lce_page_response_msg_desc,
-		      &msg.common, DECT_LCE_PAGE_RESPONSE);
-}
-
-static void dect_lce_rcv_short_page(struct dect_handle *dh,
-				    struct dect_msg_buf *mb)
-{
-	struct dect_short_page_msg *msg = (void *)mb->data;
-	struct dect_tpui tpui;
-	uint16_t info, t;
-	uint8_t hdr, pattern;
-	bool w;
-
-	w    = msg->hdr & DECT_LCE_PAGE_W_FLAG;
-	hdr  = msg->hdr & DECT_LCE_PAGE_HDR_MASK;
-	info = __be16_to_cpu(msg->information);
-	lce_debug("short page: w=%u hdr=%u information=%04x\n", w, hdr, info);
-
-	if (hdr == DECT_LCE_PAGE_UNKNOWN_RINGING) {
-		pattern = (info & DECT_LCE_SHORT_PAGE_RING_PATTERN_MASK) >>
-			  DECT_LCE_SHORT_PAGE_RING_PATTERN_SHIFT;
-
-		if (w == 0) {
-			/* assigned connectionless group TPUI or CBI */
-			if ((info ^ DECT_TPUI_CBI) &
-			    DECT_LCE_SHORT_PAGE_GROUP_MASK)
-				return;
-		} else {
-			/* group mask */
-			return;
-		}
-
-		lce_debug("LCE_GROUP_RING-ind: pattern: %x\n", pattern);
-		dh->ops->lce_ops->lce_group_ring_ind(dh, pattern);
-	} else {
-		if (w == 0) {
-			/* default individual TPUI */
-			dect_ipui_to_tpui(&tpui, &dh->ipui);
-			t = dect_build_tpui(&tpui);
-			if (info != t)
-				return;
-		} else {
-			/* assigned TPUI or CBI */
-			t = dect_build_tpui(&dh->tpui);
-			if (info != t && info != DECT_TPUI_CBI)
-				return;
-		}
-
-		dect_lce_send_page_response(dh);
-	}
-}
-
-static void dect_lce_bsap_event(struct dect_handle *dh, struct dect_fd *dfd,
-				uint32_t events)
-{
-	struct dect_msg_buf _mb, *mb = &_mb;
-	struct msghdr msg;
-
-	dect_debug(DECT_DEBUG_LCE, "\n");
-
-	msg.msg_control		= NULL;
-	msg.msg_controllen	= 0;
-
-	if (dect_mbuf_rcv(dfd, &msg, mb) < 0)
-		return;
-	dect_mbuf_dump(DECT_DEBUG_LCE, mb, "LCE: BCAST RX");
-
-	switch (mb->len) {
-	case 3:
-		return dect_lce_rcv_short_page(dh, mb);
-	default:
-		break;
-	}
-}
-
-/*
  * Data links
  */
 
@@ -587,245 +438,6 @@ int dect_lce_send(const struct dect_handle *dh,
 	}
 }
 
-static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer)
-{
-	struct dect_data_link *ddl = timer->data;
-
-	ddl_debug(ddl, "Page timer");
-	if (ddl->page_count++ == DECT_DDL_PAGE_RETRANS_MAX)
-		dect_ddl_shutdown(dh, ddl);
-	else {
-		dect_lce_page(dh, &ddl->ipui);
-		dect_start_timer(dh, ddl->page_timer, DECT_DDL_PAGE_TIMEOUT);
-	}
-}
-
-/**
- * dect_ddl_establish - Establish an outgoing data link
- *
- */
-static void dect_lce_data_link_event(struct dect_handle *dh,
-				     struct dect_fd *dfd, uint32_t events);
-
-static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
-						 const struct dect_ipui *ipui)
-{
-	struct dect_data_link *ddl;
-
-	//lte = dect_lte_get_by_ipui(dh, lte);
-	ddl = dect_ddl_alloc(dh);
-	if (ddl == NULL)
-		goto err1;
-	ddl->state = DECT_DATA_LINK_ESTABLISH_PENDING;
-	ddl->ipui  = *ipui;
-
-	if (dh->mode == DECT_MODE_FP) {
-		ddl->page_timer = dect_alloc_timer(dh);
-		if (ddl->page_timer == NULL)
-			goto err2;
-		dect_setup_timer(ddl->page_timer, dect_ddl_page_timer, ddl);
-		dect_ddl_page_timer(dh, ddl->page_timer);
-	} else {
-		ddl->dfd = dect_socket(dh, SOCK_SEQPACKET, DECT_S_SAP);
-		if (ddl->dfd == NULL)
-			goto err2;
-
-		ddl->dlei.dect_family = AF_DECT;
-		ddl->dlei.dect_index  = dh->index;
-		ddl->dlei.dect_ari = dect_build_ari(&dh->pari) >> 24;
-		ddl->dlei.dect_pmid = 0xe98a1;
-		ddl->dlei.dect_lln = 1;
-		ddl->dlei.dect_sapi = 0;
-
-		dect_setup_fd(ddl->dfd, dect_lce_data_link_event, ddl);
-		if (dect_register_fd(dh, ddl->dfd, DECT_FD_WRITE) < 0)
-			goto err2;
-
-		if (connect(ddl->dfd->fd, (struct sockaddr *)&ddl->dlei,
-			    sizeof(ddl->dlei)) < 0 && errno != EAGAIN)
-			goto err3;
-	}
-
-	list_add_tail(&ddl->list, &dh->links);
-	return ddl;
-
-err3:
-	dect_unregister_fd(dh, ddl->dfd);
-err2:
-	dect_free(dh, ddl);
-err1:
-	lce_debug("dect_ddl_establish: %s\n", strerror(errno));
-	return NULL;
-}
-
-static void dect_ddl_complete_direct_establish(struct dect_handle *dh,
-					       struct dect_data_link *ddl)
-{
-	struct dect_msg_buf *mb, *mb_next;
-
-	ddl->state = DECT_DATA_LINK_ESTABLISHED;
-	ddl_debug(ddl, "complete direct link establishment");
-
-	/* Send queued messages */
-	list_for_each_entry_safe(mb, mb_next, &ddl->msg_queue, list) {
-		list_del(&mb->list);
-		dect_send(dh, ddl, mb);
-	}
-
-	dect_unregister_fd(dh, ddl->dfd);
-	dect_register_fd(dh, ddl->dfd, DECT_FD_READ);
-}
-
-static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
-						 struct dect_data_link *ddl,
-						 struct dect_data_link *req)
-{
-	struct dect_transaction *ta, *ta_next;
-	struct dect_msg_buf *mb, *mb_next;
-
-	/* Stop page timer */
-	dect_stop_timer(dh, req->page_timer);
-	dect_free(dh, req->page_timer);
-
-	ddl_debug(ddl, "complete indirect link establishment req %p", req);
-	ddl->ipui = req->ipui;
-
-	/* Transfer transactions to the new link */
-	list_for_each_entry_safe(ta, ta_next, &req->transactions, list) {
-		ddl_debug(ta->link, "transfer transaction to link %p", ddl);
-		list_move_tail(&ta->list, &ddl->transactions);
-		ta->link = ddl;
-	}
-
-	/* Send queued messages */
-	list_for_each_entry_safe(mb, mb_next, &req->msg_queue, list) {
-		list_del(&mb->list);
-		dect_send(dh, ddl, mb);
-	}
-
-	/* Release pending link */
-	dect_ddl_destroy(dh, req);
-}
-
-static int dect_lce_send_page_reject(const struct dect_handle *dh,
-				     const struct dect_transaction *ta,
-				     enum dect_reject_reasons reason)
-{
-	struct dect_ie_reject_reason reject_reason;
-	struct dect_lce_page_reject_msg msg = {
-		.portable_identity	= NULL,
-		.reject_reason		= &reject_reason,
-	};
-
-	dect_ie_init(&reject_reason);
-	reject_reason.reason = reason;
-
-	return dect_lce_send(dh, ta, &lce_page_reject_msg_desc,
-			     &msg.common, DECT_LCE_PAGE_REJECT);
-}
-
-static void dect_lce_rcv_page_response(struct dect_handle *dh,
-				       const struct dect_transaction *ta,
-				       struct dect_msg_buf *mb)
-{
-	struct dect_lce_page_response_msg msg;
-	struct dect_data_link *i, *req = NULL;
-	enum dect_sfmt_error err;
-	bool reject = true;
-
-	ddl_debug(ta->link, "LCE-PAGE-RESPONSE");
-	err = dect_parse_sfmt_msg(dh, &lce_page_response_msg_desc,
-				  &msg.common, mb);
-	if (err < 0) {
-		dect_lce_send_page_reject(dh, ta, dect_sfmt_reject_reason(err));
-		return dect_ddl_release(dh, ta->link);
-	}
-
-	list_for_each_entry(i, &dh->links, list) {
-		if (dect_ipui_cmp(&i->ipui, &msg.portable_identity->ipui))
-			continue;
-		if (i->state != DECT_DATA_LINK_ESTABLISH_PENDING)
-			continue;
-		req = i;
-		break;
-	}
-
-	ta->link->ipui = msg.portable_identity->ipui;
-
-	if (req == NULL && dh->ops->lce_ops &&
-	    dh->ops->lce_ops->lce_page_response) {
-		struct dect_lce_page_param *param;
-
-		param = dect_ie_collection_alloc(dh, sizeof(*param));
-		if (param == NULL)
-			goto err;
-
-		param->portable_identity	= dect_ie_hold(msg.portable_identity);
-		param->fixed_identity		= dect_ie_hold(msg.fixed_identity);
-		param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity);
-		param->cipher_info		= dect_ie_hold(msg.cipher_info);
-		param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
-
-		reject = !dh->ops->lce_ops->lce_page_response(dh, param);
-		dect_ie_collection_put(dh, param);
-	}
-err:
-	if (req != NULL)
-		dect_ddl_complete_indirect_establish(dh, ta->link, req);
-	else if (reject) {
-		dect_lce_send_page_reject(dh, ta, DECT_REJECT_IPUI_UNKNOWN);
-		dect_ddl_release(dh, ta->link);
-	}
-
-	dect_msg_free(dh, &lce_page_response_msg_desc, &msg.common);
-}
-
-static void dect_lce_rcv_page_reject(struct dect_handle *dh,
-				     struct dect_transaction *ta,
-				     struct dect_msg_buf *mb)
-{
-	struct dect_lce_page_reject_msg msg;
-
-	ddl_debug(ta->link, "LCE-PAGE-REJECT");
-	if (dect_parse_sfmt_msg(dh, &lce_page_reject_msg_desc,
-				&msg.common, mb) < 0)
-		return;
-	dect_msg_free(dh, &lce_page_reject_msg_desc, &msg.common);
-}
-
-static void dect_lce_rcv(struct dect_handle *dh, struct dect_transaction *ta,
-			 struct dect_msg_buf *mb)
-{
-	switch (mb->type) {
-	case DECT_LCE_PAGE_REJECT:
-		return dect_lce_rcv_page_reject(dh, ta, mb);
-	default:
-		ddl_debug(ta->link, "unknown message type %x", mb->type);
-		return;
-	}
-}
-
-static void dect_lce_open(struct dect_handle *dh,
-			  const struct dect_transaction *ta,
-			  struct dect_msg_buf *mb)
-{
-	switch (mb->type) {
-	case DECT_LCE_PAGE_RESPONSE:
-		return dect_lce_rcv_page_response(dh, ta, mb);
-	default:
-		ddl_debug(ta->link, "unknown message type %x", mb->type);
-		return;
-	}
-}
-
-static const struct dect_nwk_protocol lce_protocol = {
-	.name			= "Link Control",
-	.pd			= DECT_PD_LCE,
-	.max_transactions	= 1,
-	.open			= dect_lce_open,
-	.rcv			= dect_lce_rcv,
-};
-
 static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 {
 	struct dect_msg_buf _mb, *mb = &_mb;
@@ -922,6 +534,124 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 		protocols[pd]->rcv(dh, ta, mb);
 }
 
+static void dect_ddl_complete_direct_establish(struct dect_handle *dh,
+					       struct dect_data_link *ddl)
+{
+	struct dect_msg_buf *mb, *mb_next;
+
+	ddl->state = DECT_DATA_LINK_ESTABLISHED;
+	ddl_debug(ddl, "complete direct link establishment");
+
+	/* Send queued messages */
+	list_for_each_entry_safe(mb, mb_next, &ddl->msg_queue, list) {
+		list_del(&mb->list);
+		dect_send(dh, ddl, mb);
+	}
+
+	dect_unregister_fd(dh, ddl->dfd);
+	dect_register_fd(dh, ddl->dfd, DECT_FD_READ);
+}
+
+static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
+						 struct dect_data_link *ddl,
+						 struct dect_data_link *req)
+{
+	struct dect_transaction *ta, *ta_next;
+	struct dect_msg_buf *mb, *mb_next;
+
+	/* Stop page timer */
+	dect_stop_timer(dh, req->page_timer);
+	dect_free(dh, req->page_timer);
+
+	ddl_debug(ddl, "complete indirect link establishment req %p", req);
+	ddl->ipui = req->ipui;
+
+	/* Transfer transactions to the new link */
+	list_for_each_entry_safe(ta, ta_next, &req->transactions, list) {
+		ddl_debug(ta->link, "transfer transaction to link %p", ddl);
+		list_move_tail(&ta->list, &ddl->transactions);
+		ta->link = ddl;
+	}
+
+	/* Send queued messages */
+	list_for_each_entry_safe(mb, mb_next, &req->msg_queue, list) {
+		list_del(&mb->list);
+		dect_send(dh, ddl, mb);
+	}
+
+	/* Release pending link */
+	dect_ddl_destroy(dh, req);
+}
+
+static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer);
+static void dect_lce_data_link_event(struct dect_handle *dh,
+				     struct dect_fd *dfd, uint32_t events);
+
+/**
+ * dect_ddl_establish - Establish an outgoing data link
+ */
+static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
+						 const struct dect_ipui *ipui)
+{
+	struct dect_data_link *ddl;
+
+	//lte = dect_lte_get_by_ipui(dh, lte);
+	ddl = dect_ddl_alloc(dh);
+	if (ddl == NULL)
+		goto err1;
+	ddl->state = DECT_DATA_LINK_ESTABLISH_PENDING;
+	ddl->ipui  = *ipui;
+
+	if (dh->mode == DECT_MODE_FP) {
+		ddl->page_timer = dect_alloc_timer(dh);
+		if (ddl->page_timer == NULL)
+			goto err2;
+		dect_setup_timer(ddl->page_timer, dect_ddl_page_timer, ddl);
+		dect_ddl_page_timer(dh, ddl->page_timer);
+	} else {
+		ddl->dfd = dect_socket(dh, SOCK_SEQPACKET, DECT_S_SAP);
+		if (ddl->dfd == NULL)
+			goto err2;
+
+		ddl->dlei.dect_family = AF_DECT;
+		ddl->dlei.dect_index  = dh->index;
+		ddl->dlei.dect_ari = dect_build_ari(&dh->pari) >> 24;
+		ddl->dlei.dect_pmid = 0xe98a1;
+		ddl->dlei.dect_lln = 1;
+		ddl->dlei.dect_sapi = 0;
+
+		dect_setup_fd(ddl->dfd, dect_lce_data_link_event, ddl);
+		if (dect_register_fd(dh, ddl->dfd, DECT_FD_WRITE) < 0)
+			goto err2;
+
+		if (connect(ddl->dfd->fd, (struct sockaddr *)&ddl->dlei,
+			    sizeof(ddl->dlei)) < 0 && errno != EAGAIN)
+			goto err3;
+	}
+
+	list_add_tail(&ddl->list, &dh->links);
+	return ddl;
+
+err3:
+	dect_unregister_fd(dh, ddl->dfd);
+err2:
+	dect_free(dh, ddl);
+err1:
+	lce_debug("dect_ddl_establish: %s\n", strerror(errno));
+	return NULL;
+}
+
+struct dect_data_link *dect_ddl_connect(struct dect_handle *dh,
+					const struct dect_ipui *ipui)
+{
+	struct dect_data_link *ddl;
+
+	ddl = dect_ddl_get_by_ipui(dh, ipui);
+	if (ddl == NULL)
+		ddl = dect_ddl_establish(dh, ipui);
+	return ddl;
+}
+
 static void dect_lce_data_link_event(struct dect_handle *dh,
 				     struct dect_fd *dfd, uint32_t events)
 {
@@ -942,6 +672,333 @@ static void dect_lce_data_link_event(struct dect_handle *dh,
 		dect_ddl_rcv_msg(dh, ddl);
 	}
 }
+
+static void dect_lce_ssap_listener_event(struct dect_handle *dh,
+					 struct dect_fd *dfd, uint32_t events)
+{
+	struct dect_data_link *ddl;
+	struct dect_fd *nfd;
+
+	dect_debug(DECT_DEBUG_LCE, "\n");
+	ddl = dect_ddl_alloc(dh);
+	if (ddl == NULL)
+		goto err1;
+
+	nfd = dect_accept(dh, dfd, (struct sockaddr *)&ddl->dlei,
+			  sizeof(ddl->dlei));
+	if (nfd == NULL)
+		goto err2;
+	ddl->dfd = nfd;
+
+	dect_setup_fd(nfd, dect_lce_data_link_event, ddl);
+	if (dect_register_fd(dh, nfd, DECT_FD_READ) < 0)
+		goto err3;
+
+	ddl->state = DECT_DATA_LINK_ESTABLISHED;
+	if (dect_ddl_schedule_sdu_timer(dh, ddl) < 0)
+		goto err4;
+
+	list_add_tail(&ddl->list, &dh->links);
+	ddl_debug(ddl, "new link: PMID: %x LCN: %u LLN: %u SAPI: %u",
+		  ddl->dlei.dect_pmid, ddl->dlei.dect_lcn,
+		  ddl->dlei.dect_lln, ddl->dlei.dect_sapi);
+	return;
+
+err4:
+	dect_unregister_fd(dh, nfd);
+err3:
+	dect_close(dh, nfd);
+err2:
+	dect_free(dh, ddl);
+err1:
+	lce_debug("dect_lce_ssap_listener_event: %s\n", strerror(errno));
+	return;
+}
+
+/*
+ * Paging
+ */
+
+static int dect_lce_broadcast(const struct dect_handle *dh,
+			      const uint8_t *msg, size_t len)
+{
+	ssize_t size;
+
+	dect_hexdump(DECT_DEBUG_LCE, "LCE: BCAST TX", msg, len);
+	size = send(dh->b_sap->fd, msg, len, 0);
+	assert(size == (ssize_t)len);
+	return 0;
+}
+
+/**
+ * Request collective or group ringing
+ *
+ * @param dh		libdect DECT handle
+ * @param pattern	ring pattern
+ */
+int dect_lce_group_ring_req(struct dect_handle *dh,
+			    enum dect_ring_patterns pattern)
+{
+	struct dect_short_page_msg msg;
+	uint16_t page;
+
+	msg.hdr  = DECT_LCE_PAGE_W_FLAG;
+	msg.hdr |= DECT_LCE_PAGE_GENERAL_VOICE;
+
+	page = pattern << DECT_LCE_SHORT_PAGE_RING_PATTERN_SHIFT;
+	page = 0;
+	page |= DECT_TPUI_CBI & DECT_LCE_SHORT_PAGE_TPUI_MASK;
+	msg.information = __cpu_to_be16(page);
+
+	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg));
+}
+EXPORT_SYMBOL(dect_lce_group_ring_req);
+
+static int dect_lce_page(const struct dect_handle *dh,
+			 const struct dect_ipui *ipui)
+{
+	struct dect_short_page_msg msg;
+	struct dect_tpui tpui;
+	uint16_t page;
+
+	dect_ipui_to_tpui(&tpui, ipui);
+
+	msg.hdr = DECT_LCE_PAGE_GENERAL_VOICE;
+	page = dect_build_tpui(&tpui) & DECT_LCE_SHORT_PAGE_TPUI_MASK;
+	msg.information = __cpu_to_be16(page);
+
+	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg));
+}
+
+static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer)
+{
+	struct dect_data_link *ddl = timer->data;
+
+	ddl_debug(ddl, "Page timer");
+	if (ddl->page_count++ == DECT_DDL_PAGE_RETRANS_MAX)
+		dect_ddl_shutdown(dh, ddl);
+	else {
+		dect_lce_page(dh, &ddl->ipui);
+		dect_start_timer(dh, ddl->page_timer, DECT_DDL_PAGE_TIMEOUT);
+	}
+}
+
+static int dect_lce_send_page_reject(const struct dect_handle *dh,
+				     const struct dect_transaction *ta,
+				     enum dect_reject_reasons reason)
+{
+	struct dect_ie_reject_reason reject_reason;
+	struct dect_lce_page_reject_msg msg = {
+		.portable_identity	= NULL,
+		.reject_reason		= &reject_reason,
+	};
+
+	dect_ie_init(&reject_reason);
+	reject_reason.reason = reason;
+
+	return dect_lce_send(dh, ta, &lce_page_reject_msg_desc,
+			     &msg.common, DECT_LCE_PAGE_REJECT);
+}
+
+static void dect_lce_rcv_page_response(struct dect_handle *dh,
+				       const struct dect_transaction *ta,
+				       struct dect_msg_buf *mb)
+{
+	struct dect_lce_page_response_msg msg;
+	struct dect_data_link *i, *req = NULL;
+	enum dect_sfmt_error err;
+	bool reject = true;
+
+	ddl_debug(ta->link, "LCE-PAGE-RESPONSE");
+	err = dect_parse_sfmt_msg(dh, &lce_page_response_msg_desc,
+				  &msg.common, mb);
+	if (err < 0) {
+		dect_lce_send_page_reject(dh, ta, dect_sfmt_reject_reason(err));
+		return dect_ddl_release(dh, ta->link);
+	}
+
+	list_for_each_entry(i, &dh->links, list) {
+		if (dect_ipui_cmp(&i->ipui, &msg.portable_identity->ipui))
+			continue;
+		if (i->state != DECT_DATA_LINK_ESTABLISH_PENDING)
+			continue;
+		req = i;
+		break;
+	}
+
+	ta->link->ipui = msg.portable_identity->ipui;
+
+	if (req == NULL && dh->ops->lce_ops &&
+	    dh->ops->lce_ops->lce_page_response) {
+		struct dect_lce_page_param *param;
+
+		param = dect_ie_collection_alloc(dh, sizeof(*param));
+		if (param == NULL)
+			goto err;
+
+		param->portable_identity	= dect_ie_hold(msg.portable_identity);
+		param->fixed_identity		= dect_ie_hold(msg.fixed_identity);
+		param->nwk_assigned_identity	= dect_ie_hold(msg.nwk_assigned_identity);
+		param->cipher_info		= dect_ie_hold(msg.cipher_info);
+		param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+		reject = !dh->ops->lce_ops->lce_page_response(dh, param);
+		dect_ie_collection_put(dh, param);
+	}
+err:
+	if (req != NULL)
+		dect_ddl_complete_indirect_establish(dh, ta->link, req);
+	else if (reject) {
+		dect_lce_send_page_reject(dh, ta, DECT_REJECT_IPUI_UNKNOWN);
+		dect_ddl_release(dh, ta->link);
+	}
+
+	dect_msg_free(dh, &lce_page_response_msg_desc, &msg.common);
+}
+
+static void dect_lce_rcv_page_reject(struct dect_handle *dh,
+				     struct dect_transaction *ta,
+				     struct dect_msg_buf *mb)
+{
+	struct dect_lce_page_reject_msg msg;
+
+	ddl_debug(ta->link, "LCE-PAGE-REJECT");
+	if (dect_parse_sfmt_msg(dh, &lce_page_reject_msg_desc,
+				&msg.common, mb) < 0)
+		return;
+	dect_msg_free(dh, &lce_page_reject_msg_desc, &msg.common);
+}
+
+static void dect_lce_send_page_response(struct dect_handle *dh)
+{
+	struct dect_ie_portable_identity portable_identity;
+	struct dect_ie_fixed_identity fixed_identity;
+	struct dect_lce_page_response_msg msg = {
+		.portable_identity	= &portable_identity,
+		.fixed_identity		= &fixed_identity,
+	};
+
+	portable_identity.type = DECT_PORTABLE_ID_TYPE_IPUI;
+	portable_identity.ipui = dh->ipui;
+
+	fixed_identity.type    = DECT_FIXED_ID_TYPE_PARK;
+	fixed_identity.ari     = dh->pari;
+
+	if (dect_open_transaction(dh, &dh->page_transaction, &dh->ipui,
+				  DECT_PD_LCE) < 0)
+		return;
+
+	dect_lce_send(dh, &dh->page_transaction, &lce_page_response_msg_desc,
+		      &msg.common, DECT_LCE_PAGE_RESPONSE);
+}
+
+static void dect_lce_rcv_short_page(struct dect_handle *dh,
+				    struct dect_msg_buf *mb)
+{
+	struct dect_short_page_msg *msg = (void *)mb->data;
+	struct dect_tpui tpui;
+	uint16_t info, t;
+	uint8_t hdr, pattern;
+	bool w;
+
+	w    = msg->hdr & DECT_LCE_PAGE_W_FLAG;
+	hdr  = msg->hdr & DECT_LCE_PAGE_HDR_MASK;
+	info = __be16_to_cpu(msg->information);
+	lce_debug("short page: w=%u hdr=%u information=%04x\n", w, hdr, info);
+
+	if (hdr == DECT_LCE_PAGE_UNKNOWN_RINGING) {
+		pattern = (info & DECT_LCE_SHORT_PAGE_RING_PATTERN_MASK) >>
+			  DECT_LCE_SHORT_PAGE_RING_PATTERN_SHIFT;
+
+		if (w == 0) {
+			/* assigned connectionless group TPUI or CBI */
+			if ((info ^ DECT_TPUI_CBI) &
+			    DECT_LCE_SHORT_PAGE_GROUP_MASK)
+				return;
+		} else {
+			/* group mask */
+			return;
+		}
+
+		lce_debug("LCE_GROUP_RING-ind: pattern: %x\n", pattern);
+		dh->ops->lce_ops->lce_group_ring_ind(dh, pattern);
+	} else {
+		if (w == 0) {
+			/* default individual TPUI */
+			dect_ipui_to_tpui(&tpui, &dh->ipui);
+			t = dect_build_tpui(&tpui);
+			if (info != t)
+				return;
+		} else {
+			/* assigned TPUI or CBI */
+			t = dect_build_tpui(&dh->tpui);
+			if (info != t && info != DECT_TPUI_CBI)
+				return;
+		}
+
+		dect_lce_send_page_response(dh);
+	}
+}
+
+static void dect_lce_bsap_event(struct dect_handle *dh, struct dect_fd *dfd,
+				uint32_t events)
+{
+	struct dect_msg_buf _mb, *mb = &_mb;
+	struct msghdr msg;
+
+	dect_debug(DECT_DEBUG_LCE, "\n");
+
+	msg.msg_control		= NULL;
+	msg.msg_controllen	= 0;
+
+	if (dect_mbuf_rcv(dfd, &msg, mb) < 0)
+		return;
+	dect_mbuf_dump(DECT_DEBUG_LCE, mb, "LCE: BCAST RX");
+
+	switch (mb->len) {
+	case 3:
+		return dect_lce_rcv_short_page(dh, mb);
+	default:
+		break;
+	}
+}
+
+static void dect_lce_rcv(struct dect_handle *dh, struct dect_transaction *ta,
+			 struct dect_msg_buf *mb)
+{
+	switch (mb->type) {
+	case DECT_LCE_PAGE_REJECT:
+		return dect_lce_rcv_page_reject(dh, ta, mb);
+	default:
+		ddl_debug(ta->link, "unknown message type %x", mb->type);
+		return;
+	}
+}
+
+static void dect_lce_open(struct dect_handle *dh,
+			  const struct dect_transaction *ta,
+			  struct dect_msg_buf *mb)
+{
+	switch (mb->type) {
+	case DECT_LCE_PAGE_RESPONSE:
+		return dect_lce_rcv_page_response(dh, ta, mb);
+	default:
+		ddl_debug(ta->link, "unknown message type %x", mb->type);
+		return;
+	}
+}
+
+static const struct dect_nwk_protocol lce_protocol = {
+	.name			= "Link Control",
+	.pd			= DECT_PD_LCE,
+	.max_transactions	= 1,
+	.open			= dect_lce_open,
+	.rcv			= dect_lce_rcv,
+};
+
+/*
+ * Transactions
+ */
 
 static int dect_transaction_alloc_tv(const struct dect_data_link *ddl,
 				     const struct dect_nwk_protocol *protocol)
@@ -975,17 +1032,6 @@ int dect_ddl_open_transaction(struct dect_handle *dh, struct dect_transaction *t
 
 	list_add_tail(&ta->list, &ddl->transactions);
 	return 0;
-}
-
-struct dect_data_link *dect_ddl_connect(struct dect_handle *dh,
-					const struct dect_ipui *ipui)
-{
-	struct dect_data_link *ddl;
-
-	ddl = dect_ddl_get_by_ipui(dh, ipui);
-	if (ddl == NULL)
-		ddl = dect_ddl_establish(dh, ipui);
-	return ddl;
 }
 
 int dect_open_transaction(struct dect_handle *dh, struct dect_transaction *ta,
@@ -1055,48 +1101,6 @@ void dect_transaction_get_ulei(struct sockaddr_dect_lu *addr,
 	addr->dect_ari    = ddl->dlei.dect_ari;
 	addr->dect_pmid   = ddl->dlei.dect_pmid;
 	addr->dect_lcn    = ddl->dlei.dect_lcn;
-}
-
-static void dect_lce_ssap_listener_event(struct dect_handle *dh,
-					 struct dect_fd *dfd, uint32_t events)
-{
-	struct dect_data_link *ddl;
-	struct dect_fd *nfd;
-
-	dect_debug(DECT_DEBUG_LCE, "\n");
-	ddl = dect_ddl_alloc(dh);
-	if (ddl == NULL)
-		goto err1;
-
-	nfd = dect_accept(dh, dfd, (struct sockaddr *)&ddl->dlei,
-			  sizeof(ddl->dlei));
-	if (nfd == NULL)
-		goto err2;
-	ddl->dfd = nfd;
-
-	dect_setup_fd(nfd, dect_lce_data_link_event, ddl);
-	if (dect_register_fd(dh, nfd, DECT_FD_READ) < 0)
-		goto err3;
-
-	ddl->state = DECT_DATA_LINK_ESTABLISHED;
-	if (dect_ddl_schedule_sdu_timer(dh, ddl) < 0)
-		goto err4;
-
-	list_add_tail(&ddl->list, &dh->links);
-	ddl_debug(ddl, "new link: PMID: %x LCN: %u LLN: %u SAPI: %u",
-		  ddl->dlei.dect_pmid, ddl->dlei.dect_lcn,
-		  ddl->dlei.dect_lln, ddl->dlei.dect_sapi);
-	return;
-
-err4:
-	dect_unregister_fd(dh, nfd);
-err3:
-	dect_close(dh, nfd);
-err2:
-	dect_free(dh, ddl);
-err1:
-	lce_debug("dect_lce_ssap_listener_event: %s\n", strerror(errno));
-	return;
 }
 
 int dect_lce_init(struct dect_handle *dh)
