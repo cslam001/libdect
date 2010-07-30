@@ -1,6 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+/*
+ * DECT PP location update example
+ *
+ * Copyright (c) 2010 Patrick McHardy <kaber@trash.net>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+*/
+
 #include <dect/libdect.h>
 #include "common.h"
 #include <lce.h>
