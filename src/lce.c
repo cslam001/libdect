@@ -1145,6 +1145,8 @@ int dect_lce_init(struct dect_handle *dh)
 	if (dect_register_fd(dh, dh->b_sap, DECT_FD_READ) < 0)
 		goto err2;
 
+	dh->page_transaction.state = DECT_TRANSACTION_CLOSED;
+
 	/* Open S-SAP listener socket */
 	dh->s_sap = dect_socket(dh, SOCK_SEQPACKET, DECT_S_SAP);
 	if (dh->s_sap == NULL)
@@ -1164,8 +1166,6 @@ int dect_lce_init(struct dect_handle *dh)
 	dect_setup_fd(dh->s_sap, dect_lce_ssap_listener_event, NULL);
 	if (dect_register_fd(dh, dh->s_sap, DECT_FD_READ) < 0)
 		goto err4;
-
-	dh->page_transaction.state = DECT_TRANSACTION_CLOSED;
 
 	dect_lce_register_protocol(&lce_protocol);
 	return 0;
