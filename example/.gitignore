@@ -5,7 +5,9 @@ mm-pp
 discover
 hijack
 pp-access-rights
+pp-access-rights-terminate
 pp-location-update
 pp-detach
+pp-info-request
 pp-list-access
 pp-wait-page
