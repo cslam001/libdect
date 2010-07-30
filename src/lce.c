@@ -670,6 +670,16 @@ static void dect_lce_data_link_event(struct dect_handle *dh,
 
 	if (events & DECT_FD_READ) {
 		dect_ddl_rcv_msg(dh, ddl);
+
+		/* Close the page transaction after receiving the first
+		 * message, which is expected to initiate a higher layer
+		 * protocol transaction or reject the page response.
+		 */
+		if (dh->page_transaction.state == DECT_TRANSACTION_OPEN) {
+			dect_debug(DECT_DEBUG_LCE, "\n");
+			dect_close_transaction(dh, &dh->page_transaction,
+					       DECT_RELEASE_NORMAL);
+		}
 	}
 }
 
@@ -988,12 +998,20 @@ static void dect_lce_open(struct dect_handle *dh,
 	}
 }
 
+static void dect_lce_shutdown(struct dect_handle *dh,
+			      struct dect_transaction *ta)
+{
+	lce_debug("shutdown page transaction");
+	dect_close_transaction(dh, ta, DECT_DDL_RELEASE_NORMAL);
+}
+
 static const struct dect_nwk_protocol lce_protocol = {
 	.name			= "Link Control",
 	.pd			= DECT_PD_LCE,
 	.max_transactions	= 1,
 	.open			= dect_lce_open,
 	.rcv			= dect_lce_rcv,
+	.shutdown		= dect_lce_shutdown,
 };
 
 /*
@@ -1146,6 +1164,8 @@ int dect_lce_init(struct dect_handle *dh)
 	dect_setup_fd(dh->s_sap, dect_lce_ssap_listener_event, NULL);
 	if (dect_register_fd(dh, dh->s_sap, DECT_FD_READ) < 0)
 		goto err4;
+
+	dh->page_transaction.state = DECT_TRANSACTION_CLOSED;
 
 	dect_lce_register_protocol(&lce_protocol);
 	return 0;
