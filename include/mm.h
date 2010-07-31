@@ -355,6 +355,7 @@ struct dect_mm_procedure {
 	uint8_t					priority;
 	uint8_t					retransmissions;
 	struct dect_transaction			transaction;
+	struct dect_ie_collection		*iec;
 	struct dect_timer			*timer;
 };
 

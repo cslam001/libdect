@@ -440,6 +440,9 @@ static void dect_mm_procedure_complete(struct dect_handle *dh,
 	if (dect_timer_running(mp->timer))
 		dect_stop_timer(dh, mp->timer);
 
+	if (mp->iec != NULL)
+		__dect_ie_collection_put(dh, mp->iec);
+
 	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
 
@@ -1999,9 +2002,10 @@ static void dect_mm_rcv_locate_accept(struct dect_handle *dh,
 	 */
 	if ((param->portable_identity &&
 	     param->portable_identity->type == DECT_PORTABLE_ID_TYPE_TPUI) ||
-	    param->nwk_assigned_identity)
+	    param->nwk_assigned_identity) {
+		mp->iec  = dect_ie_collection_hold(param);
 		mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;
-	else
+	} else
 		dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_LOCATE-cfm: accept: 1");
@@ -2385,9 +2389,13 @@ int dect_mm_identity_assign_res(struct dect_handle *dh,
 	if (mp->type != DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT)
 		return -1;
 
-	if (accept)
+	if (accept) {
+		struct dect_mm_locate_param *lp = (struct dect_mm_locate_param *)mp->iec;
+
+		assert(lp->portable_identity->type == DECT_PORTABLE_ID_TYPE_TPUI);
+		dect_pp_set_tpui(dh, &lp->portable_identity->tpui);
 		err = dect_mm_send_temporary_identity_assign_ack(dh, mp, param);
-	else
+	} else
 		err = dect_mm_send_temporary_identity_assign_rej(dh, mp, param);
 
 	if (err < 0)
