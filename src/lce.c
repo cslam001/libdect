@@ -1166,14 +1166,14 @@ static void dect_pp_set_default_pmid(struct dect_handle *dh)
 	assert(!(dh->flags & DECT_PP_TPUI));
 	dh->pmid = DECT_PMID_DEFAULT_ID +
 		   (rand() & DECT_PMID_DEFAULT_NUM_MASK);
-	lce_debug("set default pmid %05x", dh->pmid);
+	lce_debug("set default pmid %05x\n", dh->pmid);
 }
 
 void dect_pp_change_pmid(struct dect_handle *dh)
 {
 	dh->pmid = DECT_PMID_DEFAULT_ID +
 		   ((dh->pmid + 1) & DECT_PMID_DEFAULT_NUM_MASK);
-	lce_debug("change pmid %05x", dh->pmid);
+	lce_debug("change pmid %05x\n", dh->pmid);
 }
 
 static void dect_pp_set_assigned_pmid(struct dect_handle *dh)
@@ -1183,7 +1183,7 @@ static void dect_pp_set_assigned_pmid(struct dect_handle *dh)
 	assert(dh->flags & DECT_PP_TPUI &&
 	       dh->tpui.type == DECT_TPUI_INDIVIDUAL_ASSIGNED);
 	dh->pmid = dect_build_pmid(dect_tpui_to_pmid(&pmid, &dh->tpui));
-	lce_debug("set assigned pmid %05x", dh->pmid);
+	lce_debug("set assigned pmid %05x\n", dh->pmid);
 }
 
 /**
