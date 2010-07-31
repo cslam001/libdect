@@ -135,6 +135,13 @@ static void init_terminal_capability(struct dect_ie_terminal_capability *termina
 						  DECT_PROFILE_NG_DECT_PART_3;
 }
 
+static void mm_access_rights_cfm(struct dect_handle *dh,
+				 struct dect_mm_endpoint *mme, bool accept,
+				 struct dect_mm_access_rights_param *param)
+{
+	dect_event_loop_stop();
+}
+
 static int mm_access_rights_req(struct dect_handle *dh, struct dect_mm_endpoint *mme)
 {
 	struct dect_ie_portable_identity portable_identity;
@@ -165,6 +172,7 @@ static struct dect_mm_ops mm_ops = {
 	.mm_key_allocate_ind	= mm_key_allocate_ind,
 	.mm_authenticate_cfm	= mm_authenticate_cfm,
 	.mm_authenticate_ind	= mm_authenticate_ind,
+	.mm_access_rights_cfm	= mm_access_rights_cfm,
 };
 
 static struct dect_ops ops = {
