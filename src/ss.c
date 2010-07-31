@@ -318,7 +318,7 @@ out:
 }
 
 static void dect_ciss_open(struct dect_handle *dh,
-			   const struct dect_transaction *req,
+			   struct dect_transaction *req,
 			   struct dect_msg_buf *mb)
 {
 	dect_debug(DECT_DEBUG_SS, "SS: unknown transaction: msg type: %x\n", mb->type);

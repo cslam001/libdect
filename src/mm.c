@@ -550,7 +550,7 @@ static struct dect_mm_endpoint *dect_mm_endpoint(struct dect_transaction *ta)
 }
 
 static int dect_mm_send_msg(const struct dect_handle *dh,
-			    const struct dect_mm_procedure *mp,
+			    struct dect_mm_procedure *mp,
 			    const struct dect_sfmt_msg_desc *desc,
 			    const struct dect_msg_common *msg,
 			    enum dect_mm_msg_types type)
@@ -809,7 +809,7 @@ err1:
 EXPORT_SYMBOL(dect_mm_authenticate_req);
 
 static int dect_mm_send_authenticate_reply(const struct dect_handle *dh,
-					   const struct dect_mm_procedure *mp,
+					   struct dect_mm_procedure *mp,
 					   const struct dect_mm_authenticate_param *param)
 {
 	struct dect_mm_authentication_reply_msg msg = {
@@ -827,7 +827,7 @@ static int dect_mm_send_authenticate_reply(const struct dect_handle *dh,
 }
 
 static int dect_mm_send_authenticate_reject(const struct dect_handle *dh,
-					    const struct dect_mm_procedure *mp,
+					    struct dect_mm_procedure *mp,
 					    const struct dect_mm_authenticate_param *param)
 {
 	struct dect_mm_authentication_reject_msg msg = {
@@ -1081,7 +1081,7 @@ err1:
 EXPORT_SYMBOL(dect_mm_cipher_req);
 
 static int dect_mm_send_cipher_reject(const struct dect_handle *dh,
-				      const struct dect_mm_procedure *mp,
+				      struct dect_mm_procedure *mp,
 				      const struct dect_mm_cipher_param *param)
 {
 	struct dect_mm_cipher_reject_msg msg = {
@@ -1329,7 +1329,7 @@ err1:
 EXPORT_SYMBOL(dect_mm_access_rights_req);
 
 static int dect_mm_send_access_rights_accept(const struct dect_handle *dh,
-					     const struct dect_mm_procedure *mp,
+					     struct dect_mm_procedure *mp,
 					     const struct dect_mm_access_rights_param *param)
 {
 	struct dect_ie_fixed_identity fixed_identity;
@@ -1358,7 +1358,7 @@ static int dect_mm_send_access_rights_accept(const struct dect_handle *dh,
 }
 
 static int dect_mm_send_access_rights_reject(const struct dect_handle *dh,
-					     const struct dect_mm_procedure *mp,
+					     struct dect_mm_procedure *mp,
 					     const struct dect_mm_access_rights_param *param)
 {
 	struct dect_mm_access_rights_reject_msg msg = {
@@ -1590,7 +1590,7 @@ err1:
 EXPORT_SYMBOL(dect_mm_access_rights_terminate_req);
 
 static int dect_mm_send_access_rights_terminate_accept(const struct dect_handle *dh,
-						       const struct dect_mm_procedure *mp,
+						       struct dect_mm_procedure *mp,
 						       const struct dect_mm_access_rights_terminate_param *param)
 {
 	struct dect_mm_access_rights_terminate_accept_msg msg = {
@@ -1602,7 +1602,7 @@ static int dect_mm_send_access_rights_terminate_accept(const struct dect_handle 
 }
 
 static int dect_mm_send_access_rights_terminate_reject(const struct dect_handle *dh,
-						       const struct dect_mm_procedure *mp,
+						       struct dect_mm_procedure *mp,
 						       const struct dect_mm_access_rights_terminate_param *param)
 {
 	struct dect_mm_access_rights_terminate_reject_msg msg = {
@@ -1821,7 +1821,7 @@ err1:
 EXPORT_SYMBOL(dect_mm_locate_req);
 
 static int dect_mm_send_locate_accept(const struct dect_handle *dh,
-				      const struct dect_mm_procedure *mp,
+				      struct dect_mm_procedure *mp,
 				      const struct dect_mm_locate_param *param)
 {
 	struct dect_mm_locate_accept_msg msg = {
@@ -1840,7 +1840,7 @@ static int dect_mm_send_locate_accept(const struct dect_handle *dh,
 }
 
 static int dect_mm_send_locate_reject(const struct dect_handle *dh,
-				      const struct dect_mm_procedure *mp,
+				      struct dect_mm_procedure *mp,
 				      const struct dect_mm_locate_param *param)
 {
 	struct dect_mm_locate_reject_msg msg = {
@@ -2334,7 +2334,7 @@ err1:
 EXPORT_SYMBOL(dect_mm_identity_req);
 
 static int dect_mm_send_temporary_identity_assign_ack(const struct dect_handle *dh,
-						      const struct dect_mm_procedure *mp,
+						      struct dect_mm_procedure *mp,
 						      const struct dect_mm_identity_assign_param *param)
 {
 	struct dect_mm_temporary_identity_assign_ack_msg msg = {
@@ -2347,7 +2347,7 @@ static int dect_mm_send_temporary_identity_assign_ack(const struct dect_handle *
 }
 
 static int dect_mm_send_temporary_identity_assign_rej(const struct dect_handle *dh,
-						      const struct dect_mm_procedure *mp,
+						      struct dect_mm_procedure *mp,
 						      const struct dect_mm_identity_assign_param *param)
 {
 	struct dect_mm_temporary_identity_assign_rej_msg msg = {
@@ -2594,7 +2594,7 @@ err1:
 EXPORT_SYMBOL(dect_mm_info_req);
 
 static int dect_mm_send_info_accept(const struct dect_handle *dh,
-				    const struct dect_mm_procedure *mp,
+				    struct dect_mm_procedure *mp,
 				    const struct dect_mm_info_param *param)
 {
 	struct dect_mm_info_accept_msg msg = {
@@ -2613,7 +2613,7 @@ static int dect_mm_send_info_accept(const struct dect_handle *dh,
 }
 
 static int dect_mm_send_info_reject(const struct dect_handle *dh,
-				    const struct dect_mm_procedure *mp,
+				    struct dect_mm_procedure *mp,
 				    const struct dect_mm_info_param *param)
 {
 	struct dect_mm_info_reject_msg msg = {
@@ -3077,7 +3077,7 @@ static void dect_mm_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 }
 
 static void dect_mm_open(struct dect_handle *dh,
-			 const struct dect_transaction *req,
+			 struct dect_transaction *req,
 			 struct dect_msg_buf *mb)
 {
 	struct dect_mm_endpoint *mme;

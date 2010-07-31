@@ -1556,7 +1556,7 @@ out:
 }
 
 static void dect_cc_open(struct dect_handle *dh,
-			 const struct dect_transaction *req,
+			 struct dect_transaction *req,
 			 struct dect_msg_buf *mb)
 {
 	dect_debug(DECT_DEBUG_CC, "CC: unknown transaction: msg type: %x\n", mb->type);

@@ -418,7 +418,7 @@ static int dect_send(const struct dect_handle *dh,
  *
  */
 int dect_lce_send(const struct dect_handle *dh,
-		  const struct dect_transaction *ta,
+		  struct dect_transaction *ta,
 		  const struct dect_sfmt_msg_desc *desc,
 		  const struct dect_msg_common *msg, uint8_t type)
 {
@@ -445,6 +445,11 @@ int dect_lce_send(const struct dect_handle *dh,
 	if (ta->role == DECT_TRANSACTION_RESPONDER)
 		mb->data[0] |= DECT_S_TI_F_FLAG;
 
+	if (ta->mb != NULL)
+		dect_mbuf_free(dh, ta->mb);
+	ta->mb = mb;
+	mb->refcnt++;
+
 	switch (ddl->state) {
 	case DECT_DATA_LINK_ESTABLISHED:
 		return dect_send(dh, ddl, mb);
@@ -454,6 +459,19 @@ int dect_lce_send(const struct dect_handle *dh,
 	default:
 		BUG();
 	}
+}
+
+int dect_lce_retransmit(const struct dect_handle *dh,
+			struct dect_transaction *ta)
+{
+	struct dect_data_link *ddl = ta->link;
+
+	if (ta->mb != NULL &&
+	    ddl->state == DECT_DATA_LINK_ESTABLISHED) {
+		ta->mb->refcnt++;
+		return dect_send(dh, ddl, ta->mb);
+	} else
+		return 0;
 }
 
 static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
@@ -807,7 +825,7 @@ static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer
 }
 
 static int dect_lce_send_page_reject(const struct dect_handle *dh,
-				     const struct dect_transaction *ta,
+				     struct dect_transaction *ta,
 				     enum dect_reject_reasons reason)
 {
 	struct dect_ie_reject_reason reject_reason;
@@ -824,7 +842,7 @@ static int dect_lce_send_page_reject(const struct dect_handle *dh,
 }
 
 static void dect_lce_rcv_page_response(struct dect_handle *dh,
-				       const struct dect_transaction *ta,
+				       struct dect_transaction *ta,
 				       struct dect_msg_buf *mb)
 {
 	struct dect_lce_page_response_msg msg;
@@ -998,7 +1016,7 @@ static void dect_lce_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 }
 
 static void dect_lce_open(struct dect_handle *dh,
-			  const struct dect_transaction *ta,
+			  struct dect_transaction *ta,
 			  struct dect_msg_buf *mb)
 {
 	switch (mb->type) {
@@ -1101,6 +1119,8 @@ void dect_close_transaction(struct dect_handle *dh, struct dect_transaction *ta,
 
 	list_del(&ta->list);
 	ta->state = DECT_TRANSACTION_CLOSED;
+	if (ta->mb != NULL)
+	dect_mbuf_free(dh, ta->mb);
 
 	switch (ddl->state) {
 	case DECT_DATA_LINK_RELEASED:

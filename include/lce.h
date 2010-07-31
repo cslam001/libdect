@@ -51,6 +51,7 @@ enum dect_release_modes {
  *
  * @list:	Datalink transaction list node
  * @link:	Associated data link
+ * @mb:		Message buffer for retransmissions
  * @pd:		Protocol discriminator
  * @role:	Role (initiator/responder)
  * @tv:		Transaction value
@@ -59,6 +60,7 @@ enum dect_s_pd_values;
 struct dect_transaction {
 	struct list_head		list;
 	struct dect_data_link		*link;
+	struct dect_msg_buf		*mb;
 	enum dect_pds			pd;
 	enum dect_transaction_role	role:8;
 	enum dect_transaction_state	state:8;
@@ -85,9 +87,11 @@ extern void dect_transaction_get_ulei(struct sockaddr_dect_lu *addr,
 				      const struct dect_transaction *ta);
 
 extern int dect_lce_send(const struct dect_handle *dh,
-			 const struct dect_transaction *ta,
+			 struct dect_transaction *ta,
 			 const struct dect_sfmt_msg_desc *desc,
 			 const struct dect_msg_common *msg, uint8_t type);
+extern int dect_lce_retransmit(const struct dect_handle *dh,
+			       struct dect_transaction *ta);
 
 /**
  * struct dect_nwk_protocol - NWK layer protocol
@@ -104,7 +108,7 @@ struct dect_nwk_protocol {
 	enum dect_pds		pd;
 	uint16_t		max_transactions;
 	void			(*open)(struct dect_handle *dh,
-				        const struct dect_transaction *req,
+				        struct dect_transaction *req,
 				        struct dect_msg_buf *mb);
 	void			(*shutdown)(struct dect_handle *dh,
 					    struct dect_transaction *req);
