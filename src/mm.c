@@ -455,14 +455,20 @@ static void dect_mm_procedure_timeout(struct dect_handle *dh,
 				      struct dect_timer *timer)
 {
 	struct dect_mm_procedure *mp = timer->data;
+	const struct dect_mm_proc *proc = &dect_mm_proc[mp->type];
 	struct dect_mm_endpoint *mme;
 	enum dect_mm_procedures type = mp->type;
 
 	mme = container_of(mp, struct dect_mm_endpoint, procedure[mp->role]);
-	mm_debug(mme, "procedure timeout");
-
-	dect_mm_procedure_complete(dh, mme, mp);
-	dect_mm_proc[type].abort(dh, mme, mp);
+	if (mp->retransmissions++ == 0) {
+		mm_debug(mme, "timeout, retransmitting");
+		dect_lce_retransmit(dh, &mp->transaction);
+		dect_start_timer(dh, mp->timer, proc->param[dh->mode].timeout);
+	} else {
+		mm_debug(mme, "procedure timeout");
+		dect_mm_procedure_complete(dh, mme, mp);
+		dect_mm_proc[type].abort(dh, mme, mp);
+	}
 }
 
 static int dect_mm_procedure_init(struct dect_handle *dh,
