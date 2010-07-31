@@ -1120,7 +1120,7 @@ void dect_close_transaction(struct dect_handle *dh, struct dect_transaction *ta,
 	list_del(&ta->list);
 	ta->state = DECT_TRANSACTION_CLOSED;
 	if (ta->mb != NULL)
-	dect_mbuf_free(dh, ta->mb);
+		dect_mbuf_free(dh, ta->mb);
 
 	switch (ddl->state) {
 	case DECT_DATA_LINK_RELEASED:
