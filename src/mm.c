@@ -460,6 +460,7 @@ static void dect_mm_procedure_timeout(struct dect_handle *dh,
 	enum dect_mm_procedures type = mp->type;
 
 	mme = container_of(mp, struct dect_mm_endpoint, procedure[mp->role]);
+	dect_debug(DECT_DEBUG_MM, "\n");
 	if (mp->retransmissions++ == 0) {
 		mm_debug(mme, "timeout, retransmitting");
 		dect_lce_retransmit(dh, &mp->transaction);
