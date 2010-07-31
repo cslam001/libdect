@@ -34,6 +34,8 @@ struct dect_handle *dect_alloc_handle(struct dect_ops *ops)
 	dh = ops->malloc(sizeof(*dh));
 	if (dh == NULL)
 		return NULL;
+	memset(dh, 0, sizeof(*dh));
+
 	dh->ops = ops;
 	init_list_head(&dh->links);
 	init_list_head(&dh->mme_list);
