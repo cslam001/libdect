@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 	mm_locate_req(dh, mme);
 	dect_event_loop();
 
-	dect_common_cleanup(dh);
 	dect_mm_endpoint_destroy(dh, mme);
+	dect_common_cleanup(dh);
 	return 0;
 }
