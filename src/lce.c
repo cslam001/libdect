@@ -73,11 +73,21 @@ struct dect_msg_buf *dect_mbuf_alloc(const struct dect_handle *dh)
 	if (mb == NULL)
 		return NULL;
 	memset(mb->head, 0, sizeof(mb->head));
-	mb->data = mb->head;
-	mb->len  = 0;
-	mb->type = 0;
+	mb->data   = mb->head;
+	mb->len    = 0;
+	mb->type   = 0;
+	mb->refcnt = 1;
 	return mb;
 }
+EXPORT_SYMBOL(dect_mbuf_alloc);
+
+void dect_mbuf_free(const struct dect_handle *dh, struct dect_msg_buf *mb)
+{
+	if (--mb->refcnt > 0)
+		return;
+	dect_free(dh, mb);
+}
+EXPORT_SYMBOL(dect_mbuf_free);
 
 static ssize_t dect_mbuf_rcv(const struct dect_fd *dfd, struct msghdr *msg,
 			     struct dect_msg_buf *mb)
@@ -213,7 +223,7 @@ static void dect_ddl_destroy(struct dect_handle *dh, struct dect_data_link *ddl)
 
 	list_del(&ddl->list);
 	list_for_each_entry_safe(mb, next, &ddl->msg_queue, list)
-		dect_free(dh, mb);
+		dect_mbuf_free(dh, mb);
 
 	if (ddl->dfd != NULL) {
 		dect_unregister_fd(dh, ddl->dfd);
@@ -399,7 +409,7 @@ static int dect_send(const struct dect_handle *dh,
 	len = send(ddl->dfd->fd, mb->data, mb->len, 0);
 	if (len < 0)
 		ddl_debug(ddl, "send %u bytes: %s", mb->len, strerror(errno));
-	dect_free(dh, mb);
+	dect_mbuf_free(dh, mb);
 	return len;
 }
 

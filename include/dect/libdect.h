@@ -31,6 +31,7 @@ struct dect_handle;
  * struct dect_msg_buf - DECT message buffer
  *
  * @arg list	Data link TX queue node
+ * @arg refcnt	Reference count
  * @arg type	Message type
  * @arg len	Data length
  * @arg data	Data pointer
@@ -38,6 +39,7 @@ struct dect_handle;
  */
 struct dect_msg_buf {
 	struct list_head	list;
+	uint8_t			refcnt;
 	uint8_t			type;
 	uint8_t			len;
 	uint8_t			*data;
@@ -45,6 +47,7 @@ struct dect_msg_buf {
 };
 
 extern struct dect_msg_buf *dect_mbuf_alloc(const struct dect_handle *dh);
+extern void dect_mbuf_free(const struct dect_handle *dh, struct dect_msg_buf *mb);
 
 static inline void dect_mbuf_pull(struct dect_msg_buf *mb, unsigned int len)
 {
