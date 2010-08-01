@@ -1161,6 +1161,7 @@ void dect_transaction_get_ulei(struct sockaddr_dect_lu *addr,
 /*
  * Identities
  */
+
 static void dect_pp_set_default_pmid(struct dect_handle *dh)
 {
 	assert(!(dh->flags & DECT_PP_TPUI));
@@ -1239,24 +1240,27 @@ int dect_lce_init(struct dect_handle *dh)
 	dh->page_transaction.state = DECT_TRANSACTION_CLOSED;
 
 	/* Open S-SAP listener socket */
-	dh->s_sap = dect_socket(dh, SOCK_SEQPACKET, DECT_S_SAP);
-	if (dh->s_sap == NULL)
-		goto err3;
+	if (dh->mode == DECT_MODE_FP) {
+		dh->s_sap = dect_socket(dh, SOCK_SEQPACKET, DECT_S_SAP);
+		if (dh->s_sap == NULL)
+			goto err3;
 
-	memset(&s_addr, 0, sizeof(s_addr));
-	s_addr.dect_family = AF_DECT;
-	s_addr.dect_index  = dh->index;
-	s_addr.dect_lln    = 1;
-	s_addr.dect_sapi   = 0;
+		memset(&s_addr, 0, sizeof(s_addr));
+		s_addr.dect_family = AF_DECT;
+		s_addr.dect_index  = dh->index;
+		s_addr.dect_lln    = 1;
+		s_addr.dect_sapi   = 0;
 
-	if (bind(dh->s_sap->fd, (struct sockaddr *)&s_addr, sizeof(s_addr)) < 0)
-		goto err4;
-	if (listen(dh->s_sap->fd, 10) < 0)
-		goto err4;
+		if (bind(dh->s_sap->fd, (struct sockaddr *)&s_addr,
+			 sizeof(s_addr)) < 0)
+			goto err4;
+		if (listen(dh->s_sap->fd, 10) < 0)
+			goto err4;
 
-	dect_setup_fd(dh->s_sap, dect_lce_ssap_listener_event, NULL);
-	if (dect_register_fd(dh, dh->s_sap, DECT_FD_READ) < 0)
-		goto err4;
+		dect_setup_fd(dh->s_sap, dect_lce_ssap_listener_event, NULL);
+		if (dect_register_fd(dh, dh->s_sap, DECT_FD_READ) < 0)
+			goto err4;
+	}
 
 	dect_lce_register_protocol(&lce_protocol);
 	return 0;
