@@ -1466,6 +1466,7 @@ static void dect_mm_access_rights_abort(struct dect_handle *dh,
 					struct dect_mm_procedure *mp)
 {
 	mm_debug(mme, "MM_ACCESS_RIGHTS-cfm: accept: 0");
+	dect_pp_change_pmid(dh);
 	dh->ops->mm_ops->mm_access_rights_cfm(dh, mme, false, NULL);
 }
 
@@ -1535,6 +1536,7 @@ static void dect_mm_rcv_access_rights_reject(struct dect_handle *dh,
 	dect_mm_procedure_complete(dh, mme, mp);
 
 	mm_debug(mme, "MM_ACCESS_RIGHTS-cfm: accept: 0");
+	dect_pp_change_pmid(dh);
 	dh->ops->mm_ops->mm_access_rights_cfm(dh, mme, false, param);
 	dect_ie_collection_put(dh, param);
 err1:
