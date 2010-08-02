@@ -8,6 +8,8 @@
  * published by the Free Software Foundation.
  */
 
+#include <stdio.h>
+
 #include <dect/libdect.h>
 #include <dect/auth.h>
 #include <dect/lia.h>
@@ -75,12 +77,20 @@ static struct dect_ops ops = {
 
 int main(int argc, char **argv)
 {
+	const struct dect_fp_capabilities *fpc;
+
 	dect_pp_auth_init(&ops, &ipui);
 	dect_common_init(&ops, argv[1]);
 
+	fpc = dect_llme_fp_capabilities(dh);
+	if (!(fpc->ehlc2 & DECT_EHLC2_LIST_ACCESS_FEATURES)) {
+		fprintf(stderr, "FP does not support List Access (LiA)\n");
+		goto out;
+	}
+
 	dect_open_call(dh, &ipui);
 	dect_event_loop();
-
+out:
 	dect_common_cleanup(dh);
 	return 0;
 }

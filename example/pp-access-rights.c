@@ -19,7 +19,7 @@
 #include <dect/auth.h>
 #include "common.h"
 
-#define debug(fmt, args...)	printf("IWU: PP-MM: " fmt, ## args)
+#define debug(fmt, args...)	printf("P-IWU: " fmt, ## args)
 
 static const char *pin = "0000";
 static int rand_fd;
@@ -177,6 +177,17 @@ static int mm_access_rights_req(struct dect_handle *dh, struct dect_mm_endpoint 
 	return dect_mm_access_rights_req(dh, mme, &param);
 }
 
+static void llme_mac_me_info_ind(struct dect_handle *dh,
+				 const struct dect_fp_capabilities *fpc)
+{
+	if (fpc->hlc & DECT_HLC_ACCESS_RIGHT_REQUESTS)
+		dect_event_loop_stop();
+}
+
+static struct dect_llme_ops_ llme_ops = {
+	.mac_me_info_ind	= llme_mac_me_info_ind,
+};
+
 static struct dect_mm_ops mm_ops = {
 	.priv_size		= sizeof(struct mm_priv),
 	.mm_key_allocate_ind	= mm_key_allocate_ind,
@@ -186,7 +197,8 @@ static struct dect_mm_ops mm_ops = {
 };
 
 static struct dect_ops ops = {
-	.mm_ops		 = &mm_ops,
+	.llme_ops		= &llme_ops,
+	.mm_ops			= &mm_ops,
 };
 
 int main(int argc, char **argv)
@@ -198,6 +210,9 @@ int main(int argc, char **argv)
 		pexit("open /dev/urandom");
 
 	dect_common_init(&ops, argv[1]);
+
+	debug("waiting for ACCESS_RIGHTS_REQUESTS capability ...\n");
+	dect_event_loop();
 
 	mme = dect_mm_endpoint_alloc(dh, &ipui);
 	if (mme == NULL)

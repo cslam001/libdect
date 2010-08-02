@@ -8,6 +8,8 @@
  * published by the Free Software Foundation.
  */
 
+#include <stdio.h>
+
 #include <dect/libdect.h>
 #include <dect/auth.h>
 #include "common.h"
@@ -76,10 +78,17 @@ static struct dect_ops ops = {
 
 int main(int argc, char **argv)
 {
-        struct dect_mm_endpoint *mme;
+	const struct dect_fp_capabilities *fpc;
+	struct dect_mm_endpoint *mme;
 
 	dect_pp_auth_init(&ops, &ipui);
 	dect_common_init(&ops, argv[1]);
+
+	fpc = dect_llme_fp_capabilities(dh);
+	if (!(fpc->hlc & DECT_HLC_LOCATION_REGISTRATION)) {
+		fprintf(stderr, "FP does not support location registration\n");
+		goto out;
+	}
 
 	mme = dect_mm_endpoint_alloc(dh, &ipui);
 	if (mme == NULL)
@@ -87,7 +96,7 @@ int main(int argc, char **argv)
 
 	mm_locate_req(dh, mme);
 	dect_event_loop();
-
+out:
 	dect_common_cleanup(dh);
 	return 0;
 }
