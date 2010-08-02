@@ -227,7 +227,7 @@ static void dect_ddl_destroy(struct dect_handle *dh, struct dect_data_link *ddl)
 		dect_mbuf_free(dh, mb);
 
 	if (ddl->dfd != NULL) {
-		dect_unregister_fd(dh, ddl->dfd);
+		dect_fd_unregister(dh, ddl->dfd);
 		dect_close(dh, ddl->dfd);
 	}
 
@@ -581,8 +581,8 @@ static void dect_ddl_complete_direct_establish(struct dect_handle *dh,
 		dect_send(dh, ddl, mb);
 	}
 
-	dect_unregister_fd(dh, ddl->dfd);
-	dect_register_fd(dh, ddl->dfd, DECT_FD_READ);
+	dect_fd_unregister(dh, ddl->dfd);
+	dect_fd_register(dh, ddl->dfd, DECT_FD_READ);
 }
 
 static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
@@ -653,8 +653,8 @@ static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
 		ddl->dlei.dect_lln = 1;
 		ddl->dlei.dect_sapi = 0;
 
-		dect_setup_fd(ddl->dfd, dect_lce_data_link_event, ddl);
-		if (dect_register_fd(dh, ddl->dfd, DECT_FD_WRITE) < 0)
+		dect_fd_setup(ddl->dfd, dect_lce_data_link_event, ddl);
+		if (dect_fd_register(dh, ddl->dfd, DECT_FD_WRITE) < 0)
 			goto err2;
 
 		if (connect(ddl->dfd->fd, (struct sockaddr *)&ddl->dlei,
@@ -666,7 +666,7 @@ static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
 	return ddl;
 
 err3:
-	dect_unregister_fd(dh, ddl->dfd);
+	dect_fd_unregister(dh, ddl->dfd);
 err2:
 	dect_free(dh, ddl);
 err1:
@@ -733,8 +733,8 @@ static void dect_lce_ssap_listener_event(struct dect_handle *dh,
 		goto err2;
 	ddl->dfd = nfd;
 
-	dect_setup_fd(nfd, dect_lce_data_link_event, ddl);
-	if (dect_register_fd(dh, nfd, DECT_FD_READ) < 0)
+	dect_fd_setup(nfd, dect_lce_data_link_event, ddl);
+	if (dect_fd_register(dh, nfd, DECT_FD_READ) < 0)
 		goto err3;
 
 	ddl->state = DECT_DATA_LINK_ESTABLISHED;
@@ -748,7 +748,7 @@ static void dect_lce_ssap_listener_event(struct dect_handle *dh,
 	return;
 
 err4:
-	dect_unregister_fd(dh, nfd);
+	dect_fd_unregister(dh, nfd);
 err3:
 	dect_close(dh, nfd);
 err2:
@@ -1233,8 +1233,8 @@ int dect_lce_init(struct dect_handle *dh)
 	if (bind(dh->b_sap->fd, (struct sockaddr *)&b_addr, sizeof(b_addr)) < 0)
 		goto err2;
 
-	dect_setup_fd(dh->b_sap, dect_lce_bsap_event, NULL);
-	if (dect_register_fd(dh, dh->b_sap, DECT_FD_READ) < 0)
+	dect_fd_setup(dh->b_sap, dect_lce_bsap_event, NULL);
+	if (dect_fd_register(dh, dh->b_sap, DECT_FD_READ) < 0)
 		goto err2;
 
 	dh->page_transaction.state = DECT_TRANSACTION_CLOSED;
@@ -1257,8 +1257,8 @@ int dect_lce_init(struct dect_handle *dh)
 		if (listen(dh->s_sap->fd, 10) < 0)
 			goto err4;
 
-		dect_setup_fd(dh->s_sap, dect_lce_ssap_listener_event, NULL);
-		if (dect_register_fd(dh, dh->s_sap, DECT_FD_READ) < 0)
+		dect_fd_setup(dh->s_sap, dect_lce_ssap_listener_event, NULL);
+		if (dect_fd_register(dh, dh->s_sap, DECT_FD_READ) < 0)
 			goto err4;
 	}
 
@@ -1268,7 +1268,7 @@ int dect_lce_init(struct dect_handle *dh)
 err4:
 	dect_close(dh, dh->s_sap);
 err3:
-	dect_unregister_fd(dh, dh->b_sap);
+	dect_fd_unregister(dh, dh->b_sap);
 err2:
 	dect_close(dh, dh->b_sap);
 err1:
@@ -1284,11 +1284,11 @@ void dect_lce_exit(struct dect_handle *dh)
 		dect_ddl_shutdown(dh, ddl);
 
 	if (dh->mode == DECT_MODE_FP) {
-		dect_unregister_fd(dh, dh->s_sap);
+		dect_fd_unregister(dh, dh->s_sap);
 		dect_close(dh, dh->s_sap);
 	}
 
-	dect_unregister_fd(dh, dh->b_sap);
+	dect_fd_unregister(dh, dh->b_sap);
 	dect_close(dh, dh->b_sap);
 }
 

@@ -430,8 +430,8 @@ static int dect_call_connect_uplane(const struct dect_handle *dh,
 	if (connect(call->lu_sap->fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
 		goto err2;
 
-	dect_setup_fd(call->lu_sap, dect_cc_lu_event, call);
-	if (dect_register_fd(dh, call->lu_sap, DECT_FD_READ) < 0)
+	dect_fd_setup(call->lu_sap, dect_cc_lu_event, call);
+	if (dect_fd_register(dh, call->lu_sap, DECT_FD_READ) < 0)
 		goto err2;
 	cc_debug(call, "U-Plane connected");
 	return 0;
@@ -450,7 +450,7 @@ static void dect_call_disconnect_uplane(const struct dect_handle *dh,
 	if (call->lu_sap == NULL)
 		return;
 
-	dect_unregister_fd(dh, call->lu_sap);
+	dect_fd_unregister(dh, call->lu_sap);
 	dect_close(dh, call->lu_sap);
 	call->lu_sap = NULL;
 	cc_debug(call, "U-Plane disconnected");

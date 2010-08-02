@@ -33,8 +33,8 @@ struct dect_fd {
 	uint8_t			priv[] __aligned(__alignof__(uint64_t));
 };
 
-extern struct dect_fd *dect_alloc_fd(const struct dect_handle *dh);
-extern void dect_setup_fd(struct dect_fd *fd,
+extern struct dect_fd *dect_fd_alloc(const struct dect_handle *dh);
+extern void dect_fd_setup(struct dect_fd *fd,
 			  void (*cb)(struct dect_handle *, struct dect_fd *,
 				     uint32_t),
 			  void *data);
@@ -46,8 +46,8 @@ extern struct dect_fd *dect_accept(const struct dect_handle *dh,
 				   const struct dect_fd *dfd,
 				   struct sockaddr *addr, socklen_t len);
 
-extern int dect_register_fd(const struct dect_handle *dh, struct dect_fd *dfd,
+extern int dect_fd_register(const struct dect_handle *dh, struct dect_fd *dfd,
 			    uint32_t events);
-extern void dect_unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd);
+extern void dect_fd_unregister(const struct dect_handle *dh, struct dect_fd *dfd);
 
 #endif /* _LIBDECT_IO_H */

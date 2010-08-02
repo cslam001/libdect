@@ -165,8 +165,8 @@ struct dect_fd *dect_raw_socket(struct dect_handle *dh)
 	if (bind(dfd->fd, (struct sockaddr *)&da, sizeof(da)) < 0)
 		goto err2;
 
-	dect_setup_fd(dfd, dect_raw_event, dfd);
-	if (dect_register_fd(dh, dfd, DECT_FD_READ) < 0)
+	dect_fd_setup(dfd, dect_raw_event, dfd);
+	if (dect_fd_register(dh, dfd, DECT_FD_READ) < 0)
 		goto err2;
 out:
 	return dfd;

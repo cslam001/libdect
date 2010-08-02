@@ -22,7 +22,7 @@
  * struct dect_event_ops to allow libdect to register it's file descriptors
  * with the application's event handler. The function dect_fd_num() can be used
  * to get the file decriptor number. When an event occurs, the function
- * dect_handle_fd() must be invoked with a bitmask of enum #dect_fd_events
+ * dect_fd_handle() must be invoked with a bitmask of enum #dect_fd_events
  * specifying the events that occured. All events except the file descriptor
  * becoming writable map to #DECT_FD_READ.
  *
@@ -49,7 +49,7 @@
 #define SOCK_NONBLOCK O_NONBLOCK
 #endif
 
-struct dect_fd *dect_alloc_fd(const struct dect_handle *dh)
+struct dect_fd *dect_fd_alloc(const struct dect_handle *dh)
 {
 	struct dect_fd *dfd;
 
@@ -61,7 +61,7 @@ struct dect_fd *dect_alloc_fd(const struct dect_handle *dh)
 	dfd->state = DECT_FD_UNREGISTERED;
 	return dfd;
 }
-EXPORT_SYMBOL(dect_alloc_fd);
+EXPORT_SYMBOL(dect_fd_alloc);
 
 /**
  * Get a pointer to the private data area from a libdect file descriptor
@@ -85,16 +85,16 @@ int dect_fd_num(const struct dect_fd *dfd)
 }
 EXPORT_SYMBOL(dect_fd_num);
 
-void dect_setup_fd(struct dect_fd *dfd,
+void dect_fd_setup(struct dect_fd *dfd,
 		   void (*cb)(struct dect_handle *, struct dect_fd *, uint32_t),
 		   void *data)
 {
 	dfd->callback = cb;
 	dfd->data = data;
 }
-EXPORT_SYMBOL(dect_setup_fd);
+EXPORT_SYMBOL(dect_fd_setup);
 
-int dect_register_fd(const struct dect_handle *dh, struct dect_fd *dfd,
+int dect_fd_register(const struct dect_handle *dh, struct dect_fd *dfd,
 		     uint32_t events)
 {
 	int err;
@@ -105,15 +105,15 @@ int dect_register_fd(const struct dect_handle *dh, struct dect_fd *dfd,
 		dfd->state = DECT_FD_REGISTERED;
 	return err;
 }
-EXPORT_SYMBOL(dect_register_fd);
+EXPORT_SYMBOL(dect_fd_register);
 
-void dect_unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd)
+void dect_fd_unregister(const struct dect_handle *dh, struct dect_fd *dfd)
 {
 	assert(dfd->state == DECT_FD_REGISTERED);
 	dh->ops->event_ops->unregister_fd(dh, dfd);
 	dfd->state = DECT_FD_UNREGISTERED;
 }
-EXPORT_SYMBOL(dect_unregister_fd);
+EXPORT_SYMBOL(dect_fd_unregister);
 
 /**
  * Process libdect file descriptor events
@@ -125,12 +125,12 @@ EXPORT_SYMBOL(dect_unregister_fd);
  * Process the events specified by the events bitmask for the given file
  * descriptor.
  */
-void dect_handle_fd(struct dect_handle *dh, struct dect_fd *dfd, uint32_t events)
+void dect_fd_process(struct dect_handle *dh, struct dect_fd *dfd, uint32_t events)
 {
 	assert(dfd->state == DECT_FD_REGISTERED);
 	dfd->callback(dh, dfd, events);
 }
-EXPORT_SYMBOL(dect_handle_fd);
+EXPORT_SYMBOL(dect_fd_process);
 
 void dect_close(const struct dect_handle *dh, struct dect_fd *dfd)
 {
@@ -145,7 +145,7 @@ struct dect_fd *dect_socket(const struct dect_handle *dh, int type, int protocol
 {
 	struct dect_fd *dfd;
 
-	dfd = dect_alloc_fd(dh);
+	dfd = dect_fd_alloc(dh);
 	if (dfd == NULL)
 		goto err1;
 
@@ -167,7 +167,7 @@ struct dect_fd *dect_accept(const struct dect_handle *dh,
 {
 	struct dect_fd *nfd;
 
-	nfd = dect_alloc_fd(dh);
+	nfd = dect_fd_alloc(dh);
 	if (nfd == NULL)
 		goto err1;
 

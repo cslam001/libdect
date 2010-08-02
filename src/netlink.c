@@ -273,13 +273,13 @@ int dect_netlink_init(struct dect_handle *dh, const char *cluster)
 	if (err < 0)
 		goto err2;
 
-	dh->nlfd = dect_alloc_fd(dh);
+	dh->nlfd = dect_fd_alloc(dh);
 	if (dh->nlfd == NULL)
 		goto err2;
 	dh->nlfd->fd = nl_socket_get_fd(dh->nlsock);
 
-	dect_setup_fd(dh->nlfd, dect_netlink_event, NULL);
-	if (dect_register_fd(dh, dh->nlfd, DECT_FD_READ))
+	dect_fd_setup(dh->nlfd, dect_netlink_event, NULL);
+	if (dect_fd_register(dh, dh->nlfd, DECT_FD_READ))
 		goto err3;
 
 	err = dect_netlink_get_cluster(dh, cluster);
@@ -299,7 +299,7 @@ int dect_netlink_init(struct dect_handle *dh, const char *cluster)
 	return 0;
 
 err4:
-	dect_unregister_fd(dh, dh->nlfd);
+	dect_fd_unregister(dh, dh->nlfd);
 err3:
 	dect_free(dh, dh->nlfd);
 err2:
@@ -313,7 +313,7 @@ err1:
 
 void dect_netlink_exit(struct dect_handle *dh)
 {
-	dect_unregister_fd(dh, dh->nlfd);
+	dect_fd_unregister(dh, dh->nlfd);
 	nl_close(dh->nlsock);
 	nl_socket_free(dh->nlsock);
 	dect_free(dh, dh->nlfd);

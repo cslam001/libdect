@@ -116,8 +116,8 @@ int main(int argc, char **argv)
 	if (dfd == NULL)
 		pexit("dect_raw_socket");
 
-	dect_setup_fd(dfd, raw_sock_event, (void *)(unsigned long)slot);
-	if (dect_register_fd(dh, dfd, DECT_FD_WRITE) < 0)
+	dect_fd_setup(dfd, raw_sock_event, (void *)(unsigned long)slot);
+	if (dect_fd_register(dh, dfd, DECT_FD_WRITE) < 0)
 		pexit("dect_register_fd");
 
 	timer = dect_timer_alloc(dh);
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 	dect_event_loop();
 
 	dect_timer_stop(dh, timer);
-	dect_unregister_fd(dh, dfd);
+	dect_fd_unregister(dh, dfd);
 	dect_close(dh, dfd);
 
 	dect_common_cleanup(dh);
