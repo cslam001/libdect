@@ -13,6 +13,11 @@
 extern "C" {
 #endif
 
+/**
+ * @addtogroup lce
+ * @{
+ */
+
 struct dect_lce_page_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
@@ -31,6 +36,8 @@ struct dect_lce_ops {
 
 extern int dect_lce_group_ring_req(struct dect_handle *dh,
 				   enum dect_ring_patterns pattern);
+
+/** @} */
 
 #ifdef __cplusplus
 }
