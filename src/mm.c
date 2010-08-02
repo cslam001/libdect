@@ -395,8 +395,11 @@ static int dect_mm_procedure_initiate(struct dect_handle *dh,
 
 	mp->type     = type;
 	mp->priority = priority;
+	mp->iec      = NULL;
+
 	if (proc->param[dh->mode].timeout)
 		dect_timer_start(dh, mp->timer, proc->param[dh->mode].timeout);
+
 	mme->current = mp;
 	return 0;
 }
@@ -427,6 +430,8 @@ static int dect_mm_procedure_respond(struct dect_handle *dh,
 
 	mp->type     = type;
 	mp->priority = priority;
+	mp->iec      = NULL;
+
 	mme->current = mp;
 	return 0;
 }
