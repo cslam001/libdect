@@ -594,29 +594,31 @@ static int dect_mm_send_msg(const struct dect_handle *dh,
  *
  * - The F-IWU invokes the @ref dect_mm_key_allocate_req() "MM_KEY_ALLOCATE-req"
  *   primitive, the F-MM entity sends a {KEY-ALLOCATE} message to the P-MM
- *   containing a @ref dect_ie_auth_value "RAND", @ref dect_ie_auth_value "RS"
- *   and @ref dect_ie_allocation_type "ALLOCATION-TYPE" information element.
+ *   containing a @ref dect_ie_auth_value "<<RAND>>", @ref dect_ie_auth_value
+ *   "<<RS>>" and @ref dect_ie_allocation_type "<<ALLOCATION-TYPE>>" information
+ *   element.
  *
  * - The P-MM invokes the @ref dect_mm_ops::mm_key_allocate_ind()
  *   "MM_KEY_ALLOCATE-ind" primitive, the P-IWU responds with a
  *   @ref dect_mm_authenticate_req() "MM_AUTHENTICATE-req" primitive and sends
  *   a {AUTHENTICATION-REQUEST} message to the F-MM containing a
- *   @ref dect_ie_auth_value "RAND" and @ref dect_ie_auth_res "RES" information
- *   element.
+ *   @ref dect_ie_auth_value "<<RAND>>" and @ref dect_ie_auth_res "<<RES>>"
+ *   information element.
  *
  * - The F-MM invokes the @ref dect_mm_ops::mm_authenticate_ind()
- *   "MM_AUTHENTICATE-ind" primitive. If the @ref dect_ie_auth_res "RES" value
- *   matches the expected value, the PT authentication is considered successful.
- *   The F-IWU responds with a @ref dect_mm_authenticate_res() "MM_AUTHENTICATE-res"
- *   primitive, the F-MM sends an {AUTHENTICATION-REPLY} message to the P-MM
- *   containing a @ref dect_ie_auth_res "RES" information element.
+ *   "MM_AUTHENTICATE-ind" primitive. If the @ref dect_ie_auth_res "<<RES>>"
+ *   value matches the expected value, the PT authentication is considered
+ *   successful. The F-IWU responds with a @ref dect_mm_authenticate_res()
+ *   "MM_AUTHENTICATE-res" primitive, the F-MM sends an {AUTHENTICATION-REPLY}
+ *   message to the P-MM containing a @ref dect_ie_auth_res "<<RES>>"
+ *   information element.
  *
  * - The P-MM invokes the @ref dect_mm_ops::mm_authenticate_cfm()
- *   "MM_AUTHENTICATE-cfm" primitive. If the @ref dect_ie_auth_res "RES" value
- *   matches the expected value, the FT authentication is considered successful.
- *   The P-IWU stores the reverse session key KS' as a new user authentication
- *   key under the UAK-number given in the @ref dect_ie_allocation_type
- *   "ALLOCATION-TYPE" information element.
+ *   "MM_AUTHENTICATE-cfm" primitive. If the @ref dect_ie_auth_res "<<RES>>"
+ *   value matches the expected value, the FT authentication is considered
+ *   successful. The P-IWU stores the reverse session key KS' as a new user
+ *   authentication key under the UAK-number given in the
+ *   @ref dect_ie_allocation_type "<<ALLOCATION-TYPE>>" information element.
  *
  * @msc
  *  "F-IWU", "F-MM", "P-MM", "P-IWU";
@@ -735,18 +737,18 @@ err1:
  *
  * - The IWU-1 invokes the @ref dect_mm_authenticate_req() "MM_AUTHENTICATE-req"
  *   primitive, the MM-1 sends a {AUTHENTICATION-REQUEST} message to the MM-2
- *   containing a @ref dect_ie_auth_value "RAND" and @ref dect_ie_auth_value "RS"
- *   information element.
+ *   containing a @ref dect_ie_auth_value "<<RAND>>" and @ref dect_ie_auth_value
+ *   "<<RS>>" information element.
  *
  * - The MM-2 invokes the @ref dect_mm_ops::mm_authenticate_ind()
  *   "MM_AUTHENTICATE-ind" primitive. The IWU-2 responds with a @ref dect_mm_authenticate_res()
  *   "MM_AUTHENTICATE-res" primitive, the MM-2 sends an {AUTHENTICATION-REPLY}
- *   message to the MM-1 containing a @ref dect_ie_auth_res "RES" information
+ *   message to the MM-1 containing a @ref dect_ie_auth_res "<<RES>>" information
  *   element.
  *
  * - The MM-1 invokes the @ref dect_mm_ops::mm_authenticate_cfm() "MM_AUTHENTICATE-cfm"
- *   primitive. If the @ref dect_ie_auth_res "RES" value matches the expected value,
- *   the authentication is considered successful.
+ *   primitive. If the @ref dect_ie_auth_res "<<RES>>" value matches the expected
+ *   value, the authentication is considered successful.
  *
  * @msc
  *  "IWU-1", "MM-1", "MM-2", "IWU-2";
@@ -1296,6 +1298,17 @@ static void dect_mm_encrypt_ind(struct dect_handle *dh, struct dect_transaction 
  * This module implements the access rights procedure specified in
  * ETSI EN 300 175-5 section 13.5.1.
  *
+ * @msc
+ *  "P-IWU", "P-MM", "F-MM", "F-IWU";
+ *
+ *  "P-IWU" => "P-MM"    [label="MM_ACCESS_RIGHTS-req", URL="\ref dect_mm_access_rights_req()"];
+ *  "P-MM"  -> "F-MM"    [label="ACCESS-RIGHTS-REQUEST"];
+ *  "F-MM" =>> "F-IWU"   [label="MM_ACCESS_RIGHTS-ind", URL="\ref dect_mm_ops::mm_access_rights_ind"];
+ *  "F-IWU" => "F-MM"    [label="MM_ACCESS_RIGHTS-res", URL="\ref dect_mm_access_rights_res()"];
+ *  "F-MM"  -> "P-MM"    [label="ACCESS-RIGHTS-ACCEPT"];
+ *  "P-MM" =>> "P-IWU"   [label="MM_ACCESS_RIGHTS-cfm", URL="\ref dect_mm_ops::mm_access_rights_cfm"];
+ * @endmsc
+ *
  * @{
  */
 
@@ -1305,6 +1318,18 @@ static void dect_mm_encrypt_ind(struct dect_handle *dh, struct dect_transaction 
  * @param dh		libdect DECT handle
  * @param mme		Mobility Management Endpoint
  * @param param		access rights request parameters
+ *
+ * Begin an access rights procedure and send a {ACCESS-RIGHTS-REQUEST} message
+ * to the FT.
+ *
+ * When the procedure is successfully accepted by the FT, it will by respond
+ * with an {ACCESS-RIGHTS-ACCEPT} message, in which case the
+ * #dect_mm_ops::mm_access_rights_cfm() callback will be invoked with an 'accept'
+ * parameter value of 'true'. If the procedure is rejected or an error occurs, the
+ * #dect_mm_ops::mm_access_rights_cfm() callback will be invoked with an 'accept'
+ * parameter value of 'false'.
+ *
+ * The access rights procedure may only be invoked by the PT.
  */
 int dect_mm_access_rights_req(struct dect_handle *dh,
 			      struct dect_mm_endpoint *mme,
@@ -1394,6 +1419,8 @@ static int dect_mm_send_access_rights_reject(const struct dect_handle *dh,
  * @param mme		Mobility Management Endpoint
  * @param accept	accept/reject access rights request
  * @param param		access rights response parameters
+ *
+ * Respond to an access rights request and complete the access rights procedure.
  */
 int dect_mm_access_rights_res(struct dect_handle *dh,
 			      struct dect_mm_endpoint *mme, bool accept,
@@ -1555,6 +1582,17 @@ err1:
  * This module implements the access rights termination procedure specified in
  * ETSI EN 300 175-5 section 13.5.2.
  *
+ * @msc
+ *  "IWU-1", "MM-1", "MM-2", "IWU-2";
+ *
+ *  "IWU-1" => "MM-1"    [label="MM_ACCESS_RIGHTS_TERMINATE-req", URL="\ref dect_mm_access_rights_terminate_req()"];
+ *  "MM-1"  -> "MM-2"    [label="ACCESS-RIGHTS-TERMINATE-REQUEST"];
+ *  "MM-2" =>> "IWU-2"   [label="MM_ACCESS_RIGHTS_TERMINATE-ind", URL="\ref dect_mm_ops::mm_access_rights_terminate_ind"];
+ *  "IWU-2" => "MM-2"    [label="MM_ACCESS_RIGHTS_TERMINATE-res", URL="\ref dect_mm_access_rights_terminate_res()"];
+ *  "MM-2"  -> "MM-1"    [label="ACCESS-RIGHTS-TERMINATE-ACCEPT"];
+ *  "MM-1" =>> "IWU-1"   [label="MM_ACCESS_RIGHTS_TERMINATE-cfm", URL="\ref dect_mm_ops::mm_access_rights_terminate_cfm"];
+ * @endmsc
+ *
  * @{
  */
 
@@ -1564,6 +1602,9 @@ err1:
  * @param dh		libdect DECT handle
  * @param mme		Mobility Management Endpoint
  * @param param		access rights terminate request parameters
+ *
+ * Begin an access rights termination procedure and send a
+ * {ACCESS-RIGHTS-TERMINATE-REQUEST} message.
  */
 int dect_mm_access_rights_terminate_req(struct dect_handle *dh,
 					struct dect_mm_endpoint *mme,
@@ -1639,6 +1680,9 @@ static int dect_mm_send_access_rights_terminate_reject(const struct dect_handle 
  * @param mme		Mobility Management Endpoint
  * @param accept	accept/reject access rights termination
  * @param param		access rights terminate response parameters
+ *
+ * Respond to an access rights termination request and complete the access
+ * rights termination procedure.
  */
 int dect_mm_access_rights_terminate_res(struct dect_handle *dh,
 					struct dect_mm_endpoint *mme, bool accept,
@@ -1783,6 +1827,32 @@ err1:
  *
  * This module implements the location registration procedure specified in
  * ETSI EN 300 175-5 section 13.4.1.
+ *
+ * - The P-IWU invokes the @ref dect_mm_locate_req() "MM_LOCATE-req" primitive,
+ *   the P-MM entity sends a {LOCATE-REQUEST} message to the F-MM containing a
+ *   @ref dect_ie_portable_identity "<<PORTABLE-IDENTITY>>" and zero or more
+ *   optional information elements.
+ *
+ * - The F-MM invokes the @ref dect_mm_ops::mm_locate_ind() "MM_LOCATE-ind"
+ *   primitive, the F-IWU responds with a @ref dect_mm_locate_res()
+ *   "MM_LOCATE-res" primitive and sends a {LOCATE-ACCEPT} message to the
+ *   P-MM containing a @ref dect_ie_portable_identity "<<PORTABLE-IDENTITY>>",
+ *   a @ref dect_ie_location_area "<<LOCATION-AREA>" and zero or more optional
+ *   information elements.
+ *
+ * - The P-MM invokes the @ref dect_mm_ops::mm_locate_cfm() "MM_LOCATE-cfm"
+ *   primitive.
+ *
+ * @msc
+ *  "P-IWU", "P-MM", "F-MM", "F-IWU";
+ *
+ *  "P-IWU" => "P-MM"    [label="MM_LOCATE-req", URL="\ref dect_mm_locate_req()"];
+ *  "P-MM"  -> "F-MM"    [label="LOCATE-REQUEST"];
+ *  "F-MM" =>> "F-IWU"   [label="MM_LOCATE-ind", URL="\ref dect_mm_ops::mm_locate_ind"];
+ *  "F-IWU" => "F-MM"    [label="MM_LOCATE-res", URL="\ref dect_mm_locate_res()"];
+ *  "F-MM"  -> "P-MM"    [label="LOCATE-ACCEPT"];
+ *  "P-MM" =>> "P-IWU"   [label="MM_LOCATE-cfm", URL="\ref dect_mm_ops::mm_locate_cfm"];
+ * @endmsc
  *
  * @{
  */
