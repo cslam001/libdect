@@ -711,7 +711,7 @@ static void dect_lce_data_link_event(struct dect_handle *dh,
 		if (dh->page_transaction.state == DECT_TRANSACTION_OPEN) {
 			dect_debug(DECT_DEBUG_LCE, "\n");
 			dect_transaction_close(dh, &dh->page_transaction,
-					       DECT_RELEASE_NORMAL);
+					       DECT_DDL_RELEASE_NORMAL);
 		}
 	}
 }
