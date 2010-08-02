@@ -827,15 +827,15 @@ static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer
 
 static int dect_lce_send_page_reject(const struct dect_handle *dh,
 				     struct dect_transaction *ta,
+				     struct dect_ie_portable_identity *portable_identity,
 				     enum dect_reject_reasons reason)
 {
 	struct dect_ie_reject_reason reject_reason;
 	struct dect_lce_page_reject_msg msg = {
-		.portable_identity	= NULL,
+		.portable_identity	= portable_identity,
 		.reject_reason		= &reject_reason,
 	};
 
-	dect_ie_init(&reject_reason);
 	reject_reason.reason = reason;
 
 	return dect_lce_send(dh, ta, &lce_page_reject_msg_desc,
@@ -855,7 +855,7 @@ static void dect_lce_rcv_page_response(struct dect_handle *dh,
 	err = dect_parse_sfmt_msg(dh, &lce_page_response_msg_desc,
 				  &msg.common, mb);
 	if (err < 0) {
-		dect_lce_send_page_reject(dh, ta, dect_sfmt_reject_reason(err));
+		dect_lce_send_page_reject(dh, ta, NULL, dect_sfmt_reject_reason(err));
 		return dect_ddl_release(dh, ta->link);
 	}
 
@@ -891,7 +891,8 @@ err:
 	if (req != NULL)
 		dect_ddl_complete_indirect_establish(dh, ta->link, req);
 	else if (reject) {
-		dect_lce_send_page_reject(dh, ta, DECT_REJECT_IPUI_UNKNOWN);
+		dect_lce_send_page_reject(dh, ta, msg.portable_identity,
+					  DECT_REJECT_IPUI_UNKNOWN);
 		dect_ddl_release(dh, ta->link);
 	}
 
