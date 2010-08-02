@@ -1076,6 +1076,7 @@ int dect_ddl_transaction_open(struct dect_handle *dh, struct dect_transaction *t
 
 	ddl_debug(ddl, "open transaction: %s TV: %u", protocol->name, tv);
 	ta->link  = ddl;
+	ta->mb    = NULL;
 	ta->pd	  = pd;
 	ta->role  = DECT_TRANSACTION_INITIATOR;
 	ta->state = DECT_TRANSACTION_OPEN;
@@ -1101,6 +1102,7 @@ void dect_transaction_confirm(struct dect_handle *dh, struct dect_transaction *t
 			      const struct dect_transaction *req)
 {
 	ta->link  = req->link;
+	ta->mb    = NULL;
 	ta->tv    = req->tv;
 	ta->role  = req->role;
 	ta->pd    = req->pd;
