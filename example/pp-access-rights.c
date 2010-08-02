@@ -185,13 +185,13 @@ int main(int argc, char **argv)
 
 	rand_fd = open("/dev/urandom", O_RDONLY);
 	if (rand_fd < 0)
-		exit(1);
+		pexit("open /dev/urandom");
 
 	dect_common_init(&ops, argv[1]);
 
 	mme = dect_mm_endpoint_alloc(dh, &ipui);
 	if (mme == NULL)
-		exit(1);
+		pexit("dect_mm_endpoint_alloc");
 
 	mm_access_rights_req(dh, mme);
 	dect_event_loop();
