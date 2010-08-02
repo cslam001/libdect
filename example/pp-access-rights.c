@@ -1,3 +1,13 @@
+/*
+ * DECT PP access rights request example
+ *
+ * Copyright (c) 2010 Patrick McHardy <kaber@trash.net>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -11,9 +21,10 @@
 
 #define debug(fmt, args...)	printf("IWU: PP-MM: " fmt, ## args)
 
+static const char *pin = "0000";
 static int rand_fd;
 
-static struct dect_ipui ipui = {
+static const struct dect_ipui ipui = {
 	.put		= DECT_IPUI_N,
 	.pun.n.ipei = {
 		.emc	= 0x0ba8,
@@ -53,14 +64,13 @@ static void mm_authenticate_cfm(struct dect_handle *dh,
 {
 	struct mm_priv *priv = dect_mm_priv(mme);
 	uint8_t k[DECT_AUTH_KEY_LEN], ks[DECT_AUTH_KEY_LEN];
-	//uint8_t dck[DECT_CIPHER_KEY_LEN];
 	uint8_t ac[4];
 	uint32_t res2;
 
 	if (!accept)
 		goto out;
 
-	dect_pin_to_ac("0000", ac, sizeof(ac));
+	dect_pin_to_ac(pin, ac, sizeof(ac));
 	dect_auth_b1(ac, sizeof(ac), k);
 
 	dect_auth_a21(k, priv->rs, ks);
@@ -104,7 +114,7 @@ static void mm_key_allocate_ind(struct dect_handle *dh,
 	read(rand_fd, &rand.value, sizeof(rand.value));
 	priv->rand = rand.value;
 
-	dect_pin_to_ac("0000", ac, sizeof(ac));
+	dect_pin_to_ac(pin, ac, sizeof(ac));
 	dect_auth_b1(ac, sizeof(ac), k);
 
 	dect_auth_a11(k, param->rs->value, ks);
