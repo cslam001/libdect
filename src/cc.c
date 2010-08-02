@@ -510,7 +510,7 @@ static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer
 	dh->ops->cc_ops->mncc_reject_ind(dh, call, param);
 	dect_ie_collection_put(dh, param);
 out:
-	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
+	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
 }
 
@@ -564,7 +564,7 @@ int dect_mncc_setup_req(struct dect_handle *dh, struct dect_call *call,
 	};
 
 	cc_debug_entry(call, "MNCC_SETUP-req");
-	if (dect_open_transaction(dh, &call->transaction, ipui, DECT_PD_CC) < 0)
+	if (dect_transaction_open(dh, &call->transaction, ipui, DECT_PD_CC) < 0)
 		goto err1;
 
 	fixed_identity.type = DECT_FIXED_ID_TYPE_PARK;
@@ -582,7 +582,7 @@ int dect_mncc_setup_req(struct dect_handle *dh, struct dect_call *call,
 	return 0;
 
 err2:
-	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
+	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 err1:
 	return -1;
 }
@@ -658,7 +658,7 @@ int dect_mncc_reject_req(struct dect_handle *dh, struct dect_call *call,
 	dect_cc_send_msg(dh, call, &cc_release_com_msg_desc,
 			 &msg.common, CC_RELEASE_COM);
 
-	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
+	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
 	return 0;
 }
@@ -862,7 +862,7 @@ int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
 			 &msg.common, CC_RELEASE_COM);
 
 	dect_call_disconnect_uplane(dh, call);
-	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
+	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
 	return 0;
 }
@@ -1342,7 +1342,7 @@ out:
 	dect_msg_free(dh, &cc_release_com_msg_desc, &msg.common);
 
 	dect_call_disconnect_uplane(dh, call);
-	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
+	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
 }
 
@@ -1547,7 +1547,7 @@ static void dect_cc_rcv_setup(struct dect_handle *dh,
 	call->ft_id = dect_ie_hold(msg.fixed_identity);
 	call->pt_id = dect_ie_hold(msg.portable_identity);
 	call->state = DECT_CC_CALL_INITIATED;
-	dect_confirm_transaction(dh, &call->transaction, req);
+	dect_transaction_confirm(dh, &call->transaction, req);
 	cc_debug(call, "new call");
 
 	dect_mncc_setup_ind(dh, call, &msg);
@@ -1579,7 +1579,7 @@ static void dect_cc_shutdown(struct dect_handle *dh,
 
 	cc_debug(call, "shutdown");
 	dh->ops->cc_ops->mncc_reject_ind(dh, call, NULL);
-	dect_close_transaction(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
+	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
 }
 

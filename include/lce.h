@@ -67,20 +67,20 @@ struct dect_transaction {
 	uint16_t			tv;
 };
 
-extern int dect_ddl_open_transaction(struct dect_handle *dh,
+extern int dect_ddl_transaction_open(struct dect_handle *dh,
 				     struct dect_transaction *ta,
 				     struct dect_data_link *ddl,
 				     enum dect_pds pd);
 extern struct dect_data_link *dect_ddl_connect(struct dect_handle *dh,
 					       const struct dect_ipui *ipui);
-extern int dect_open_transaction(struct dect_handle *dh,
+extern int dect_transaction_open(struct dect_handle *dh,
 				 struct dect_transaction *ta,
 				 const struct dect_ipui *ipui,
 				 enum dect_pds pd);
-extern void dect_confirm_transaction(struct dect_handle *dh,
+extern void dect_transaction_confirm(struct dect_handle *dh,
 				     struct dect_transaction *ta,
 				     const struct dect_transaction *req);
-extern void dect_close_transaction(struct dect_handle *dh,
+extern void dect_transaction_close(struct dect_handle *dh,
 				   struct dect_transaction *ta,
 				   enum dect_release_modes mode);
 extern void dect_transaction_get_ulei(struct sockaddr_dect_lu *addr,

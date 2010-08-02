@@ -139,7 +139,7 @@ int dect_mnss_setup_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 	};
 
 	ss_debug_entry(sse, "MNSS_SETUP-req");
-	if (dect_open_transaction(dh, &sse->transaction, ipui, DECT_PD_CISS) < 0)
+	if (dect_transaction_open(dh, &sse->transaction, ipui, DECT_PD_CISS) < 0)
 		goto err1;
 
 	if (dh->mode == DECT_MODE_PP) {
@@ -154,7 +154,7 @@ int dect_mnss_setup_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 	return 0;
 
 err2:
-	dect_close_transaction(dh, &sse->transaction, DECT_DDL_RELEASE_NORMAL);
+	dect_transaction_close(dh, &sse->transaction, DECT_DDL_RELEASE_NORMAL);
 err1:
 	return -1;
 }
@@ -308,7 +308,7 @@ static void dect_ciss_rcv_register(struct dect_handle *dh,
 	param->feature_indicate		= dect_ie_hold(msg.feature_indicate);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_confirm_transaction(dh, &sse->transaction, req);
+	dect_transaction_confirm(dh, &sse->transaction, req);
 
 	ss_debug(sse, "MNSS_SETUP-ind");
 	dh->ops->ss_ops->mnss_setup_ind(dh, sse, param);
@@ -336,7 +336,7 @@ static void dect_ciss_shutdown(struct dect_handle *dh,
 	struct dect_ss_endpoint *sse = dect_ss_endpoint(ta);
 
 	ss_debug(sse, "shutdown");
-	dect_close_transaction(dh, &sse->transaction, DECT_DDL_RELEASE_NORMAL);
+	dect_transaction_close(dh, &sse->transaction, DECT_DDL_RELEASE_NORMAL);
 }
 
 static const struct dect_nwk_protocol ciss_protocol = {

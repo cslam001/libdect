@@ -710,7 +710,7 @@ static void dect_lce_data_link_event(struct dect_handle *dh,
 		 */
 		if (dh->page_transaction.state == DECT_TRANSACTION_OPEN) {
 			dect_debug(DECT_DEBUG_LCE, "\n");
-			dect_close_transaction(dh, &dh->page_transaction,
+			dect_transaction_close(dh, &dh->page_transaction,
 					       DECT_RELEASE_NORMAL);
 		}
 	}
@@ -926,7 +926,7 @@ static void dect_lce_send_page_response(struct dect_handle *dh)
 	fixed_identity.type    = DECT_FIXED_ID_TYPE_PARK;
 	fixed_identity.ari     = dh->pari;
 
-	if (dect_open_transaction(dh, &dh->page_transaction, &dh->ipui,
+	if (dect_transaction_open(dh, &dh->page_transaction, &dh->ipui,
 				  DECT_PD_LCE) < 0)
 		return;
 
@@ -1033,7 +1033,7 @@ static void dect_lce_shutdown(struct dect_handle *dh,
 			      struct dect_transaction *ta)
 {
 	lce_debug("shutdown page transaction");
-	dect_close_transaction(dh, ta, DECT_DDL_RELEASE_NORMAL);
+	dect_transaction_close(dh, ta, DECT_DDL_RELEASE_NORMAL);
 }
 
 static const struct dect_nwk_protocol lce_protocol = {
@@ -1063,7 +1063,7 @@ static int dect_transaction_alloc_tv(const struct dect_data_link *ddl,
 	return -1;
 }
 
-int dect_ddl_open_transaction(struct dect_handle *dh, struct dect_transaction *ta,
+int dect_ddl_transaction_open(struct dect_handle *dh, struct dect_transaction *ta,
 			      struct dect_data_link *ddl, enum dect_pds pd)
 {
 	const struct dect_nwk_protocol *protocol = protocols[pd];
@@ -1084,7 +1084,7 @@ int dect_ddl_open_transaction(struct dect_handle *dh, struct dect_transaction *t
 	return 0;
 }
 
-int dect_open_transaction(struct dect_handle *dh, struct dect_transaction *ta,
+int dect_transaction_open(struct dect_handle *dh, struct dect_transaction *ta,
 			  const struct dect_ipui *ipui, enum dect_pds pd)
 {
 	struct dect_data_link *ddl;
@@ -1093,10 +1093,10 @@ int dect_open_transaction(struct dect_handle *dh, struct dect_transaction *ta,
 	if (ddl == NULL)
 		return -1;
 
-	return dect_ddl_open_transaction(dh, ta, ddl, pd);
+	return dect_ddl_transaction_open(dh, ta, ddl, pd);
 }
 
-void dect_confirm_transaction(struct dect_handle *dh, struct dect_transaction *ta,
+void dect_transaction_confirm(struct dect_handle *dh, struct dect_transaction *ta,
 			      const struct dect_transaction *req)
 {
 	ta->link  = req->link;
@@ -1110,7 +1110,7 @@ void dect_confirm_transaction(struct dect_handle *dh, struct dect_transaction *t
 	list_add_tail(&ta->list, &req->link->transactions);
 }
 
-void dect_close_transaction(struct dect_handle *dh, struct dect_transaction *ta,
+void dect_transaction_close(struct dect_handle *dh, struct dect_transaction *ta,
 			    enum dect_release_modes mode)
 {
 	struct dect_data_link *ddl = ta->link;

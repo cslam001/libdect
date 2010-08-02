@@ -388,7 +388,7 @@ static int dect_mm_procedure_initiate(struct dect_handle *dh,
 			dect_stop_timer(dh, mp->timer);
 		dect_mm_proc[mp->type].abort(dh, mme, mp);
 	} else {
-		err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link, DECT_PD_MM);
+		err = dect_ddl_transaction_open(dh, &mp->transaction, mme->link, DECT_PD_MM);
 		if (err < 0)
 			return err;
 	}
@@ -443,7 +443,7 @@ static void dect_mm_procedure_complete(struct dect_handle *dh,
 	if (mp->iec != NULL)
 		__dect_ie_collection_put(dh, mp->iec);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_transaction_close(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
 
 	if (mme->procedure[!mme->current->role].type != DECT_MMP_NONE)
@@ -2113,7 +2113,7 @@ static void dect_mm_rcv_detach(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_transaction_close(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 
 	mm_debug(mme, "MM_DETACH-ind");
 	dh->ops->mm_ops->mm_detach_ind(dh, mme, param);
@@ -2831,7 +2831,7 @@ static void dect_mm_rcv_info_suggest(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_transaction_close(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 
 	mm_debug(mme, "MM_INFO-ind");
 	dh->ops->mm_ops->mm_info_ind(dh, mme, param);
@@ -2868,7 +2868,7 @@ int dect_mm_iwu_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	if (mp->type != DECT_MMP_NONE)
 		return -1;
 
-	err = dect_ddl_open_transaction(dh, &mp->transaction, mme->link,
+	err = dect_ddl_transaction_open(dh, &mp->transaction, mme->link,
 					DECT_PD_MM);
 	if (err < 0)
 		goto err1;
@@ -2881,7 +2881,7 @@ int dect_mm_iwu_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	err = dect_mm_send_msg(dh, mp, &mm_iwu_msg_desc,
 			       &msg.common, DECT_MM_IWU);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_transaction_close(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 err1:
 	return err;
 }
@@ -2910,7 +2910,7 @@ static void dect_mm_rcv_iwu(struct dect_handle *dh,
 	param->iwu_packet		= dect_ie_hold(msg.iwu_packet);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_close_transaction(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_transaction_close(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 
 	mm_debug(mme, "MM_IWU-ind");
 	dh->ops->mm_ops->mm_iwu_ind(dh, mme, param);
@@ -3128,7 +3128,7 @@ static void dect_mm_open(struct dect_handle *dh,
 	}
 
 	ta = &mme->procedure[DECT_TRANSACTION_RESPONDER].transaction;
-	dect_confirm_transaction(dh, ta, req);
+	dect_transaction_confirm(dh, ta, req);
 
 	switch (mb->type) {
 	case DECT_MM_AUTHENTICATION_REQUEST:
