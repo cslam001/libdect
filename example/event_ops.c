@@ -48,7 +48,7 @@ static void unregister_fd(const struct dect_handle *dh, struct dect_fd *dfd)
 
 static void event_timer_callback(int fd, short mask, void *data)
 {
-	dect_run_timer(dh, data);
+	dect_timer_run(dh, data);
 }
 
 static void start_timer(const struct dect_handle *dh,

@@ -54,8 +54,8 @@ static void dect_mncc_timer_schedule(struct dect_handle *dh, struct dect_call *c
 {
 	struct call *priv = dect_call_priv(call);
 
-	dect_setup_timer(priv->timer, dect_mncc_timer, call);
-	dect_start_timer(dh, priv->timer, 1);
+	dect_timer_setup(priv->timer, dect_mncc_timer, call);
+	dect_timer_start(dh, priv->timer, 1);
 }
 
 static void dect_mncc_timer(struct dect_handle *dh, struct dect_timer *timer)
@@ -102,7 +102,7 @@ static void dect_mncc_setup_ind(struct dect_handle *dh, struct dect_call *call,
 	dect_ie_init(&signal);
 	signal.code = DECT_SIGNAL_DIAL_TONE_ON;
 
-	priv->timer  = dect_alloc_timer(dh);
+	priv->timer  = dect_timer_alloc(dh);
 	priv->keybuf = dect_keypad_buffer_init(dh, 3, dect_keypad_complete, call);
 	priv->audio  = dect_audio_open();
 
@@ -181,8 +181,8 @@ static void dect_mncc_info_timer_schedule(struct dect_handle *dh, struct dect_ca
 {
 	struct call *priv = dect_call_priv(call);
 
-	dect_setup_timer(priv->timer, dect_mncc_info_timer, call);
-	dect_start_timer(dh, priv->timer, 1);
+	dect_timer_setup(priv->timer, dect_mncc_info_timer, call);
+	dect_timer_start(dh, priv->timer, 1);
 }
 
 static void dect_mncc_info_timer(struct dect_handle *dh, struct dect_timer *timer)
@@ -205,7 +205,7 @@ static void dect_mncc_reject_ind(struct dect_handle *dh, struct dect_call *call,
 {
 	struct call *priv = dect_call_priv(call);
 
-	dect_stop_timer(dh, priv->timer);
+	dect_timer_stop(dh, priv->timer);
 }
 
 static void dect_mncc_release_ind(struct dect_handle *dh, struct dect_call *call,

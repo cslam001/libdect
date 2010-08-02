@@ -199,7 +199,7 @@ static struct dect_data_link *dect_ddl_alloc(const struct dect_handle *dh)
 	ddl = dect_zalloc(dh, sizeof(*ddl));
 	if (ddl == NULL)
 		goto err1;
-	ddl->sdu_timer = dect_alloc_timer(dh);
+	ddl->sdu_timer = dect_timer_alloc(dh);
 	if (ddl->sdu_timer == NULL)
 		goto err2;
 	ddl->state = DECT_DATA_LINK_RELEASED;
@@ -232,11 +232,11 @@ static void dect_ddl_destroy(struct dect_handle *dh, struct dect_data_link *ddl)
 	}
 
 	if (dect_timer_running(ddl->sdu_timer))
-		dect_stop_timer(dh, ddl->sdu_timer);
+		dect_timer_stop(dh, ddl->sdu_timer);
 	dect_free(dh, ddl->sdu_timer);
 
 	if (ddl->release_timer != NULL && dect_timer_running(ddl->release_timer))
-		dect_stop_timer(dh, ddl->release_timer);
+		dect_timer_stop(dh, ddl->release_timer);
 	dect_free(dh, ddl->release_timer);
 	dect_free(dh, ddl);
 }
@@ -254,7 +254,7 @@ static void dect_ddl_release_complete(struct dect_handle *dh,
 {
 	ddl_debug(ddl, "normal release complete");
 	ddl->state = DECT_DATA_LINK_RELEASED;
-	dect_stop_timer(dh, ddl->release_timer);
+	dect_timer_stop(dh, ddl->release_timer);
 	dect_ddl_destroy(dh, ddl);
 }
 
@@ -270,11 +270,11 @@ static void dect_ddl_release(struct dect_handle *dh,
 		goto err1;
 	ddl->state = DECT_DATA_LINK_RELEASE_PENDING;
 
-	ddl->release_timer = dect_alloc_timer(dh);
+	ddl->release_timer = dect_timer_alloc(dh);
 	if (ddl->release_timer == NULL)
 		goto err1;
-	dect_setup_timer(ddl->release_timer, dect_ddl_release_timer, ddl);
-	dect_start_timer(dh, ddl->release_timer, DECT_DDL_RELEASE_TIMEOUT);
+	dect_timer_setup(ddl->release_timer, dect_ddl_release_timer, ddl);
+	dect_timer_start(dh, ddl->release_timer, DECT_DDL_RELEASE_TIMEOUT);
 	return;
 
 err1:
@@ -294,8 +294,8 @@ static void dect_ddl_partial_release(struct dect_handle *dh,
 				     struct dect_data_link *ddl)
 {
 	ddl_debug(ddl, "partial release");
-	dect_setup_timer(ddl->sdu_timer, dect_ddl_partial_release_timer, ddl);
-	dect_start_timer(dh, ddl->sdu_timer, DECT_DDL_ESTABLISH_SDU_TIMEOUT);
+	dect_timer_setup(ddl->sdu_timer, dect_ddl_partial_release_timer, ddl);
+	dect_timer_start(dh, ddl->sdu_timer, DECT_DDL_ESTABLISH_SDU_TIMEOUT);
 }
 
 static void dect_ddl_shutdown(struct dect_handle *dh,
@@ -387,8 +387,8 @@ static void dect_ddl_sdu_timer(struct dect_handle *dh, struct dect_timer *timer)
 static int dect_ddl_schedule_sdu_timer(const struct dect_handle *dh,
 				       struct dect_data_link *ddl)
 {
-	dect_setup_timer(ddl->sdu_timer, dect_ddl_sdu_timer, ddl);
-	dect_start_timer(dh, ddl->sdu_timer, DECT_DDL_ESTABLISH_SDU_TIMEOUT);
+	dect_timer_setup(ddl->sdu_timer, dect_ddl_sdu_timer, ddl);
+	dect_timer_start(dh, ddl->sdu_timer, DECT_DDL_ESTABLISH_SDU_TIMEOUT);
 	ddl_debug(ddl, "start SDU timer");
 	return 0;
 }
@@ -397,7 +397,7 @@ static void dect_ddl_stop_sdu_timer(const struct dect_handle *dh,
 				    struct dect_data_link *ddl)
 {
 	ddl_debug(ddl, "stop SDU timer");
-	dect_stop_timer(dh, ddl->sdu_timer);
+	dect_timer_stop(dh, ddl->sdu_timer);
 }
 
 static int dect_send(const struct dect_handle *dh,
@@ -593,7 +593,7 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 	struct dect_msg_buf *mb, *mb_next;
 
 	/* Stop page timer */
-	dect_stop_timer(dh, req->page_timer);
+	dect_timer_stop(dh, req->page_timer);
 	dect_free(dh, req->page_timer);
 
 	ddl_debug(ddl, "complete indirect link establishment req %p", req);
@@ -636,10 +636,10 @@ static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
 	ddl->ipui  = *ipui;
 
 	if (dh->mode == DECT_MODE_FP) {
-		ddl->page_timer = dect_alloc_timer(dh);
+		ddl->page_timer = dect_timer_alloc(dh);
 		if (ddl->page_timer == NULL)
 			goto err2;
-		dect_setup_timer(ddl->page_timer, dect_ddl_page_timer, ddl);
+		dect_timer_setup(ddl->page_timer, dect_ddl_page_timer, ddl);
 		dect_ddl_page_timer(dh, ddl->page_timer);
 	} else {
 		ddl->dfd = dect_socket(dh, SOCK_SEQPACKET, DECT_S_SAP);
@@ -821,7 +821,7 @@ static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer
 		dect_ddl_shutdown(dh, ddl);
 	else {
 		dect_lce_page(dh, &ddl->ipui);
-		dect_start_timer(dh, ddl->page_timer, DECT_DDL_PAGE_TIMEOUT);
+		dect_timer_start(dh, ddl->page_timer, DECT_DDL_PAGE_TIMEOUT);
 	}
 }
 

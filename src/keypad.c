@@ -39,7 +39,7 @@ void dect_keypad_append(struct dect_handle *dh, struct dect_keypad_buffer *kb,
 	unsigned int len;
 
 	if (keypad->len > 0)
-		dect_stop_timer(dh, kb->timer);
+		dect_timer_stop(dh, kb->timer);
 
 	len = sizeof(kb->keypad.info) - kb->keypad.len;
 	len = min((unsigned int)keypad->len, len);
@@ -49,7 +49,7 @@ void dect_keypad_append(struct dect_handle *dh, struct dect_keypad_buffer *kb,
 	if (sending_complete || kb->keypad.len == sizeof(kb->keypad.info))
 		kb->complete(dh, kb->priv, &kb->keypad);
 	else if (keypad->len > 0)
-		dect_start_timer(dh, kb->timer, kb->timeout);
+		dect_timer_start(dh, kb->timer, kb->timeout);
 }
 EXPORT_SYMBOL(dect_keypad_append);
 
@@ -65,10 +65,10 @@ dect_keypad_buffer_init(const struct dect_handle *dh, uint8_t timeout,
 	if (kb == NULL)
 		goto err1;
 
-	kb->timer = dect_alloc_timer(dh);
+	kb->timer = dect_timer_alloc(dh);
 	if (kb->timer == NULL)
 		goto err2;
-	dect_setup_timer(kb->timer, dect_keypad_timer, kb);
+	dect_timer_setup(kb->timer, dect_keypad_timer, kb);
 
 	kb->complete = complete;
 	kb->priv     = priv;

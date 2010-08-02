@@ -385,7 +385,7 @@ static int dect_mm_procedure_initiate(struct dect_handle *dh,
 	if (mp->type != DECT_MMP_NONE) {
 		mm_debug(mme, "cancel procedure");
 		if (dect_timer_running(mp->timer))
-			dect_stop_timer(dh, mp->timer);
+			dect_timer_stop(dh, mp->timer);
 		dect_mm_proc[mp->type].abort(dh, mme, mp);
 	} else {
 		err = dect_ddl_transaction_open(dh, &mp->transaction, mme->link, DECT_PD_MM);
@@ -396,7 +396,7 @@ static int dect_mm_procedure_initiate(struct dect_handle *dh,
 	mp->type     = type;
 	mp->priority = priority;
 	if (proc->param[dh->mode].timeout)
-		dect_start_timer(dh, mp->timer, proc->param[dh->mode].timeout);
+		dect_timer_start(dh, mp->timer, proc->param[dh->mode].timeout);
 	mme->current = mp;
 	return 0;
 }
@@ -438,7 +438,7 @@ static void dect_mm_procedure_complete(struct dect_handle *dh,
 	mm_debug(mme, "complete procedure");
 
 	if (dect_timer_running(mp->timer))
-		dect_stop_timer(dh, mp->timer);
+		dect_timer_stop(dh, mp->timer);
 
 	if (mp->iec != NULL)
 		__dect_ie_collection_put(dh, mp->iec);
@@ -467,7 +467,7 @@ static void dect_mm_procedure_timeout(struct dect_handle *dh,
 	if (mp->retransmissions++ == 0) {
 		mm_debug(mme, "timeout, retransmitting");
 		dect_lce_retransmit(dh, &mp->transaction);
-		dect_start_timer(dh, mp->timer, proc->param[dh->mode].timeout);
+		dect_timer_start(dh, mp->timer, proc->param[dh->mode].timeout);
 	} else {
 		mm_debug(mme, "procedure timeout");
 		dect_mm_procedure_complete(dh, mme, mp);
@@ -482,10 +482,10 @@ static int dect_mm_procedure_init(struct dect_handle *dh,
 	struct dect_mm_procedure *mp = &mme->procedure[role];
 
 	mp->role  = role;
-	mp->timer = dect_alloc_timer(dh);
+	mp->timer = dect_timer_alloc(dh);
 	if (mp->timer == NULL)
 		return -1;
-	dect_setup_timer(mp->timer, dect_mm_procedure_timeout, mp);
+	dect_timer_setup(mp->timer, dect_mm_procedure_timeout, mp);
 	return 0;
 }
 

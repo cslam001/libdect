@@ -464,7 +464,7 @@ struct dect_call *dect_call_alloc(const struct dect_handle *dh)
 	if (call == NULL)
 		goto err1;
 
-	call->setup_timer = dect_alloc_timer(dh);
+	call->setup_timer = dect_timer_alloc(dh);
 	if (call->setup_timer == NULL)
 		goto err2;
 
@@ -482,7 +482,7 @@ static void dect_call_destroy(const struct dect_handle *dh,
 			      struct dect_call *call)
 {
 	if (call->state == DECT_CC_CALL_PRESENT)
-		dect_stop_timer(dh, call->setup_timer);
+		dect_timer_stop(dh, call->setup_timer);
 	dect_free(dh, call->setup_timer);
 	dect_free(dh, call);
 }
@@ -577,8 +577,8 @@ int dect_mncc_setup_req(struct dect_handle *dh, struct dect_call *call,
 		goto err2;
 	call->state = DECT_CC_CALL_PRESENT;
 
-	dect_setup_timer(call->setup_timer, dect_cc_setup_timer, call);
-	dect_start_timer(dh, call->setup_timer, DECT_CC_SETUP_TIMEOUT);
+	dect_timer_setup(call->setup_timer, dect_cc_setup_timer, call);
+	dect_timer_start(dh, call->setup_timer, DECT_CC_SETUP_TIMEOUT);
 	return 0;
 
 err2:
@@ -1080,7 +1080,7 @@ static void dect_cc_rcv_alerting(struct dect_handle *dh, struct dect_call *call,
 		return;
 
 	if (call->setup_timer != NULL) {
-		dect_stop_timer(dh, call->setup_timer);
+		dect_timer_stop(dh, call->setup_timer);
 		dect_free(dh, call->setup_timer);
 		call->setup_timer = NULL;
 	}
@@ -1126,7 +1126,7 @@ static void dect_cc_rcv_call_proc(struct dect_handle *dh, struct dect_call *call
 		return;
 
 	if (call->setup_timer != NULL) {
-		dect_stop_timer(dh, call->setup_timer);
+		dect_timer_stop(dh, call->setup_timer);
 		dect_free(dh, call->setup_timer);
 		call->setup_timer = NULL;
 	}
@@ -1177,7 +1177,7 @@ static void dect_cc_rcv_connect(struct dect_handle *dh, struct dect_call *call,
 		return;
 
 	if (call->setup_timer != NULL) {
-		dect_stop_timer(dh, call->setup_timer);
+		dect_timer_stop(dh, call->setup_timer);
 		dect_free(dh, call->setup_timer);
 		call->setup_timer = NULL;
 	}

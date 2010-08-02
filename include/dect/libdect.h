@@ -96,7 +96,7 @@ extern void dect_handle_fd(struct dect_handle *dh, struct dect_fd *dfd,
 
 struct dect_timer;
 extern void *dect_timer_priv(struct dect_timer *timer);
-extern void dect_run_timer(struct dect_handle *dh, struct dect_timer *timer);
+extern void dect_timer_run(struct dect_handle *dh, struct dect_timer *timer);
 
 /** @} */
 

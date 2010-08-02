@@ -88,7 +88,7 @@ static void dect_build_msg(struct dect_msg_buf *mb, uint8_t sn, uint8_t cn)
 static void page_timer(struct dect_handle *dh, struct dect_timer *timer)
 {
 	dect_lce_group_ring_req(dh, 0);
-	dect_start_timer(dh, timer, 1);
+	dect_timer_start(dh, timer, 1);
 }
 
 static struct dect_ops ops = {
@@ -120,15 +120,15 @@ int main(int argc, char **argv)
 	if (dect_register_fd(dh, dfd, DECT_FD_WRITE) < 0)
 		pexit("dect_register_fd");
 
-	timer = dect_alloc_timer(dh);
+	timer = dect_timer_alloc(dh);
 	if (timer == NULL)
 		pexit("dect_alloc_timer");
-	dect_setup_timer(timer, page_timer, NULL);
-	dect_start_timer(dh, timer, 1);
+	dect_timer_setup(timer, page_timer, NULL);
+	dect_timer_start(dh, timer, 1);
 
 	dect_event_loop();
 
-	dect_stop_timer(dh, timer);
+	dect_timer_stop(dh, timer);
 	dect_unregister_fd(dh, dfd);
 	dect_close(dh, dfd);
 
