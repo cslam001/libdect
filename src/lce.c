@@ -1283,8 +1283,10 @@ void dect_lce_exit(struct dect_handle *dh)
 	list_for_each_entry_safe(ddl, next, &dh->links, list)
 		dect_ddl_shutdown(dh, ddl);
 
-	dect_unregister_fd(dh, dh->s_sap);
-	dect_close(dh, dh->s_sap);
+	if (dh->mode == DECT_MODE_FP) {
+		dect_unregister_fd(dh, dh->s_sap);
+		dect_close(dh, dh->s_sap);
+	}
 
 	dect_unregister_fd(dh, dh->b_sap);
 	dect_close(dh, dh->b_sap);
