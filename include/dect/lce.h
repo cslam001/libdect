@@ -7,8 +7,6 @@
 #ifndef _LIBDECT_DECT_LCE_H
 #define _LIBDECT_DECT_LCE_H
 
-#include <dect/ie.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -17,6 +15,8 @@ extern "C" {
  * @addtogroup lce
  * @{
  */
+
+#include <dect/ie.h>
 
 struct dect_lce_page_param {
 	struct dect_ie_collection		common;

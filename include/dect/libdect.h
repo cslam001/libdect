@@ -7,6 +7,10 @@
 #ifndef _LIBDECT_DECT_LIBDECT_H
 #define _LIBDECT_DECT_LIBDECT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -21,10 +25,6 @@
 #include <dect/ss.h>
 #include <dect/debug.h>
 #include <list.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct dect_handle;
 
