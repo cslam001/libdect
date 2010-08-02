@@ -5,15 +5,7 @@
 #include <dect/libdect.h>
 #include <debug.h>
 #include <list.h>
-
-struct dect_fp_capabilities {
-	uint32_t		fpc;
-	uint16_t		hlc;
-	uint16_t		efpc;
-	uint32_t		ehlc;
-	uint16_t		efpc2;
-	uint32_t		ehlc2;
-};
+#include <lce.h>
 
 enum dect_pp_identities {
 	DECT_PP_IPUI		= 0x1,
@@ -39,7 +31,6 @@ enum dect_pp_identities {
  * @links:	list of data links
  * @mme_list:	MM endpoint list
  */
-#include <lce.h>
 struct dect_handle {
 	const struct dect_ops		*ops;
 

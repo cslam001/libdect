@@ -2,6 +2,17 @@
 #include "common.h"
 
 /*
+ * LLME Ops
+ */
+
+static void llme_mac_me_info_ind(struct dect_handle *dh,
+				 const struct dect_fp_capabilities *fpc)
+{
+}
+
+static struct dect_llme_ops_ dummy_llme_ops;
+
+/*
  * LCE Ops
  */
 
@@ -287,10 +298,18 @@ static struct dect_ss_ops dummy_ss_ops;
 
 void dect_dummy_ops_init(struct dect_ops *ops)
 {
+	struct dect_llme_ops_ *llme_ops;
 	struct dect_lce_ops *lce_ops;
 	struct dect_cc_ops *cc_ops;
 	struct dect_mm_ops *mm_ops;
 	struct dect_ss_ops *ss_ops;
+
+	if (!ops->llme_ops)
+		ops->llme_ops = &dummy_llme_ops;
+	llme_ops = (void *)ops->llme_ops;
+
+	if (!llme_ops->mac_me_info_ind)
+		llme_ops->mac_me_info_ind = llme_mac_me_info_ind;
 
 	if (!ops->lce_ops)
 		ops->lce_ops = &dummy_lce_ops;

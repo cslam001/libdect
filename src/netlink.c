@@ -8,6 +8,11 @@
  * published by the Free Software Foundation.
  */
 
+/**
+ * @defgroup llme Lower Layer Management Entity (LLME)
+ * @{
+ */
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdarg.h>
@@ -32,8 +37,9 @@
 
 struct dect_netlink_handler {
 	struct dect_handle	*dh;
-	void			(*rcv)(struct dect_handle *,
+	void			(*rcv)(struct dect_handle *, bool,
 				       struct nl_object *);
+	bool			request;
 };
 
 static void __maybe_unused dect_netlink_obj_dump(struct nl_object *obj)
@@ -56,7 +62,7 @@ static void dect_netlink_obj_rcv(struct nl_object *obj, void *arg)
 {
 	struct dect_netlink_handler *handler = arg;
 
-	handler->rcv(handler->dh, obj);
+	handler->rcv(handler->dh, handler->request, obj);
 }
 
 static int dect_netlink_msg_rcv(struct nl_msg *msg, void *arg)
@@ -115,7 +121,8 @@ static void dect_netlink_parse_ari(struct dect_ari *ari, const struct nl_dect_ar
 	}
 }
 
-static void dect_netlink_cluster_rcv(struct dect_handle *dh, struct nl_object *obj)
+static void dect_netlink_cluster_rcv(struct dect_handle *dh, bool request,
+				     struct nl_object *obj)
 {
 	struct nl_dect_cluster *cl = nl_object_priv(obj);
 
@@ -154,6 +161,17 @@ static int dect_netlink_get_cluster(struct dect_handle *dh, const char *name)
  * LLME
  */
 
+/**
+ * Get FP capabilities
+ *
+ * @param dh		libdect DECT handle
+ */
+const struct dect_fp_capabilities *dect_llme_fp_capabilities(const struct dect_handle *dh)
+{
+	return &dh->fpc;
+}
+EXPORT_SYMBOL(dect_llme_fp_capabilities);
+
 static void dect_fp_capabilities_dump(struct dect_fp_capabilities *fpc)
 {
 	char buf1[256], buf2[256], buf3[256];
@@ -173,7 +191,7 @@ static void dect_fp_capabilities_dump(struct dect_fp_capabilities *fpc)
 		 buf2, buf2[0] && buf3[0] ? "," : "", buf3);
 }
 
-static void dect_netlink_llme_mac_info_rcv(struct dect_handle *dh,
+static void dect_netlink_llme_mac_info_rcv(struct dect_handle *dh, bool request,
 					   struct nl_dect_llme_msg *lmsg)
 {
 	struct dect_fp_capabilities *fpc = &dh->fpc;
@@ -186,9 +204,12 @@ static void dect_netlink_llme_mac_info_rcv(struct dect_handle *dh,
 	fpc->ehlc2 = nl_dect_llme_mac_info_get_ehlc2(lmsg);
 
 	dect_fp_capabilities_dump(fpc);
+	if (!request)
+		dh->ops->llme_ops->mac_me_info_ind(dh, fpc);
 }
 
-static void dect_netlink_llme_rcv(struct dect_handle *dh, struct nl_object *obj)
+static void dect_netlink_llme_rcv(struct dect_handle *dh, bool request,
+				  struct nl_object *obj)
 {
 	struct nl_dect_llme_msg *lmsg = nl_object_priv(obj);
 	enum dect_llme_msg_types type;
@@ -200,7 +221,7 @@ static void dect_netlink_llme_rcv(struct dect_handle *dh, struct nl_object *obj)
 #define LLME_MSG(type, op)	(type << 16 | op)
 	switch (LLME_MSG(type, op)) {
 	case LLME_MSG(DECT_LLME_MAC_INFO, DECT_LLME_INDICATE):
-		return dect_netlink_llme_mac_info_rcv(dh, lmsg);
+		return dect_netlink_llme_mac_info_rcv(dh, request, lmsg);
 	default:
 		nl_debug("unknown LLME message: type: %u op: %u\n", type, op);
 		dect_netlink_obj_dump(obj);
@@ -210,8 +231,9 @@ static void dect_netlink_llme_rcv(struct dect_handle *dh, struct nl_object *obj)
 static int dect_netlink_mac_info_req(struct dect_handle *dh)
 {
 	struct dect_netlink_handler handler = {
-		.dh	= dh,
-		.rcv	= dect_netlink_llme_rcv,
+		.dh		= dh,
+		.rcv		= dect_netlink_llme_rcv,
+		.request	= true,
 	};
 	struct nl_dect_llme_msg *lmsg;
 	int err;
@@ -318,3 +340,5 @@ void dect_netlink_exit(struct dect_handle *dh)
 	nl_socket_free(dh->nlsock);
 	dect_free(dh, dh->nlfd);
 }
+
+/** @} */
