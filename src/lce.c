@@ -575,14 +575,15 @@ static void dect_ddl_complete_direct_establish(struct dect_handle *dh,
 	ddl->state = DECT_DATA_LINK_ESTABLISHED;
 	ddl_debug(ddl, "complete direct link establishment");
 
+	dect_fd_unregister(dh, ddl->dfd);
+	if (dect_fd_register(dh, ddl->dfd, DECT_FD_READ) < 0)
+		return dect_ddl_shutdown(dh, ddl);
+
 	/* Send queued messages */
 	list_for_each_entry_safe(mb, mb_next, &ddl->msg_queue, list) {
 		list_del(&mb->list);
 		dect_send(dh, ddl, mb);
 	}
-
-	dect_fd_unregister(dh, ddl->dfd);
-	dect_fd_register(dh, ddl->dfd, DECT_FD_READ);
 }
 
 static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
