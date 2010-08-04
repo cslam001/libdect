@@ -488,6 +488,7 @@ struct dect_ie_auth_type {
 	uint8_t				auth_key_num;
 	uint8_t				flags;
 	uint8_t				cipher_key_num;
+	uint16_t			defck_index;
 };
 
 /**

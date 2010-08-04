@@ -737,6 +737,9 @@ static void dect_sfmt_dump_auth_type(const struct dect_ie_common *_ie)
 		   ie->flags & DECT_AUTH_FLAG_DEF ? 1 : 0,
 		   ie->flags & DECT_AUTH_FLAG_TXC ? 1 : 0,
 		   ie->flags & DECT_AUTH_FLAG_UPC ? 1 : 0);
+	if (ie->flags & DECT_AUTH_FLAG_DEF)
+		sfmt_debug("\tdefault cipher key index: %u\n",
+			   ie->defck_index);
 }
 
 static int dect_sfmt_parse_auth_type(const struct dect_handle *dh,
@@ -756,6 +759,13 @@ static int dect_sfmt_parse_auth_type(const struct dect_handle *dh,
 
 	dst->flags	    = src->data[n] & 0xf0;
 	dst->cipher_key_num = src->data[n] & 0x0f;
+	n++;
+
+	/* Octets 5a and 5b are only present if the DEF flag is set */
+	if (dst->flags & DECT_AUTH_FLAG_DEF)
+		dst->defck_index = src->data[n] << 8 |
+				   src->data[n + 1];
+
 	return 0;
 }
 
@@ -776,6 +786,12 @@ static int dect_sfmt_build_auth_type(struct dect_sfmt_ie *dst,
 	dst->data[n]  = src->flags;
 	dst->data[n] |= src->cipher_key_num;
 	n++;
+
+	/* Octets 5a and 5b are only present if the DEF flag is set */
+	if (src->flags & DECT_AUTH_FLAG_DEF) {
+		dst->data[n++] = src->defck_index >> 8;
+		dst->data[n++] = src->defck_index;
+	}
 
 	dst->len = n;
 	return 0;
