@@ -30,6 +30,8 @@ struct dect_llme_ops_ {
 };
 
 extern const struct dect_fp_capabilities *dect_llme_fp_capabilities(const struct dect_handle *dh);
+extern int dect_llme_rfp_preload_req(struct dect_handle *dh,
+				     const struct dect_fp_capabilities *fpc);
 
 /** @} */
 

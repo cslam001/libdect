@@ -161,6 +161,20 @@ static int dect_netlink_get_cluster(struct dect_handle *dh, const char *name)
  * LLME
  */
 
+static struct nl_dect_llme_msg *dect_llme_msg_init(const struct dect_handle *dh,
+						   enum dect_llme_msg_types type)
+{
+	struct nl_dect_llme_msg *lmsg;
+
+	lmsg = nl_dect_llme_msg_alloc();
+	if (lmsg == NULL)
+		return NULL;
+	nl_dect_llme_msg_set_type(lmsg, type);
+	nl_dect_llme_msg_set_op(lmsg, DECT_LLME_REQUEST);
+	nl_dect_llme_msg_set_index(lmsg, dh->index);
+	return lmsg;
+}
+
 /**
  * Get FP capabilities
  *
@@ -172,23 +186,25 @@ const struct dect_fp_capabilities *dect_llme_fp_capabilities(const struct dect_h
 }
 EXPORT_SYMBOL(dect_llme_fp_capabilities);
 
-static void dect_fp_capabilities_dump(struct dect_fp_capabilities *fpc)
+static void dect_fp_capabilities_dump(const struct dect_fp_capabilities *fpc)
 {
 	char buf1[512], buf2[512], buf3[512];
 
 	nl_dect_llme_fpc2str(fpc->fpc, buf1, sizeof(buf1));
 	nl_dect_llme_efpc2str(fpc->efpc, buf2, sizeof(buf2));
 	nl_dect_llme_efpc22str(fpc->efpc2, buf3, sizeof(buf3));
-	nl_debug("FPC: %s%s%s%s%s\n",
-		 buf1, buf1[0] && (buf2[0] || buf3[0]) ? "," : "",
-		 buf2, buf2[0] && buf3[0] ? "," : "", buf3);
+	if (buf1[0] || buf2[0] || buf3[0])
+		nl_debug("FPC: %s%s%s%s%s\n",
+			 buf1, buf1[0] && (buf2[0] || buf3[0]) ? "," : "",
+			 buf2, buf2[0] && buf3[0] ? "," : "", buf3);
 
 	nl_dect_llme_hlc2str(fpc->hlc, buf1, sizeof(buf1));
 	nl_dect_llme_ehlc2str(fpc->ehlc, buf2, sizeof(buf2));
 	nl_dect_llme_ehlc22str(fpc->ehlc2, buf3, sizeof(buf3));
-	nl_debug("HLC: %s%s%s%s%s\n",
-		 buf1, buf1[0] && (buf2[0] || buf3[0]) ? "," : "",
-		 buf2, buf2[0] && buf3[0] ? "," : "", buf3);
+	if (buf1[0] || buf2[0] || buf3[0])
+		nl_debug("HLC: %s%s%s%s%s\n",
+			 buf1, buf1[0] && (buf2[0] || buf3[0]) ? "," : "",
+			 buf2, buf2[0] && buf3[0] ? "," : "", buf3);
 }
 
 static void dect_netlink_llme_mac_info_rcv(struct dect_handle *dh, bool request,
@@ -228,6 +244,36 @@ static void dect_netlink_llme_rcv(struct dect_handle *dh, bool request,
 	}
 }
 
+int dect_llme_rfp_preload_req(struct dect_handle *dh,
+			      const struct dect_fp_capabilities *fpc)
+{
+	struct dect_netlink_handler handler = {
+		.dh		= dh,
+		.rcv		= dect_netlink_llme_rcv,
+		.request	= true,
+	};
+	struct nl_dect_llme_msg *lmsg;
+	int err;
+
+	nl_debug_entry("MAC_ME_RFP_PRELOAD-req\n");
+	dect_fp_capabilities_dump(fpc);
+
+	lmsg = dect_llme_msg_init(dh, DECT_LLME_MAC_RFP_PRELOAD);
+	if (lmsg == NULL)
+		return -1;
+
+	nl_dect_llme_mac_info_set_hlc(lmsg, fpc->hlc);
+	nl_dect_llme_mac_info_set_ehlc(lmsg, fpc->ehlc);
+	nl_dect_llme_mac_info_set_ehlc2(lmsg, fpc->ehlc2);
+
+	dect_netlink_set_callback(dh, dect_netlink_msg_rcv, &handler);
+	err = nl_dect_llme_request(dh->nlsock, lmsg);
+	dect_netlink_set_callback(dh, NULL, NULL);
+	nl_dect_llme_msg_put(lmsg);
+	return err;
+}
+EXPORT_SYMBOL(dect_llme_rfp_preload_req);
+
 static int dect_netlink_mac_info_req(struct dect_handle *dh)
 {
 	struct dect_netlink_handler handler = {
@@ -238,12 +284,9 @@ static int dect_netlink_mac_info_req(struct dect_handle *dh)
 	struct nl_dect_llme_msg *lmsg;
 	int err;
 
-	lmsg = nl_dect_llme_msg_alloc();
+	lmsg = dect_llme_msg_init(dh, DECT_LLME_MAC_INFO);
 	if (lmsg == NULL)
 		return -1;
-	nl_dect_llme_msg_set_type(lmsg, DECT_LLME_MAC_INFO);
-	nl_dect_llme_msg_set_op(lmsg, DECT_LLME_REQUEST);
-	nl_dect_llme_msg_set_index(lmsg, dh->index);
 
 	dect_netlink_set_callback(dh, dect_netlink_msg_rcv, &handler);
 	err = nl_dect_llme_request(dh->nlsock, lmsg);
