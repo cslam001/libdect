@@ -125,26 +125,6 @@ static void mm_key_allocate_ind(struct dect_handle *dh,
 	dect_mm_authenticate_req(dh, mme, &reply);
 }
 
-static void init_terminal_capability(struct dect_ie_terminal_capability *terminal_capability)
-{
-	terminal_capability->tone		= DECT_TONE_CAPABILITY_DIAL_TONE_ONLY;
-	terminal_capability->echo		= DECT_ECHO_PARAMETER_FULL_TCLW;
-	terminal_capability->noise_rejection	= DECT_NOISE_REJECTION_NONE;
-	terminal_capability->volume_ctrl	= DECT_ADAPTIVE_VOLUME_PP_CONTROL_NONE;
-	terminal_capability->slot		= DECT_SLOT_CAPABILITY_FULL_SLOT;
-
-	terminal_capability->display		= DECT_DISPLAY_CAPABILITY_FULL_DISPLAY;
-	terminal_capability->display_memory	= 48;
-	terminal_capability->display_lines	= 3;
-	terminal_capability->display_columns	= 16;
-	terminal_capability->display_control	= DECT_DISPLAY_CONTROL_CODE_CODING_1;
-	terminal_capability->display_charsets	= 0;
-	terminal_capability->scrolling		= DECT_SCROLLING_NOT_SPECIFIED;
-	terminal_capability->profile_indicator	= DECT_PROFILE_GAP_SUPPORTED |
-						  DECT_PROFILE_NG_DECT_PART_1 |
-						  DECT_PROFILE_NG_DECT_PART_3;
-}
-
 static void mm_access_rights_cfm(struct dect_handle *dh,
 				 struct dect_mm_endpoint *mme, bool accept,
 				 struct dect_mm_access_rights_param *param)
@@ -172,7 +152,7 @@ static int mm_access_rights_req(struct dect_handle *dh, struct dect_mm_endpoint 
 	auth_type.cipher_key_num	= 0;
 	auth_type.flags			= 0;
 
-	init_terminal_capability(&terminal_capability);
+	dect_pp_init_terminal_capability(&terminal_capability);
 
 	return dect_mm_access_rights_req(dh, mme, &param);
 }

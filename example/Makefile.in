@@ -7,7 +7,7 @@ PROGRAMS	+= pp-detach pp-info-request pp-list-access pp-wait-page
 destdir		:= usr/share/dect/examples
 
 common-obj	+= common.o event_ops.o keys.o dummy_ops.o debug.o
-pp-common-obj	+= $(common-obj) pp-auth.o
+pp-common-obj	+= $(common-obj) pp-common.o pp-auth.o
 
 cc-destdir	:= $(destdir)
 cc-obj		+= $(common-obj)
@@ -24,7 +24,7 @@ mm-fp-obj	+= $(common-obj)
 mm-fp-obj	+= mm-fp.o
 
 pp-access-rights-destdir	:= $(destdir)
-pp-access-rights-obj		+= $(common-obj)
+pp-access-rights-obj		+= $(pp-common-obj)
 pp-access-rights-obj		+= pp-access-rights.o
 
 pp-access-rights-terminate-destdir := $(destdir)

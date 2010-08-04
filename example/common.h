@@ -24,6 +24,7 @@ extern int dect_read_uak(const struct dect_ipui *ipui,
 
 extern void dect_pp_auth_init(struct dect_ops *ops,
 			      const struct dect_ipui *ipui);
+extern void dect_pp_init_terminal_capability(struct dect_ie_terminal_capability *tcap);
 
 struct mm_auth_priv {
 	uint8_t         dck[DECT_CIPHER_KEY_LEN];
