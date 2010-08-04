@@ -174,7 +174,7 @@ EXPORT_SYMBOL(dect_llme_fp_capabilities);
 
 static void dect_fp_capabilities_dump(struct dect_fp_capabilities *fpc)
 {
-	char buf1[256], buf2[256], buf3[256];
+	char buf1[512], buf2[512], buf3[512];
 
 	nl_dect_llme_fpc2str(fpc->fpc, buf1, sizeof(buf1));
 	nl_dect_llme_efpc2str(fpc->efpc, buf2, sizeof(buf2));
