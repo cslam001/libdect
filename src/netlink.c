@@ -244,6 +244,17 @@ static void dect_netlink_llme_rcv(struct dect_handle *dh, bool request,
 	}
 }
 
+/**
+ * MAC_ME_RFP_PRELOAD-req primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param fpc		Fixed Part Capabilities
+ *
+ * Issue a MAC_ME_RFP_PRELOAD-req request to the kernel. If successful the
+ * broadcasted fixed part capabilities will be changed to the supplied values.
+ *
+ * @sa ETSI EN 300 175-3, section 8.3.2.1.
+ */
 int dect_llme_rfp_preload_req(struct dect_handle *dh,
 			      const struct dect_fp_capabilities *fpc)
 {
