@@ -580,8 +580,49 @@ struct dect_ie_called_party_subaddress {
  * @{
  */
 
+enum dect_presentation_indicators {
+	DECT_PRESENTATION_ALLOWED			= 0x0, /**< Presentation allowed */
+	DECT_PRESENTATION_RESTRICTED			= 0x1, /**< Presentation restricted */
+	DECT_PRESENTATION_NOT_AVAILABLE			= 0x2, /**< Name/Number not available */
+	DECT_PRESENTATION_HANDSET_LOCATOR		= 0x3, /**< Handset locator (Calling Party Name only) */
+};
+
+enum dect_alphabets {
+	DECT_ALPHABET_STANDARD				= 0x0, /**< DECT standard */
+	DECT_ALPHABET_UTF8				= 0x1, /**< UTF-8 */
+	DECT_ALPHABET_NETWORK_SPECIFIC			= 0x7, /**< Network specific */
+};
+
+enum dect_screening_indicators {
+	DECT_SCREENING_USER_PROVIDED_NOT_SCREENED	= 0x0, /**< User-provided, not screened */
+	DECT_SCREENING_USER_PROVIDED_VERIFIED_PASSED	= 0x1, /**< User-provided, verified and passed */
+	DECT_SCREENING_USER_PROVIDED_VERIFIED_FAILED	= 0x2, /**< User-provided, verified and failed */
+	DECT_SCREENING_NETWORK_PROVIDED			= 0x3, /**< Network provided */
+};
+
 struct dect_ie_calling_party_number {
-	struct dect_ie_common		common;
+	struct dect_ie_common			common;
+	enum dect_number_type			type:8;
+	enum dect_numbering_plan_identification	npi:8;
+	enum dect_presentation_indicators	presentation:8;
+	enum dect_screening_indicators		screening:8;
+	uint8_t					len;
+	uint8_t					address[64];
+};
+
+/**
+ * @}
+ * @defgroup ie_calling_party_name Calling party Name
+ * @{
+ */
+
+struct dect_ie_calling_party_name {
+	struct dect_ie_common			common;
+	enum dect_presentation_indicators	presentation:8;
+	enum dect_alphabets			alphabet:8;
+	enum dect_screening_indicators		screening:8;
+	uint8_t					len;
+	uint8_t					name[64];
 };
 
 /**
@@ -1496,14 +1537,6 @@ struct dect_ie_auth_reject_parameter {
  * @}@}
  * @addtogroup ie_cc_related
  * @{
- * @defgroup ie_calling_party_name Calling party Name
- */
-
-struct dect_ie_calling_party_name {
-	struct dect_ie_common		common;
-};
-
-/**
  * @defgroup ie_codec_list Codec List
  * @{
  **/

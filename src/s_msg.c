@@ -1377,6 +1377,134 @@ static const struct dect_trans_tbl dect_npis[] = {
 	TRANS_TBL(DECT_NPI_RESERVED,			"reserved"),
 };
 
+static const struct dect_trans_tbl dect_presentation_indicators[] = {
+	TRANS_TBL(DECT_PRESENTATION_ALLOWED,			"Presentation allowed"),
+	TRANS_TBL(DECT_PRESENTATION_RESTRICTED,			"Presentation restricted"),
+	TRANS_TBL(DECT_PRESENTATION_NOT_AVAILABLE,		"Name/Number not available"),
+	TRANS_TBL(DECT_PRESENTATION_HANDSET_LOCATOR,		"Handset locator"),
+};
+
+static const struct dect_trans_tbl dect_alphabets[] = {
+	TRANS_TBL(DECT_ALPHABET_STANDARD,			"DECT standard"),
+	TRANS_TBL(DECT_ALPHABET_UTF8,				"UTF-8"),
+	TRANS_TBL(DECT_ALPHABET_NETWORK_SPECIFIC,		"Network specific"),
+};
+
+static const struct dect_trans_tbl dect_screening_indicators[] = {
+	TRANS_TBL(DECT_SCREENING_USER_PROVIDED_NOT_SCREENED,	"User-provided, not screened"),
+	TRANS_TBL(DECT_SCREENING_USER_PROVIDED_VERIFIED_PASSED,	"User-provided, verified and passed"),
+	TRANS_TBL(DECT_SCREENING_USER_PROVIDED_VERIFIED_FAILED,	"User-provided, verified and failed"),
+	TRANS_TBL(DECT_SCREENING_NETWORK_PROVIDED,		"Network provided"),
+};
+
+static void dect_sfmt_dump_calling_party_number(const struct dect_ie_common *_ie)
+{
+	struct dect_ie_calling_party_number *ie = dect_ie_container(ie, _ie);
+	char buf[64];
+
+	sfmt_debug("\tNumber type: %s\n", dect_val2str(dect_number_types, buf, ie->type));
+	sfmt_debug("\tNumbering Plan: %s\n", dect_val2str(dect_npis, buf, ie->npi));
+	sfmt_debug("\tPresentation indicator: %s\n",
+		   dect_val2str(dect_presentation_indicators, buf, ie->presentation));
+	sfmt_debug("\tScreening indicator: %s\n",
+		   dect_val2str(dect_screening_indicators, buf, ie->screening));
+	sfmt_debug("\tAddress: %.*s\n", ie->len, ie->address);
+}
+
+static int dect_sfmt_parse_calling_party_number(const struct dect_handle *dh,
+						struct dect_ie_common **ie,
+						const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_calling_party_number *dst = dect_ie_container(dst, *ie);
+	unsigned int n = 2;
+
+	dst->type         = (src->data[n] & 0x70) >> 4;
+	dst->npi          = (src->data[n] & 0x0f);
+	if (src->data[n] & DECT_OCTET_GROUP_END)
+		goto group4;
+	n++;
+	dst->presentation = (src->data[n] & 0x3) >> 5;
+	dst->screening    = (src->data[n] & 0x3);
+	if (!(src->data[n] & DECT_OCTET_GROUP_END))
+		return -1;
+group4:
+	n++;
+	dst->len          = src->len - n;
+	if (dst->len > array_size(dst->address))
+		return -1;
+	memcpy(dst->address, src->data + n, dst->len);
+	return 0;
+}
+
+static int dect_sfmt_build_calling_party_number(struct dect_sfmt_ie *dst,
+					        const struct dect_ie_common *ie)
+{
+	struct dect_ie_calling_party_number *src = dect_ie_container(src, ie);
+	unsigned int n = 2;
+
+	dst->data[n]  = src->type << 4;
+	dst->data[n] |= src->npi;
+
+	if (src->presentation == DECT_PRESENTATION_RESTRICTED ||
+	    src->presentation == DECT_PRESENTATION_NOT_AVAILABLE) {
+		dst->data[n] |= DECT_OCTET_GROUP_END;
+		goto group4;
+	}
+	n++;
+	dst->data[n]  = src->presentation << 5;
+	dst->data[n] |= src->screening;
+	dst->data[n] |= DECT_OCTET_GROUP_END;
+group4:
+	n++;
+	memcpy(dst->data + n, src->address, src->len);
+	dst->len = src->len + n;
+	return 0;
+}
+
+static void dect_sfmt_dump_calling_party_name(const struct dect_ie_common *_ie)
+{
+	struct dect_ie_calling_party_name *ie = dect_ie_container(ie, _ie);
+	char buf[64];
+
+	sfmt_debug("\tPresentation indicator: %s\n",
+		   dect_val2str(dect_presentation_indicators, buf, ie->presentation));
+	sfmt_debug("\tUsed alphabet: %s\n",
+		   dect_val2str(dect_alphabets, buf, ie->alphabet));
+	sfmt_debug("\tScreening indicator: %s\n",
+		   dect_val2str(dect_screening_indicators, buf, ie->screening));
+	sfmt_debug("\tName: %.*s\n", ie->len, ie->name);
+}
+
+static int dect_sfmt_parse_calling_party_name(const struct dect_handle *dh,
+					      struct dect_ie_common **ie,
+					      const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_calling_party_name *dst = dect_ie_container(dst, *ie);
+
+	dst->presentation = (src->data[2] & 0x3) >> 5;
+	dst->alphabet     = (src->data[2] & 0x7) >> 2;
+	dst->screening    = (src->data[2] & 0x3);
+
+	dst->len          = src->len - 3;
+	if (dst->len > array_size(dst->name))
+		return -1;
+	memcpy(dst->name, src->data + 3, dst->len);
+	return 0;
+}
+
+static int dect_sfmt_build_calling_party_name(struct dect_sfmt_ie *dst,
+					      const struct dect_ie_common *ie)
+{
+	struct dect_ie_calling_party_name *src = dect_ie_container(src, ie);
+
+	dst->data[2]  = src->presentation << 5;
+	dst->data[2] |= src->alphabet << 2;
+	dst->data[2] |= src->screening;
+	memcpy(dst->data + 3, src->name, src->len);
+	dst->len = src->len + 3;
+	return 0;
+}
+
 static void dect_sfmt_dump_called_party_number(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_called_party_number *ie = dect_ie_container(ie, _ie);
@@ -1998,10 +2126,16 @@ static const struct dect_ie_handler {
 	[S_VL_IE_CALLING_PARTY_NUMBER]		= {
 		.name	= "CALLING-PARTY-NUMBER",
 		.size	= sizeof(struct dect_ie_calling_party_number),
+		.parse	= dect_sfmt_parse_calling_party_number,
+		.build	= dect_sfmt_build_calling_party_number,
+		.dump	= dect_sfmt_dump_calling_party_number,
 	},
 	[S_VL_IE_CALLING_PARTY_NAME]		= {
 		.name	= "CALLING-PARTY-NAME",
 		.size	= sizeof(struct dect_ie_calling_party_name),
+		.parse	= dect_sfmt_parse_calling_party_name,
+		.build	= dect_sfmt_build_calling_party_name,
+		.dump	= dect_sfmt_dump_calling_party_name,
 	},
 	[S_VL_IE_CALLED_PARTY_NUMBER]		= {
 		.name	= "CALLED-PARTY-NUMBER",
