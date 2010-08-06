@@ -515,7 +515,7 @@ struct dect_ie_call_identity {
 
 /**
  * @}
- * @defgroup ie_called_party_number Called party number
+ * @defgroup Party Identification
  * @{
  */
 
@@ -552,6 +552,42 @@ enum dect_numbering_plan_identification {
 };
 
 /**
+ * Presentation Indicators specified in ETSI EN 300 175-5, section 7.7.9
+ * and 7.7.53.
+ */
+enum dect_presentation_indicators {
+	DECT_PRESENTATION_ALLOWED			= 0x0, /**< Presentation allowed */
+	DECT_PRESENTATION_RESTRICTED			= 0x1, /**< Presentation restricted */
+	DECT_PRESENTATION_NOT_AVAILABLE			= 0x2, /**< Name/Number not available */
+	DECT_PRESENTATION_HANDSET_LOCATOR		= 0x3, /**< Handset locator (Calling Party Name only) */
+};
+
+/**
+ * Alphabets specified in ETSI EN 300 175-5, section 7.7.53.
+ */
+enum dect_alphabets {
+	DECT_ALPHABET_STANDARD				= 0x0, /**< DECT standard */
+	DECT_ALPHABET_UTF8				= 0x1, /**< UTF-8 */
+	DECT_ALPHABET_NETWORK_SPECIFIC			= 0x7, /**< Network specific */
+};
+
+/**
+ * Screening Indicators specified in ETSI EN 300 175-5, section 7.7.9
+ * and 7.7.53.
+ */
+enum dect_screening_indicators {
+	DECT_SCREENING_USER_PROVIDED_NOT_SCREENED	= 0x0, /**< User-provided, not screened */
+	DECT_SCREENING_USER_PROVIDED_VERIFIED_PASSED	= 0x1, /**< User-provided, verified and passed */
+	DECT_SCREENING_USER_PROVIDED_VERIFIED_FAILED	= 0x2, /**< User-provided, verified and failed */
+	DECT_SCREENING_NETWORK_PROVIDED			= 0x3, /**< Network provided */
+};
+
+/**
+ * @defgroup ie_called_party_number Called party number
+ * @{
+ */
+
+/**
  * Called party number IE specified in ETSI EN 300 175-5 section 7.7.4.
  *
  * The <<CALLED-PARTY-NUMBER>> IE identifies the called party of a call in an
@@ -581,26 +617,6 @@ struct dect_ie_called_party_subaddress {
  * @{
  */
 
-enum dect_presentation_indicators {
-	DECT_PRESENTATION_ALLOWED			= 0x0, /**< Presentation allowed */
-	DECT_PRESENTATION_RESTRICTED			= 0x1, /**< Presentation restricted */
-	DECT_PRESENTATION_NOT_AVAILABLE			= 0x2, /**< Name/Number not available */
-	DECT_PRESENTATION_HANDSET_LOCATOR		= 0x3, /**< Handset locator (Calling Party Name only) */
-};
-
-enum dect_alphabets {
-	DECT_ALPHABET_STANDARD				= 0x0, /**< DECT standard */
-	DECT_ALPHABET_UTF8				= 0x1, /**< UTF-8 */
-	DECT_ALPHABET_NETWORK_SPECIFIC			= 0x7, /**< Network specific */
-};
-
-enum dect_screening_indicators {
-	DECT_SCREENING_USER_PROVIDED_NOT_SCREENED	= 0x0, /**< User-provided, not screened */
-	DECT_SCREENING_USER_PROVIDED_VERIFIED_PASSED	= 0x1, /**< User-provided, verified and passed */
-	DECT_SCREENING_USER_PROVIDED_VERIFIED_FAILED	= 0x2, /**< User-provided, verified and failed */
-	DECT_SCREENING_NETWORK_PROVIDED			= 0x3, /**< Network provided */
-};
-
 struct dect_ie_calling_party_number {
 	struct dect_ie_common			common;
 	enum dect_number_type			type:8;
@@ -627,7 +643,7 @@ struct dect_ie_calling_party_name {
 };
 
 /**
- * @}@}
+ * @}@}@}
  * @defgroup ie_ciphering Ciphering related
  * @{
  * @defgroup ie_cipher_info Cipher info
