@@ -495,16 +495,32 @@ static int dect_cc_send_msg(struct dect_handle *dh, struct dect_call *call,
 	return dect_lce_send(dh, &call->transaction, desc, msg, type);
 }
 
+static void dect_cc_send_release_com(struct dect_handle *dh,
+				     struct dect_transaction *ta,
+				     enum dect_release_reasons reason)
+{
+	struct dect_ie_release_reason release_reason;
+	struct dect_cc_release_com_msg msg = {
+		.release_reason		= &release_reason,
+	};
+
+	release_reason.reason = reason;
+	dect_lce_send(dh, ta, &cc_release_com_msg_desc,
+		      &msg.common, CC_RELEASE_COM);
+}
+
 static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer)
 {
 	struct dect_call *call = timer->data;
 	struct dect_mncc_release_param *param;
 
 	cc_debug(call, "setup timer");
+	dect_cc_send_release_com(dh, &call->transaction,
+				 DECT_RELEASE_TIMER_EXPIRY);
+
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
 		goto out;
-	// release-com
 
 	cc_debug(call, "MNCC_REJECT-ind");
 	dh->ops->cc_ops->mncc_reject_ind(dh, call, param);
@@ -1559,7 +1575,9 @@ static void dect_cc_open(struct dect_handle *dh,
 			 struct dect_transaction *req,
 			 struct dect_msg_buf *mb)
 {
-	dect_debug(DECT_DEBUG_CC, "CC: unknown transaction: msg type: %x\n", mb->type);
+	dect_debug(DECT_DEBUG_CC, "CC: unknown transaction: msg type: %x\n",
+		   mb->type);
+
 	switch (mb->type) {
 	case CC_SETUP:
 		return dect_cc_rcv_setup(dh, req, mb);
@@ -1567,8 +1585,8 @@ static void dect_cc_open(struct dect_handle *dh,
 	case CC_RELEASE_COM:
 		break;
 	default:
-		// send release-com
-		break;
+		return dect_cc_send_release_com(dh, req,
+				DECT_RELEASE_UNKNOWN_TRANSACTION_IDENTIFIER);
 	}
 }
 
