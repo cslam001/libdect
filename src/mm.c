@@ -535,12 +535,17 @@ struct dect_mm_endpoint *dect_mm_endpoint_alloc(struct dect_handle *dh,
 	if (dect_mm_procedure_init(dh, mme, DECT_TRANSACTION_RESPONDER) < 0)
 		goto err3;
 
-	if (ipui != NULL)
+	if (ipui != NULL) {
 		mme->link = dect_ddl_connect(dh, ipui);
+		if (mme->link == NULL)
+			goto err4;
+	}
 
 	list_add_tail(&mme->list, &dh->mme_list);
 	return mme;
 
+err4:
+	dect_free(dh, mme->procedure[DECT_TRANSACTION_RESPONDER].timer);
 err3:
 	dect_free(dh, mme->procedure[DECT_TRANSACTION_INITIATOR].timer);
 err2:
