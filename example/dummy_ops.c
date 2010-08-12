@@ -296,6 +296,19 @@ static void mnss_release_ind(struct dect_handle *dh, struct dect_ss_endpoint *ss
 
 static struct dect_ss_ops dummy_ss_ops;
 
+/*
+ * CLMS Ops
+ */
+
+static void mncl_unitdata_ind(struct dect_handle *dh,
+			      enum dect_clms_message_types type,
+			      struct dect_mncl_unitdata_param *param,
+			      struct dect_msg_buf *mb)
+{
+}
+
+static struct dect_clms_ops dummy_clms_ops;
+
 void dect_dummy_ops_init(struct dect_ops *ops)
 {
 	struct dect_llme_ops_ *llme_ops;
@@ -303,6 +316,7 @@ void dect_dummy_ops_init(struct dect_ops *ops)
 	struct dect_cc_ops *cc_ops;
 	struct dect_mm_ops *mm_ops;
 	struct dect_ss_ops *ss_ops;
+	struct dect_clms_ops *clms_ops;
 
 	if (!ops->llme_ops)
 		ops->llme_ops = &dummy_llme_ops;
@@ -416,4 +430,11 @@ void dect_dummy_ops_init(struct dect_ops *ops)
 		ss_ops->mnss_facility_ind = mnss_facility_ind;
 	if (!ss_ops->mnss_release_ind)
 		ss_ops->mnss_release_ind = mnss_release_ind;
+
+	if (!ops->clms_ops)
+		ops->clms_ops = &dummy_clms_ops;
+	clms_ops = (void *)ops->clms_ops;
+
+	if (!clms_ops->mncl_unitdata_ind)
+		clms_ops->mncl_unitdata_ind = mncl_unitdata_ind;
 }

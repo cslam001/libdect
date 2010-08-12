@@ -21,6 +21,7 @@ enum dect_debug_subsys {
 	DECT_DEBUG_LCE,		/**< Link Control Entity */
 	DECT_DEBUG_CC,		/**< Call Control */
 	DECT_DEBUG_SS,		/**< Supplementary Services */
+	DECT_DEBUG_CLMS,	/**< ConnectionLess Message Service */
 	DECT_DEBUG_MM,		/**< Mobility Management */
 	DECT_DEBUG_SFMT,	/**< S-Format message parsing/construction */
 	DECT_DEBUG_NL,		/**< Netlink communication */

@@ -10,6 +10,7 @@ dect-obj	+= ie.o
 dect-obj	+= lce.o
 dect-obj	+= cc.o
 dect-obj	+= ss.o
+dect-obj	+= clms.o
 dect-obj	+= mm.o
 dect-obj	+= keypad.o
 dect-obj	+= auth.o

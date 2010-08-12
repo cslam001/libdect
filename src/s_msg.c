@@ -1054,7 +1054,8 @@ static void dect_sfmt_dump_network_parameter(const struct dect_ie_common *_ie)
 
 	sfmt_debug("\tDiscriminator: %s\n",
 		   dect_val2str(dect_network_parameter_discriminators,
-			        buf, sizeof(buf)));
+			        buf, ie->discriminator));
+	sfmt_debug("\tData: %.*s\n", ie->len, ie->data);
 }
 
 static int dect_sfmt_parse_network_parameter(const struct dect_handle *dh,

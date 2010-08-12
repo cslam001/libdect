@@ -33,6 +33,7 @@
 #include <io.h>
 #include <s_fmt.h>
 #include <b_fmt.h>
+#include <clms.h>
 #include <lce.h>
 #include <ss.h>
 #include <dect/auth.h>
@@ -782,9 +783,9 @@ err1:
  * Paging
  */
 
-static ssize_t dect_lce_broadcast(const struct dect_handle *dh,
-				  const struct dect_msg_buf *mb,
-				  bool long_page)
+ssize_t dect_lce_broadcast(const struct dect_handle *dh,
+			   const struct dect_msg_buf *mb,
+			   bool long_page)
 {
 	struct msghdr msg;
 	struct dect_bsap_auxdata aux;
@@ -1046,6 +1047,7 @@ static void dect_lce_rcv_long_page(struct dect_handle *dh,
 				   struct dect_msg_buf *mb)
 {
 	lce_debug("long page: length: %u\n", mb->len);
+	dect_clms_rcv_fixed(dh, mb);
 }
 
 static void dect_lce_bsap_event(struct dect_handle *dh, struct dect_fd *dfd,

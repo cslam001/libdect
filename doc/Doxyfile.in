@@ -584,6 +584,7 @@ INPUT                  = src/libdect.c \
 			 src/mm.c \
 			 src/cc.c \
 			 src/ss.c \
+			 src/clms.c \
 			 src \
 			 include/dect
 

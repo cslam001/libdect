@@ -53,11 +53,6 @@ enum dect_pds {
 /* Message type element */
 #define DECT_S_PD_MSG_TYPE_MASK			0x7f
 
-/* CLMS message types */
-enum dect_clms_msg_types {
-	DECT_CLMS_VARIABLE			= 0x1,
-};
-
 /*
  * Information elements
  */

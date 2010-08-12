@@ -93,6 +93,10 @@ extern int dect_lce_send(const struct dect_handle *dh,
 extern int dect_lce_retransmit(const struct dect_handle *dh,
 			       struct dect_transaction *ta);
 
+extern ssize_t dect_lce_broadcast(const struct dect_handle *dh,
+				  const struct dect_msg_buf *mb,
+				  bool long_page);
+
 /**
  * struct dect_nwk_protocol - NWK layer protocol
  *

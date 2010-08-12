@@ -418,8 +418,25 @@ struct dect_ie_allocation_type {
  * @{
  */
 
+enum dect_character_types {
+	DECT_CHARACTER_TYPE_USER_SPECIFIC	= 0x0,
+	DECT_CHARACTER_TYPE_STANDARD_8BIT	= 0x1,
+	DECT_CHARACTER_TYPE_STANDARD_4BIT	= 0x2,
+};
+
+enum dect_character_sets {
+	DECT_CHARSET_DECT_STANDARD		= 0x1,
+	DECT_CHARSET_IA5			= 0x2,
+	DECT_CHARSET_ERMES			= 0x4,
+	DECT_CHARSET_ASCII			= 0x6,
+};
+
 struct dect_ie_alphanumeric {
-	struct dect_ie_common		common;
+	struct dect_ie_common			common;
+	enum dect_character_types		type;
+	enum dect_character_sets		charset;
+	uint8_t					len;
+	uint8_t					data[64];
 };
 
 /**
