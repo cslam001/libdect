@@ -103,7 +103,7 @@ static ssize_t dect_mbuf_rcv(const struct dect_fd *dfd, struct msghdr *msg,
 	msg->msg_namelen	= 0;
 	msg->msg_iov		= &iov;
 	msg->msg_iovlen		= 1;
-	msg->msg_flags		= 0;
+	msg->msg_flags		= MSG_NOSIGNAL;
 
 	iov.iov_base		= mb->data;
 	iov.iov_len		= sizeof(mb->head);
@@ -407,7 +407,7 @@ static int dect_send(const struct dect_handle *dh,
 	ssize_t len;
 
 	dect_mbuf_dump(DECT_DEBUG_LCE, mb, "LCE: TX");
-	len = send(ddl->dfd->fd, mb->data, mb->len, 0);
+	len = send(ddl->dfd->fd, mb->data, mb->len, MSG_NOSIGNAL);
 	if (len < 0)
 		ddl_debug(ddl, "send %u bytes: %s", mb->len, strerror(errno));
 	dect_mbuf_free(dh, mb);
