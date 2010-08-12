@@ -118,6 +118,29 @@ static ssize_t dect_mbuf_rcv(const struct dect_fd *dfd, struct msghdr *msg,
 	return len;
 }
 
+static ssize_t dect_mbuf_send(const struct dect_handle *dh,
+			      const struct dect_fd *dfd,
+			      struct msghdr *msg, const struct dect_msg_buf *mb)
+{
+	struct iovec iov;
+	ssize_t len;
+
+	msg->msg_name		= NULL;
+	msg->msg_namelen	= 0;
+	msg->msg_iov		= &iov;
+	msg->msg_iovlen		= 1;
+	msg->msg_flags		= MSG_NOSIGNAL;
+
+	iov.iov_base		= mb->data;
+	iov.iov_len		= mb->len;
+
+	len = sendmsg(dfd->fd, msg, 0);
+	if (len < 0)
+		lce_debug("sendmsg: %u bytes: %s\n", mb->len, strerror(errno));
+
+	return len;
+}
+
 #if 0
 /*
  * Location Table
@@ -400,23 +423,22 @@ static void dect_ddl_stop_sdu_timer(const struct dect_handle *dh,
 	dect_timer_stop(dh, ddl->sdu_timer);
 }
 
-static int dect_send(const struct dect_handle *dh,
-		     const struct dect_data_link *ddl,
-		     struct dect_msg_buf *mb)
+static ssize_t dect_ddl_send(const struct dect_handle *dh,
+			     const struct dect_data_link *ddl,
+			     struct dect_msg_buf *mb)
 {
-	ssize_t len;
+	struct msghdr msg;
+	ssize_t size;
 
+	memset(&msg, 0, sizeof(msg));
 	dect_mbuf_dump(DECT_DEBUG_LCE, mb, "LCE: TX");
-	len = send(ddl->dfd->fd, mb->data, mb->len, MSG_NOSIGNAL);
-	if (len < 0)
-		ddl_debug(ddl, "send %u bytes: %s", mb->len, strerror(errno));
+	size = dect_mbuf_send(dh, ddl->dfd, &msg, mb);
 	dect_mbuf_free(dh, mb);
-	return len;
+	return size;
 }
 
 /**
- * dect_send - Queue a S-Format message for transmission to the LCE
- *
+ * dect_lce_send - Queue a S-Format message for transmission to the LCE
  */
 int dect_lce_send(const struct dect_handle *dh,
 		  struct dect_transaction *ta,
@@ -453,7 +475,7 @@ int dect_lce_send(const struct dect_handle *dh,
 
 	switch (ddl->state) {
 	case DECT_DATA_LINK_ESTABLISHED:
-		return dect_send(dh, ddl, mb);
+		return dect_ddl_send(dh, ddl, mb);
 	case DECT_DATA_LINK_ESTABLISH_PENDING:
 		list_add_tail(&mb->list, &ddl->msg_queue);
 		return 0;
@@ -470,7 +492,7 @@ int dect_lce_retransmit(const struct dect_handle *dh,
 	if (ta->mb != NULL &&
 	    ddl->state == DECT_DATA_LINK_ESTABLISHED) {
 		ta->mb->refcnt++;
-		return dect_send(dh, ddl, ta->mb);
+		return dect_ddl_send(dh, ddl, ta->mb);
 	} else
 		return 0;
 }
@@ -582,7 +604,7 @@ static void dect_ddl_complete_direct_establish(struct dect_handle *dh,
 	/* Send queued messages */
 	list_for_each_entry_safe(mb, mb_next, &ddl->msg_queue, list) {
 		list_del(&mb->list);
-		dect_send(dh, ddl, mb);
+		dect_ddl_send(dh, ddl, mb);
 	}
 }
 
@@ -610,7 +632,7 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 	/* Send queued messages */
 	list_for_each_entry_safe(mb, mb_next, &req->msg_queue, list) {
 		list_del(&mb->list);
-		dect_send(dh, ddl, mb);
+		dect_ddl_send(dh, ddl, mb);
 	}
 
 	/* Release pending link */
@@ -763,13 +785,40 @@ err1:
  * Paging
  */
 
-static int dect_lce_broadcast(const struct dect_handle *dh,
-			      const uint8_t *msg, size_t len)
+static ssize_t dect_lce_broadcast(const struct dect_handle *dh,
+				  uint8_t *data, size_t len, bool long_page)
 {
+	struct dect_msg_buf mb;
+	struct msghdr msg;
+	struct dect_bsap_auxdata aux;
+	struct cmsghdr *cmsg;
+	union {
+		struct cmsghdr		cmsg;
+		char			buf[CMSG_SPACE(sizeof(aux))];
+	} cmsg_buf;
 	ssize_t size;
 
-	dect_hexdump(DECT_DEBUG_LCE, "LCE: BCAST TX", msg, len);
-	size = send(dh->b_sap->fd, msg, len, 0);
+	if (long_page) {
+		msg.msg_control		= &cmsg_buf;
+		msg.msg_controllen	= sizeof(cmsg_buf);
+
+		cmsg			= CMSG_FIRSTHDR(&msg);
+		cmsg->cmsg_len		= CMSG_LEN(sizeof(aux));
+		cmsg->cmsg_level	= SOL_DECT;
+		cmsg->cmsg_type		= DECT_BSAP_AUXDATA;
+
+		aux.long_page		= true;
+		memcpy(CMSG_DATA(cmsg), &aux, sizeof(aux));
+	} else {
+		msg.msg_control		= NULL;
+		msg.msg_controllen	= 0;
+	}
+
+	mb.data = data;
+	mb.len  = len;
+
+	dect_mbuf_dump(DECT_DEBUG_LCE, &mb, "LCE: BCAST TX");
+	size = dect_mbuf_send(dh, dh->b_sap, &msg, &mb);
 	assert(size == (ssize_t)len);
 	return 0;
 }
@@ -786,6 +835,8 @@ int dect_lce_group_ring_req(struct dect_handle *dh,
 	struct dect_short_page_msg msg;
 	uint16_t page;
 
+	dect_debug(DECT_DEBUG_LCE, "\nLCE: LCE_GROUP_RING-req\n");
+
 	msg.hdr  = DECT_LCE_PAGE_W_FLAG;
 	msg.hdr |= DECT_LCE_PAGE_GENERAL_VOICE;
 
@@ -794,7 +845,7 @@ int dect_lce_group_ring_req(struct dect_handle *dh,
 	page |= DECT_TPUI_CBI & DECT_LCE_SHORT_PAGE_TPUI_MASK;
 	msg.information = __cpu_to_be16(page);
 
-	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg));
+	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg), false);
 }
 EXPORT_SYMBOL(dect_lce_group_ring_req);
 
@@ -805,12 +856,13 @@ static int dect_lce_page(const struct dect_handle *dh,
 	struct dect_tpui tpui;
 	uint16_t page;
 
+	dect_debug(DECT_DEBUG_LCE, "\n");
 	msg.hdr = DECT_LCE_PAGE_GENERAL_VOICE;
 	page = dect_build_tpui(dect_ipui_to_tpui(&tpui, ipui)) &
 	       DECT_LCE_SHORT_PAGE_TPUI_MASK;
 	msg.information = __cpu_to_be16(page);
 
-	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg));
+	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg), false);
 }
 
 static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer)
@@ -983,26 +1035,64 @@ static void dect_lce_rcv_short_page(struct dect_handle *dh,
 	}
 }
 
+static void dect_lce_rcv_full_page(struct dect_handle *dh,
+				   struct dect_msg_buf *mb)
+{
+	lce_debug("full page\n");
+}
+
+static void dect_lce_rcv_long_page(struct dect_handle *dh,
+				   struct dect_msg_buf *mb)
+{
+	lce_debug("long page: length: %u\n", mb->len);
+}
+
 static void dect_lce_bsap_event(struct dect_handle *dh, struct dect_fd *dfd,
 				uint32_t events)
 {
 	struct dect_msg_buf _mb, *mb = &_mb;
 	struct msghdr msg;
+	struct cmsghdr *cmsg;
+	char cmsg_buf[4 * CMSG_SPACE(16)];
+	bool long_page = false;
 
 	dect_debug(DECT_DEBUG_LCE, "\n");
 
-	msg.msg_control		= NULL;
-	msg.msg_controllen	= 0;
+	msg.msg_control		= cmsg_buf;
+	msg.msg_controllen	= sizeof(cmsg_buf);
 
 	if (dect_mbuf_rcv(dfd, &msg, mb) < 0)
 		return;
+
+	for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
+		const struct dect_bsap_auxdata *aux;
+
+		if (cmsg->cmsg_level != SOL_DECT)
+			continue;
+
+		switch (cmsg->cmsg_type) {
+		case DECT_BSAP_AUXDATA:
+			if (cmsg->cmsg_len < CMSG_LEN(sizeof(*aux)))
+				continue;
+			aux = (struct dect_bsap_auxdata *)CMSG_DATA(cmsg);
+			long_page = aux->long_page;
+			continue;
+		default:
+			lce_debug("LCE: unhandled cmsg: %u\n", cmsg->cmsg_type);
+			continue;
+		}
+	}
+
 	dect_mbuf_dump(DECT_DEBUG_LCE, mb, "LCE: BCAST RX");
 
 	switch (mb->len) {
 	case 3:
 		return dect_lce_rcv_short_page(dh, mb);
+	case 5:
+		if (!long_page)
+			return dect_lce_rcv_full_page(dh, mb);
 	default:
-		break;
+		return dect_lce_rcv_long_page(dh, mb);
 	}
 }
 
