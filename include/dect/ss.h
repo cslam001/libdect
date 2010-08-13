@@ -11,6 +11,11 @@
 extern "C" {
 #endif
 
+/**
+ * @addtogroup ss
+ * @{
+ */
+
 #include <dect/ie.h>
 
 struct dect_mnss_param {
@@ -46,6 +51,8 @@ extern int dect_mnss_facility_req(struct dect_handle *dh, struct dect_ss_endpoin
 				  const struct dect_mnss_param *param);
 extern int dect_mnss_release_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 				 const struct dect_mnss_param *param);
+
+/** @} */
 
 #ifdef __cplusplus
 }

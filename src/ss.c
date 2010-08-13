@@ -91,6 +91,11 @@ void dect_clss_rcv(struct dect_handle *dh, struct dect_msg_buf *mb)
 	dect_msg_free(dh, &ciss_facility_msg_desc, &msg.common);
 }
 
+/**
+ * Get a pointer to the private data area from a Supplementary Services Endpoint
+ *
+ * @param sse		Supplementary Services Endpoint
+ */
 void *dect_ss_priv(struct dect_ss_endpoint *sse)
 {
 	return sse->priv;
@@ -118,7 +123,7 @@ static struct dect_ss_endpoint *dect_ss_endpoint(struct dect_transaction *ta)
 }
 
 /**
- * dect_mnss_setup_req - MNSS_SETUP-req primitive
+ * MNSS_SETUP-req primitive
  *
  * @param dh		libdect DECT handle
  * @param sse		Supplementary Services Endpoint
@@ -161,7 +166,7 @@ err1:
 EXPORT_SYMBOL(dect_mnss_setup_req);
 
 /**
- * dect_mnss_facility_req - MNSS_FACILITY-req primitive
+ * MNSS_FACILITY-req primitive
  *
  * @param dh		libdect DECT handle
  * @param sse		Supplementary Services Endpoint
@@ -214,7 +219,7 @@ out:
 }
 
 /**
- * dect_mnss_release_req - MNSS_RELEASE-req primitive
+ * MNSS_RELEASE-req primitive
  *
  * @param dh		libdect DECT handle
  * @param sse		Supplementary Services Endpoint
