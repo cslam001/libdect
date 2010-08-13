@@ -1034,6 +1034,54 @@ static int dect_sfmt_parse_feature_indicate(const struct dect_handle *dh,
 	return 0;
 }
 
+static const struct dect_trans_tbl dect_network_parameter_discriminators[] = {
+	TRANS_TBL(DECT_NETWORK_PARAMETER_APPLICATION_ASSIGNED,			"Application assigned"),
+	TRANS_TBL(DECT_NETWORK_PARAMETER_DEVICE_NAME,				"Device name"),
+	TRANS_TBL(DECT_NETWORK_PARAMETER_HO_REFERENCE_NOT_ACQUIRED,		"Handover reference not requied"),
+	TRANS_TBL(DECT_NETWORK_PARAMETER_HO_REFERENCE_PRIVATE_NETWORK,		"Handover reference, private network"),
+	TRANS_TBL(DECT_NETWORK_PARAMETER_HO_REFERENCE_GSM_NETWORK,		"Handover reference, GSM network"),
+	TRANS_TBL(DECT_NETWORK_PARAMETER_HO_REFERENCE_PUBLIC_NETWORK,		"Handover reference, public network"),
+	TRANS_TBL(DECT_NETWORK_PARAMETER_PROPRIETARY,				"Proprietary"),
+	TRANS_TBL(DECT_NETWORK_PARAMETER_HO_REFERENCE_REQUEST_GSM_NETWORK,	"Handover reference request, GSM network"),
+	TRANS_TBL(DECT_NETWORK_PARAMETER_HO_REFERENCE_UMTS_NETWORK,		"Handover reference, UMTS network"),
+	TRANS_TBL(DECT_NETWORK_PARAMETER_HO_REFERENCE_REQUEST_UMTS_NETWORK,	"Handover reference request, UMTS network"),
+};
+
+static void dect_sfmt_dump_network_parameter(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_network_parameter *ie = dect_ie_container(ie, _ie);
+	char buf[64];
+
+	sfmt_debug("\tDiscriminator: %s\n",
+		   dect_val2str(dect_network_parameter_discriminators,
+			        buf, sizeof(buf)));
+}
+
+static int dect_sfmt_parse_network_parameter(const struct dect_handle *dh,
+					     struct dect_ie_common **ie,
+					     const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_network_parameter *dst = dect_ie_container(dst, *ie);
+
+	dst->discriminator = src->data[2];
+	dst->len = src->len - 3;
+	if (dst->len > array_size(dst->data))
+		return -1;
+	memcpy(dst->data, src->data + 3, dst->len);
+	return 0;
+}
+
+static int dect_sfmt_build_network_parameter(struct dect_sfmt_ie *dst,
+					     const struct dect_ie_common *ie)
+{
+	const struct dect_ie_network_parameter *src = dect_ie_container(src, ie);
+
+	dst->data[2] = src->discriminator;
+	memcpy(dst->data + 3, src->data, src->len);
+	dst->len = src->len + 3;
+	return 0;
+}
+
 static const struct dect_trans_tbl dect_reject_reasons[] = {
 	TRANS_TBL(DECT_REJECT_TPUI_UNKNOWN,				"TPUI unknown"),
 	TRANS_TBL(DECT_REJECT_IPUI_UNKNOWN,				"IPUI unknown"),
@@ -2086,6 +2134,9 @@ static const struct dect_ie_handler {
 	[S_VL_IE_NETWORK_PARAMETER]		= {
 		.name	= "NETWORK-PARAMETER",
 		.size	= sizeof(struct dect_ie_network_parameter),
+		.build	= dect_sfmt_build_network_parameter,
+		.parse	= dect_sfmt_parse_network_parameter,
+		.dump	= dect_sfmt_dump_network_parameter,
 	},
 	[S_VL_IE_EXT_HO_INDICATOR]		= {
 		.name	= "EXT-H/O-INDICATOR",

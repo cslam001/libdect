@@ -1110,8 +1110,27 @@ struct dect_ie_location_area {
  * @{
  */
 
+/**
+ * Network parameter discriminators
+ */
+enum dect_network_parameter_discriminators {
+	DECT_NETWORK_PARAMETER_APPLICATION_ASSIGNED		= 0x08,	/**< Application assigned */
+	DECT_NETWORK_PARAMETER_DEVICE_NAME			= 0x10,	/**< Device name */
+	DECT_NETWORK_PARAMETER_HO_REFERENCE_NOT_ACQUIRED	= 0x68, /**< Handover reference not required */
+	DECT_NETWORK_PARAMETER_HO_REFERENCE_PRIVATE_NETWORK	= 0x69, /**< Handover reference, private network */
+	DECT_NETWORK_PARAMETER_HO_REFERENCE_GSM_NETWORK		= 0x6a, /**< Handover reference, GSM network */
+	DECT_NETWORK_PARAMETER_HO_REFERENCE_PUBLIC_NETWORK	= 0x6b, /**< Handover reference, public network */
+	DECT_NETWORK_PARAMETER_PROPRIETARY			= 0x7f, /**< Proprietary */
+	DECT_NETWORK_PARAMETER_HO_REFERENCE_REQUEST_GSM_NETWORK	= 0xea, /**< Handover reference request, GSM network */
+	DECT_NETWORK_PARAMETER_HO_REFERENCE_UMTS_NETWORK	= 0xeb, /**< Handover reference, UMTS network */
+	DECT_NETWORK_PARAMETER_HO_REFERENCE_REQUEST_UMTS_NETWORK= 0xec, /**< Handover reference request, UMTS network */
+};
+
 struct dect_ie_network_parameter {
-	struct dect_ie_common		common;
+	struct dect_ie_common				common;
+	enum dect_network_parameter_discriminators	discriminator;
+	uint8_t						len;
+	uint8_t						data[64];
 };
 
 /**
