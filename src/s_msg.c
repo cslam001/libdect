@@ -2322,8 +2322,9 @@ static void dect_msg_ie_init(const struct dect_sfmt_ie_desc *desc,
 #endif
 }
 
-static int dect_parse_sfmt_ie_header(struct dect_sfmt_ie *ie,
-				     const struct dect_msg_buf *mb)
+enum dect_sfmt_error
+dect_parse_sfmt_ie_header(struct dect_sfmt_ie *ie,
+			  const struct dect_msg_buf *mb)
 {
 	uint8_t val;
 
@@ -2356,6 +2357,7 @@ static int dect_parse_sfmt_ie_header(struct dect_sfmt_ie *ie,
 //		   ie->id, ie->len);
 	return 0;
 }
+EXPORT_SYMBOL(dect_parse_sfmt_ie_header);
 
 static int dect_build_sfmt_ie_header(struct dect_sfmt_ie *dst, uint8_t id)
 {
@@ -2378,10 +2380,10 @@ static int dect_build_sfmt_ie_header(struct dect_sfmt_ie *dst, uint8_t id)
 	return 0;
 }
 
-static int dect_parse_sfmt_ie(const struct dect_handle *dh,
-			      const struct dect_sfmt_ie_desc *desc,
-			      struct dect_ie_common **dst,
-			      struct dect_sfmt_ie *ie)
+enum dect_sfmt_error
+dect_parse_sfmt_ie(const struct dect_handle *dh, uint8_t type,
+		   struct dect_ie_common **dst,
+		   const const struct dect_sfmt_ie *ie)
 {
 	const struct dect_ie_handler *ieh;
 	int err = -1;
@@ -2413,6 +2415,7 @@ err1:
 	sfmt_debug("smsg: IE parsing error\n");
 	return err;
 }
+EXPORT_SYMBOL(dect_parse_sfmt_ie);
 
 static void sfmt_debug_msg(const struct dect_sfmt_msg_desc *mdesc, const char *msg)
 {
@@ -2488,7 +2491,7 @@ found:
 		}
 
 		/* Ignore corrupt optional IEs */
-		if (dect_parse_sfmt_ie(dh, desc, dst, ie) < 0 &&
+		if (dect_parse_sfmt_ie(dh, desc->type, dst, ie) < 0 &&
 		    dect_rx_status(dh, desc) == DECT_SFMT_IE_MANDATORY)
 			return DECT_SFMT_MANDATORY_IE_ERROR;
 
@@ -2511,19 +2514,14 @@ out:
 	return DECT_SFMT_OK;
 }
 
-static enum dect_sfmt_error
-dect_build_sfmt_ie(const struct dect_handle *dh,
-		   const struct dect_sfmt_ie_desc *desc,
+enum dect_sfmt_error
+dect_build_sfmt_ie(const struct dect_handle *dh, uint8_t type,
 		   struct dect_msg_buf *mb,
-		   struct dect_ie_common *ie)
+		   const struct dect_ie_common *ie)
 {
 	const struct dect_ie_handler *ieh;
-	uint16_t type = desc->type;
 	struct dect_sfmt_ie dst;
 	enum dect_sfmt_error err = 0;
-
-	if (dect_tx_status(dh, desc) == DECT_SFMT_IE_NONE)
-		return DECT_SFMT_INVALID_IE;
 
 	if (type == DECT_IE_SINGLE_DISPLAY) {
 		struct dect_ie_display *display = dect_ie_container(display, ie);
@@ -2557,6 +2555,18 @@ dect_build_sfmt_ie(const struct dect_handle *dh,
 err1:
 	return err;
 }
+EXPORT_SYMBOL(dect_build_sfmt_ie);
+
+static enum dect_sfmt_error
+__dect_build_sfmt_ie(const struct dect_handle *dh,
+		     const struct dect_sfmt_ie_desc *desc,
+		     struct dect_msg_buf *mb,
+		     const struct dect_ie_common *ie)
+{
+	if (dect_tx_status(dh, desc) == DECT_SFMT_IE_NONE)
+		return DECT_SFMT_INVALID_IE;
+	return dect_build_sfmt_ie(dh, desc->type, mb, ie);
+}
 
 enum dect_sfmt_error dect_build_sfmt_msg(const struct dect_handle *dh,
 					 const struct dect_sfmt_msg_desc *mdesc,
@@ -2582,7 +2592,7 @@ enum dect_sfmt_error dect_build_sfmt_msg(const struct dect_handle *dh,
 
 			/* Add repeat indicator if more than one element on the list */
 			if (iel->list->next != NULL) {
-				err = dect_build_sfmt_ie(dh, desc, mb, &iel->common);
+				err = __dect_build_sfmt_ie(dh, desc, mb, &iel->common);
 				if (err != DECT_SFMT_OK)
 					return err;
 			}
@@ -2590,12 +2600,12 @@ enum dect_sfmt_error dect_build_sfmt_msg(const struct dect_handle *dh,
 
 			assert(desc->flags & DECT_SFMT_IE_REPEAT);
 			dect_foreach_ie(rsrc, iel) {
-				err = dect_build_sfmt_ie(dh, desc, mb, rsrc);
+				err = __dect_build_sfmt_ie(dh, desc, mb, rsrc);
 				if (err != DECT_SFMT_OK)
 					return err;
 			}
 		} else if (*src != NULL) {
-			err = dect_build_sfmt_ie(dh, desc, mb, *src);
+			err = __dect_build_sfmt_ie(dh, desc, mb, *src);
 			if (err != DECT_SFMT_OK)
 				return err;
 		} else {
