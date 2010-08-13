@@ -508,7 +508,7 @@ static int dect_sfmt_parse_portable_identity(const struct dect_handle *dh,
 	struct dect_ie_portable_identity *dst = dect_ie_container(dst, *ie);
 	uint8_t len;
 
-	if (src->len < S_VL_IE_PORTABLE_IDENTITY_MIN_SIZE)
+	if (src->len < DECT_IE_PORTABLE_IDENTITY_MIN_SIZE)
 		return -1;
 
 	if (!(src->data[2] & DECT_OCTET_GROUP_END))
@@ -596,7 +596,7 @@ static int dect_sfmt_parse_fixed_identity(const struct dect_handle *dh,
 	uint8_t len, ari_len;
 	uint64_t ari;
 
-	if (src->len < S_VL_IE_FIXED_IDENTITY_MIN_SIZE)
+	if (src->len < DECT_IE_FIXED_IDENTITY_MIN_SIZE)
 		return -1;
 
 	if (!(src->data[2] & DECT_OCTET_GROUP_END))
@@ -1907,367 +1907,367 @@ static const struct dect_ie_handler {
 				 const struct dect_ie_common *ie);
 	void		(*dump)(const struct dect_ie_common *ie);
 } dect_ie_handlers[256] = {
-	[S_SO_IE_REPEAT_INDICATOR]		= {
+	[DECT_IE_REPEAT_INDICATOR]		= {
 		.name	= "REPEAT-INDICATOR",
 		.parse	= dect_sfmt_parse_repeat_indicator,
 		.build	= dect_sfmt_build_repeat_indicator,
 		.dump	= dect_sfmt_dump_repeat_indicator,
 	},
-	[S_SE_IE_SENDING_COMPLETE]		= {
+	[DECT_IE_SENDING_COMPLETE]		= {
 		.name	= "SENDING-COMPLETE",
 		.size	= sizeof(struct dect_ie_sending_complete),
 		.parse	= dect_sfmt_parse_empty_single_octet,
 		.build	= dect_sfmt_build_empty_single_octet,
 	},
-	[S_SE_IE_DELIMITER_REQUEST]		= {
+	[DECT_IE_DELIMITER_REQUEST]		= {
 		.name	= "DELIMITER-REQUEST",
 		.size	= sizeof(struct dect_ie_delimiter_request),
 		.parse	= dect_sfmt_parse_empty_single_octet,
 		.build	= dect_sfmt_build_empty_single_octet,
 	},
-	[S_SE_IE_USE_TPUI]			= {
+	[DECT_IE_USE_TPUI]			= {
 		.name	= "USE-TPUI",
 		.size	= sizeof(struct dect_ie_use_tpui),
 		.parse	= dect_sfmt_parse_empty_single_octet,
 		.build	= dect_sfmt_build_empty_single_octet,
 	},
-	[S_DO_IE_BASIC_SERVICE]			= {
+	[DECT_IE_BASIC_SERVICE]			= {
 		.name	= "BASIC-SERVICE",
 		.size	= sizeof(struct dect_ie_basic_service),
 		.parse	= dect_sfmt_parse_basic_service,
 		.build	= dect_sfmt_build_basic_service,
 		.dump	= dect_sfmt_dump_basic_service,
 	},
-	[S_DO_IE_RELEASE_REASON]		= {
+	[DECT_IE_RELEASE_REASON]		= {
 		.name	= "RELEASE-REASON",
 		.size	= sizeof(struct dect_ie_release_reason),
 		.parse	= dect_sfmt_parse_release_reason,
 		.build	= dect_sfmt_build_release_reason,
 		.dump	= dect_sfmt_dump_release_reason,
 	},
-	[S_DO_IE_SIGNAL]			= {
+	[DECT_IE_SIGNAL]			= {
 		.name	= "SIGNAL",
 		.size	= sizeof(struct dect_ie_signal),
 		.parse	= dect_sfmt_parse_signal,
 		.build	= dect_sfmt_build_signal,
 		.dump	= dect_sfmt_dump_signal,
 	},
-	[S_DO_IE_TIMER_RESTART]			= {
+	[DECT_IE_TIMER_RESTART]			= {
 		.name	= "TIMER-RESTART",
 		.size	= sizeof(struct dect_ie_timer_restart),
 		.parse	= dect_sfmt_parse_timer_restart,
 	},
-	[S_DO_IE_TEST_HOOK_CONTROL]		= {
+	[DECT_IE_TEST_HOOK_CONTROL]		= {
 		.name	= "TEST-HOOK-CONTROL",
 	},
-	[S_DO_IE_SINGLE_DISPLAY]		= {
+	[DECT_IE_SINGLE_DISPLAY]		= {
 		.name	= "SINGLE-DISPLAY",
 		.size	= sizeof(struct dect_ie_display),
 		.parse	= dect_sfmt_parse_single_display,
 		.build	= dect_sfmt_build_single_display,
 		.dump	= dect_sfmt_dump_display,
 	},
-	[S_DO_IE_SINGLE_KEYPAD]			= {
+	[DECT_IE_SINGLE_KEYPAD]			= {
 		.name	= "SINGLE-KEYPAD",
 		.size	= sizeof(struct dect_ie_keypad),
 		.parse	= dect_sfmt_parse_single_keypad,
 		.build	= dect_sfmt_build_single_keypad,
 		.dump	= dect_sfmt_dump_keypad,
 	},
-	[S_VL_IE_INFO_TYPE]			= {
+	[DECT_IE_INFO_TYPE]			= {
 		.name	= "INFO-TYPE",
 		.size	= sizeof(struct dect_ie_info_type),
 		.parse	= dect_sfmt_parse_info_type,
 		.build	= dect_sfmt_build_info_type,
 		.dump	= dect_sfmt_dump_info_type,
 	},
-	[S_VL_IE_IDENTITY_TYPE]			= {
+	[DECT_IE_IDENTITY_TYPE]			= {
 		.name	= "IDENTITY-TYPE",
 		.size	= sizeof(struct dect_ie_identity_type),
 		.parse	= dect_sfmt_parse_identity_type,
 		.build	= dect_sfmt_build_identity_type,
 		.dump	= dect_sfmt_dump_identity_type,
 	},
-	[S_VL_IE_PORTABLE_IDENTITY]		= {
+	[DECT_IE_PORTABLE_IDENTITY]		= {
 		.name	= "PORTABLE-IDENTITY",
 		.size	= sizeof(struct dect_ie_portable_identity),
 		.parse	= dect_sfmt_parse_portable_identity,
 		.build	= dect_sfmt_build_portable_identity,
 		.dump	= dect_sfmt_dump_portable_identity,
 	},
-	[S_VL_IE_FIXED_IDENTITY]		= {
+	[DECT_IE_FIXED_IDENTITY]		= {
 		.name	= "FIXED-IDENTITY",
 		.size	= sizeof(struct dect_ie_fixed_identity),
 		.parse	= dect_sfmt_parse_fixed_identity,
 		.build	= dect_sfmt_build_fixed_identity,
 		.dump	= dect_sfmt_dump_fixed_identity,
 	},
-	[S_VL_IE_LOCATION_AREA]			= {
+	[DECT_IE_LOCATION_AREA]			= {
 		.name	= "LOCATION-AREA",
 		.size	= sizeof(struct dect_ie_location_area),
 		.parse	= dect_sfmt_parse_location_area,
 		.build	= dect_sfmt_build_location_area,
 		.dump	= dect_sfmt_dump_location_area,
 	},
-	[S_VL_IE_NWK_ASSIGNED_IDENTITY]		= {
+	[DECT_IE_NWK_ASSIGNED_IDENTITY]		= {
 		.name	= "NWK-ASSIGNED-IDENTITY",
 		.size	= sizeof(struct dect_ie_nwk_assigned_identity),
 	},
-	[S_VL_IE_ALLOCATION_TYPE]		= {
+	[DECT_IE_ALLOCATION_TYPE]		= {
 		.name	= "ALLOCATION-TYPE",
 		.size	= sizeof(struct dect_ie_allocation_type),
 		.parse	= dect_sfmt_parse_allocation_type,
 		.build	= dect_sfmt_build_allocation_type,
 		.dump	= dect_sfmt_dump_allocation_type,
 	},
-	[S_VL_IE_AUTH_TYPE]			= {
+	[DECT_IE_AUTH_TYPE]			= {
 		.name	= "AUTH-TYPE",
 		.size	= sizeof(struct dect_ie_auth_type),
 		.parse	= dect_sfmt_parse_auth_type,
 		.build	= dect_sfmt_build_auth_type,
 		.dump	= dect_sfmt_dump_auth_type,
 	},
-	[S_VL_IE_RAND]				= {
+	[DECT_IE_RAND]				= {
 		.name	= "RAND",
 		.size	= sizeof(struct dect_ie_auth_value),
 		.parse	= dect_sfmt_parse_auth_value,
 		.build	= dect_sfmt_build_auth_value,
 		.dump	= dect_sfmt_dump_auth_value,
 	},
-	[S_VL_IE_RES]				= {
+	[DECT_IE_RES]				= {
 		.name	= "RES",
 		.size	= sizeof(struct dect_ie_auth_res),
 		.parse	= dect_sfmt_parse_auth_res,
 		.build	= dect_sfmt_build_auth_res,
 		.dump	= dect_sfmt_dump_auth_res,
 	},
-	[S_VL_IE_RS]				= {
+	[DECT_IE_RS]				= {
 		.name	= "RS",
 		.size	= sizeof(struct dect_ie_auth_value),
 		.parse	= dect_sfmt_parse_auth_value,
 		.build	= dect_sfmt_build_auth_value,
 		.dump	= dect_sfmt_dump_auth_value,
 	},
-	[S_VL_IE_IWU_ATTRIBUTES]		= {
+	[DECT_IE_IWU_ATTRIBUTES]		= {
 		.name	= "IWU-ATTRIBUTES",
 		.size	= sizeof(struct dect_ie_iwu_attributes),
 	},
-	[S_VL_IE_CALL_ATTRIBUTES]		= {
+	[DECT_IE_CALL_ATTRIBUTES]		= {
 		.name	= "CALL-ATTRIBUTES",
 		.size	= sizeof(struct dect_ie_call_attributes),
 	},
-	[S_VL_IE_SERVICE_CHANGE_INFO]		= {
+	[DECT_IE_SERVICE_CHANGE_INFO]		= {
 		.name	= "SERVICE-CHANGE-INFO",
 		.size	= sizeof(struct dect_ie_service_change_info),
 	},
-	[S_VL_IE_CONNECTION_ATTRIBUTES]		= {
+	[DECT_IE_CONNECTION_ATTRIBUTES]		= {
 		.name	= "CONNECTION-ATTRIBUTES",
 		.size	= sizeof(struct dect_ie_connection_attributes),
 	},
-	[S_VL_IE_CIPHER_INFO]			= {
+	[DECT_IE_CIPHER_INFO]			= {
 		.name	= "CIPHER-INFO",
 		.size	= sizeof(struct dect_ie_cipher_info),
 		.parse	= dect_sfmt_parse_cipher_info,
 		.build	= dect_sfmt_build_cipher_info,
 		.dump	= dect_sfmt_dump_cipher_info,
 	},
-	[S_VL_IE_CALL_IDENTITY]			= {
+	[DECT_IE_CALL_IDENTITY]			= {
 		.name	= "CALL-IDENTITY",
 		.size	= sizeof(struct dect_ie_call_identity),
 	},
-	[S_VL_IE_CONNECTION_IDENTITY]		= {
+	[DECT_IE_CONNECTION_IDENTITY]		= {
 		.name	= "CONNECTION-IDENTITY",
 		.size	= sizeof(struct dect_ie_connection_identity),
 	},
-	[S_VL_IE_FACILITY]			= {
+	[DECT_IE_FACILITY]			= {
 		.name	= "FACILITY",
 		.size	= sizeof(struct dect_ie_facility),
 	},
-	[S_VL_IE_PROGRESS_INDICATOR]		= {
+	[DECT_IE_PROGRESS_INDICATOR]		= {
 		.name	= "PROGRESS-INDICATOR",
 		.size	= sizeof(struct dect_ie_progress_indicator),
 		.parse	= dect_sfmt_parse_progress_indicator,
 		.build	= dect_sfmt_build_progress_indicator,
 	},
-	[S_VL_IE_MMS_GENERIC_HEADER]		= {
+	[DECT_IE_MMS_GENERIC_HEADER]		= {
 		.name	= "MMS-GENERIC-HEADER",
 		.size	= sizeof(struct dect_ie_mms_generic_header),
 	},
-	[S_VL_IE_MMS_OBJECT_HEADER]		= {
+	[DECT_IE_MMS_OBJECT_HEADER]		= {
 		.name	= "MMS-OBJECT-HEADER",
 		.size	= sizeof(struct dect_ie_mms_object_header),
 	},
-	[S_VL_IE_MMS_EXTENDED_HEADER]		= {
+	[DECT_IE_MMS_EXTENDED_HEADER]		= {
 		.name	= "MMS-EXTENDED-HEADER",
 		.size	= sizeof(struct dect_ie_mms_extended_header),
 	},
-	[S_VL_IE_TIME_DATE]			= {
+	[DECT_IE_TIME_DATE]			= {
 		.name	= "TIME-DATA",
 		.size	= sizeof(struct dect_ie_time_date),
 	},
-	[S_VL_IE_MULTI_DISPLAY]			= {
+	[DECT_IE_MULTI_DISPLAY]			= {
 		.name	= "MULTI-DISPLAY",
 		.size	= sizeof(struct dect_ie_display),
 		.parse	= dect_sfmt_parse_multi_display,
 		.build	= dect_sfmt_build_multi_display,
 		.dump	= dect_sfmt_dump_display,
 	},
-	[S_VL_IE_MULTI_KEYPAD]			= {
+	[DECT_IE_MULTI_KEYPAD]			= {
 		.name	= "MULTI-KEYPAD",
 		.size	= sizeof(struct dect_ie_keypad),
 		.parse	= dect_sfmt_parse_multi_keypad,
 		.build	= dect_sfmt_build_multi_keypad,
 		.dump	= dect_sfmt_dump_keypad,
 	},
-	[S_VL_IE_FEATURE_ACTIVATE]		= {
+	[DECT_IE_FEATURE_ACTIVATE]		= {
 		.name	= "FEATURE-ACTIVATE",
 		.size	= sizeof(struct dect_ie_feature_activate),
 		.build	= dect_sfmt_build_feature_activate,
 		.dump	= dect_sfmt_dump_feature_activate,
 	},
-	[S_VL_IE_FEATURE_INDICATE]		= {
+	[DECT_IE_FEATURE_INDICATE]		= {
 		.name	= "FEATURE-INDICATE",
 		.size	= sizeof(struct dect_ie_feature_indicate),
 		.parse	= dect_sfmt_parse_feature_indicate,
 		.dump	= dect_sfmt_dump_feature_indicate,
 	},
-	[S_VL_IE_NETWORK_PARAMETER]		= {
+	[DECT_IE_NETWORK_PARAMETER]		= {
 		.name	= "NETWORK-PARAMETER",
 		.size	= sizeof(struct dect_ie_network_parameter),
 		.build	= dect_sfmt_build_network_parameter,
 		.parse	= dect_sfmt_parse_network_parameter,
 		.dump	= dect_sfmt_dump_network_parameter,
 	},
-	[S_VL_IE_EXT_HO_INDICATOR]		= {
+	[DECT_IE_EXT_HO_INDICATOR]		= {
 		.name	= "EXT-H/O-INDICATOR",
 		.size	= sizeof(struct dect_ie_ext_ho_indicator),
 	},
-	[S_VL_IE_ZAP_FIELD]			= {
+	[DECT_IE_ZAP_FIELD]			= {
 		.name	= "ZAP-FIELD",
 		.size	= sizeof(struct dect_ie_zap_field),
 	},
-	[S_VL_IE_SERVICE_CLASS]			= {
+	[DECT_IE_SERVICE_CLASS]			= {
 		.name	= "SERVICE-CLASS",
 		.size	= sizeof(struct dect_ie_service_class),
 	},
-	[S_VL_IE_KEY]				= {
+	[DECT_IE_KEY]				= {
 		.name	= "KEY",
 		.size	= sizeof(struct dect_ie_key),
 	},
-	[S_VL_IE_REJECT_REASON]			= {
+	[DECT_IE_REJECT_REASON]			= {
 		.name	= "REJECT-REASON",
 		.size	= sizeof(struct dect_ie_reject_reason),
 		.parse	= dect_sfmt_parse_reject_reason,
 		.build	= dect_sfmt_build_reject_reason,
 		.dump	= dect_sfmt_dump_reject_reason,
 	},
-	[S_VL_IE_SETUP_CAPABILITY]		= {
+	[DECT_IE_SETUP_CAPABILITY]		= {
 		.name	= "SETUP-CAPABILITY",
 		.size	= sizeof(struct dect_ie_setup_capability),
 		.parse	= dect_sfmt_parse_setup_capability,
 		.build	= dect_sfmt_build_setup_capability,
 	},
-	[S_VL_IE_TERMINAL_CAPABILITY]		= {
+	[DECT_IE_TERMINAL_CAPABILITY]		= {
 		.name	= "TERMINAL-CAPABILITY",
 		.size	= sizeof(struct dect_ie_terminal_capability),
 		.parse	= dect_sfmt_parse_terminal_capability,
 		.build	= dect_sfmt_build_terminal_capability,
 		.dump	= dect_sfmt_dump_terminal_capability,
 	},
-	[S_VL_IE_END_TO_END_COMPATIBILITY]	= {
+	[DECT_IE_END_TO_END_COMPATIBILITY]	= {
 		.name	= "END-TO-END-COMPATIBILITY",
 		.size	= sizeof(struct dect_ie_end_to_end_compatibility),
 	},
-	[S_VL_IE_RATE_PARAMETERS]		= {
+	[DECT_IE_RATE_PARAMETERS]		= {
 		.name	= "RATE-PARAMETERS",
 		.size	= sizeof(struct dect_ie_rate_parameters),
 	},
-	[S_VL_IE_TRANSIT_DELAY]			= {
+	[DECT_IE_TRANSIT_DELAY]			= {
 		.name	= "TRANSIT-DELAY",
 		.size	= sizeof(struct dect_ie_transit_delay),
 	},
-	[S_VL_IE_WINDOW_SIZE]			= {
+	[DECT_IE_WINDOW_SIZE]			= {
 		.name	= "WINDOW-SIZE",
 		.size	= sizeof(struct dect_ie_window_size),
 	},
-	[S_VL_IE_CALLING_PARTY_NUMBER]		= {
+	[DECT_IE_CALLING_PARTY_NUMBER]		= {
 		.name	= "CALLING-PARTY-NUMBER",
 		.size	= sizeof(struct dect_ie_calling_party_number),
 		.parse	= dect_sfmt_parse_calling_party_number,
 		.build	= dect_sfmt_build_calling_party_number,
 		.dump	= dect_sfmt_dump_calling_party_number,
 	},
-	[S_VL_IE_CALLING_PARTY_NAME]		= {
+	[DECT_IE_CALLING_PARTY_NAME]		= {
 		.name	= "CALLING-PARTY-NAME",
 		.size	= sizeof(struct dect_ie_calling_party_name),
 		.parse	= dect_sfmt_parse_calling_party_name,
 		.build	= dect_sfmt_build_calling_party_name,
 		.dump	= dect_sfmt_dump_calling_party_name,
 	},
-	[S_VL_IE_CALLED_PARTY_NUMBER]		= {
+	[DECT_IE_CALLED_PARTY_NUMBER]		= {
 		.name	= "CALLED-PARTY-NUMBER",
 		.size	= sizeof(struct dect_ie_called_party_number),
 		.parse	= dect_sfmt_parse_called_party_number,
 		.build	= dect_sfmt_build_called_party_number,
 		.dump	= dect_sfmt_dump_called_party_number,
 	},
-	[S_VL_IE_CALLED_PARTY_SUBADDR]		= {
+	[DECT_IE_CALLED_PARTY_SUBADDR]		= {
 		.name	= "CALLED-PARTY-SUBADDRESS",
 		.size	= sizeof(struct dect_ie_called_party_subaddress),
 	},
-	[S_VL_IE_DURATION]			= {
+	[DECT_IE_DURATION]			= {
 		.name	= "DURATION",
 		.size	= sizeof(struct dect_ie_duration),
 		.parse	= dect_sfmt_parse_duration,
 		.build	= dect_sfmt_build_duration,
 		.dump	= dect_sfmt_dump_duration,
 	},
-	[S_VL_IE_SEGMENTED_INFO]		= {
+	[DECT_IE_SEGMENTED_INFO]		= {
 		.name	= "SEGMENTED-INFO",
 		.size	= sizeof(struct dect_ie_segmented_info),
 	},
-	[S_VL_IE_ALPHANUMERIC]			= {
+	[DECT_IE_ALPHANUMERIC]			= {
 		.name	= "ALPHANUMERIC",
 		.size	= sizeof(struct dect_ie_alphanumeric),
 	},
-	[S_VL_IE_IWU_TO_IWU]			= {
+	[DECT_IE_IWU_TO_IWU]			= {
 		.name	= "IWU-TO-IWU",
 		.size	= sizeof(struct dect_ie_iwu_to_iwu),
 		.parse	= dect_sfmt_parse_iwu_to_iwu,
 		.build	= dect_sfmt_build_iwu_to_iwu,
 		.dump	= dect_sfmt_dump_iwu_to_iwu,
 	},
-	[S_VL_IE_MODEL_IDENTIFIER]		= {
+	[DECT_IE_MODEL_IDENTIFIER]		= {
 		.name	= "MODEL-IDENTIFIER",
 		.size	= sizeof(struct dect_ie_model_identifier),
 	},
-	[S_VL_IE_IWU_PACKET]			= {
+	[DECT_IE_IWU_PACKET]			= {
 		.name	= "IWU-PACKET",
 		.size	= sizeof(struct dect_ie_iwu_packet),
 	},
-	[S_VL_IE_ESCAPE_TO_PROPRIETARY]		= {
+	[DECT_IE_ESCAPE_TO_PROPRIETARY]		= {
 		.name	= "ESCAPE-TO-PROPRIETARY",
 		.size	= sizeof(struct dect_ie_escape_to_proprietary),
 		.parse	= dect_sfmt_parse_escape_to_proprietary,
 		.build	= dect_sfmt_build_escape_to_proprietary,
 		.dump	= dect_sfmt_dump_escape_to_proprietary,
 	},
-	[S_VL_IE_CODEC_LIST]			= {
+	[DECT_IE_CODEC_LIST]			= {
 		.name	= "CODEC-LIST",
 		.size	= sizeof(struct dect_ie_codec_list),
 		.parse	= dect_sfmt_parse_codec_list,
 		.build	= dect_sfmt_build_codec_list,
 		.dump	= dect_sfmt_dump_codec_list,
 	},
-	[S_VL_IE_EVENTS_NOTIFICATION]		= {
+	[DECT_IE_EVENTS_NOTIFICATION]		= {
 		.name	= "EVENTS-NOTIFICATION",
 		.size	= sizeof(struct dect_ie_events_notification),
 	},
-	[S_VL_IE_CALL_INFORMATION]		= {
+	[DECT_IE_CALL_INFORMATION]		= {
 		.name	= "CALL-INFORMATION",
 		.size	= sizeof(struct dect_ie_call_information),
 	},
-	[S_VL_IE_ESCAPE_FOR_EXTENSION]		= {
+	[DECT_IE_ESCAPE_FOR_EXTENSION]		= {
 		.name	= "ESCAPE-FOR-EXTENSION",
 	},
 };
@@ -2293,7 +2293,7 @@ static enum dect_sfmt_ie_status dect_tx_status(const struct dect_handle *dh,
 static struct dect_ie_common **
 dect_next_ie(const struct dect_sfmt_ie_desc *desc, struct dect_ie_common **ie)
 {
-	if (desc->type == S_SO_IE_REPEAT_INDICATOR)
+	if (desc->type == DECT_IE_REPEAT_INDICATOR)
 		return ((void *)ie) + sizeof(struct dect_ie_list);
 	else if (!(desc->flags & DECT_SFMT_IE_REPEAT))
 		return ie + 1;
@@ -2309,7 +2309,7 @@ static void dect_msg_ie_init(const struct dect_sfmt_ie_desc *desc,
 	if (desc->flags & DECT_SFMT_IE_END)
 		return;
 
-	if (desc->type == S_SO_IE_REPEAT_INDICATOR) {
+	if (desc->type == DECT_IE_REPEAT_INDICATOR) {
 		iel = dect_ie_container(iel, (struct dect_ie_common *)ie);
 		dect_ie_list_init(iel);
 	} else if (!(desc->flags & DECT_SFMT_IE_REPEAT))
@@ -2334,9 +2334,9 @@ static int dect_parse_sfmt_ie_header(struct dect_sfmt_ie *ie,
 	if (ie->id & DECT_SFMT_IE_FIXED_LEN) {
 		ie->id |= (mb->data[0] & DECT_SFMT_IE_FIXED_ID_MASK);
 		val     = (mb->data[0] & DECT_SFMT_IE_FIXED_VAL_MASK);
-		if (ie->id != S_SO_IE_DOUBLE_OCTET_ELEMENT) {
+		if (ie->id != DECT_IE_DOUBLE_OCTET_ELEMENT) {
 			ie->len = 1;
-			if (ie->id == S_SO_IE_EXT_PREFIX)
+			if (ie->id == DECT_IE_EXT_PREFIX)
 				ie->id |= val;
 		} else {
 			if (mb->len < 2)
@@ -2362,7 +2362,7 @@ static int dect_build_sfmt_ie_header(struct dect_sfmt_ie *dst, uint8_t id)
 	if (id & DECT_SFMT_IE_FIXED_LEN) {
 		dst->data[0] |= id;
 		if ((id & DECT_SFMT_IE_FIXED_ID_MASK) !=
-		    (S_SO_IE_DOUBLE_OCTET_ELEMENT & DECT_SFMT_IE_FIXED_ID_MASK))
+		    (DECT_IE_DOUBLE_OCTET_ELEMENT & DECT_SFMT_IE_FIXED_ID_MASK))
 			dst->len = 1;
 		else
 			dst->len = 2;
@@ -2466,11 +2466,11 @@ enum dect_sfmt_error dect_parse_sfmt_msg(const struct dect_handle *dh,
 			case DECT_SFMT_IE_OPTIONAL:
 				if (desc->type == ie->id)
 					goto found;
-				if (desc->type == S_DO_IE_SINGLE_DISPLAY &&
-				    ie->id == S_VL_IE_MULTI_DISPLAY)
+				if (desc->type == DECT_IE_SINGLE_DISPLAY &&
+				    ie->id == DECT_IE_MULTI_DISPLAY)
 					goto found;
-				if (desc->type == S_DO_IE_SINGLE_KEYPAD &&
-				    ie->id == S_VL_IE_MULTI_KEYPAD)
+				if (desc->type == DECT_IE_SINGLE_KEYPAD &&
+				    ie->id == DECT_IE_MULTI_KEYPAD)
 					goto found;
 				break;
 			}
@@ -2525,15 +2525,15 @@ dect_build_sfmt_ie(const struct dect_handle *dh,
 	if (dect_tx_status(dh, desc) == DECT_SFMT_IE_NONE)
 		return DECT_SFMT_INVALID_IE;
 
-	if (type == S_DO_IE_SINGLE_DISPLAY) {
+	if (type == DECT_IE_SINGLE_DISPLAY) {
 		struct dect_ie_display *display = dect_ie_container(display, ie);
 		if (display->len > 1)
-			type = S_VL_IE_MULTI_DISPLAY;
+			type = DECT_IE_MULTI_DISPLAY;
 	}
-	if (type == S_DO_IE_SINGLE_KEYPAD) {
+	if (type == DECT_IE_SINGLE_KEYPAD) {
 		struct dect_ie_keypad *keypad = dect_ie_container(keypad, ie);
 		if (keypad->len > 1)
-			type = S_VL_IE_MULTI_KEYPAD;
+			type = DECT_IE_MULTI_KEYPAD;
 	}
 
 	ieh = &dect_ie_handlers[type];
@@ -2573,7 +2573,7 @@ enum dect_sfmt_error dect_build_sfmt_msg(const struct dect_handle *dh,
 	while (!(desc->flags & DECT_SFMT_IE_END)) {
 		next = dect_next_ie(desc, (struct dect_ie_common **)src);
 
-		if (desc->type == S_SO_IE_REPEAT_INDICATOR) {
+		if (desc->type == DECT_IE_REPEAT_INDICATOR) {
 			iel = (struct dect_ie_list *)src;
 			if (iel->list == NULL) {
 				desc++;
@@ -2624,7 +2624,7 @@ void dect_msg_free(const struct dect_handle *dh,
 
 	while (!(desc->flags & DECT_SFMT_IE_END)) {
 		next = dect_next_ie(desc, ie);
-		if (desc->type == S_SO_IE_REPEAT_INDICATOR)
+		if (desc->type == DECT_IE_REPEAT_INDICATOR)
 			desc++;
 		else if (desc->flags & DECT_SFMT_IE_REPEAT)
 			dect_ie_list_put(dh, (void *)*ie);
