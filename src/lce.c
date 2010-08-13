@@ -96,9 +96,6 @@ static ssize_t dect_mbuf_rcv(const struct dect_fd *dfd, struct msghdr *msg,
 	struct iovec iov;
 	ssize_t len;
 
-	memset(mb, 0, sizeof(*mb));
-	mb->data = mb->head;
-
 	msg->msg_name		= NULL;
 	msg->msg_namelen	= 0;
 	msg->msg_iov		= &iov;
@@ -499,7 +496,7 @@ int dect_lce_retransmit(const struct dect_handle *dh,
 
 static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 {
-	struct dect_msg_buf _mb, *mb = &_mb;
+	DECT_DEFINE_MSG_BUF_ONSTACK(_mb), *mb = &_mb;
 	struct dect_transaction *ta;
 	struct msghdr msg;
 	struct cmsghdr *cmsg;
@@ -786,9 +783,9 @@ err1:
  */
 
 static ssize_t dect_lce_broadcast(const struct dect_handle *dh,
-				  uint8_t *data, size_t len, bool long_page)
+				  const struct dect_msg_buf *mb,
+				  bool long_page)
 {
-	struct dect_msg_buf mb;
 	struct msghdr msg;
 	struct dect_bsap_auxdata aux;
 	struct cmsghdr *cmsg;
@@ -814,12 +811,9 @@ static ssize_t dect_lce_broadcast(const struct dect_handle *dh,
 		msg.msg_controllen	= 0;
 	}
 
-	mb.data = data;
-	mb.len  = len;
-
-	dect_mbuf_dump(DECT_DEBUG_LCE, &mb, "LCE: BCAST TX");
-	size = dect_mbuf_send(dh, dh->b_sap, &msg, &mb);
-	assert(size == (ssize_t)len);
+	dect_mbuf_dump(DECT_DEBUG_LCE, mb, "LCE: BCAST TX");
+	size = dect_mbuf_send(dh, dh->b_sap, &msg, mb);
+	assert(size == (ssize_t)mb->len);
 	return 0;
 }
 
@@ -832,37 +826,43 @@ static ssize_t dect_lce_broadcast(const struct dect_handle *dh,
 int dect_lce_group_ring_req(struct dect_handle *dh,
 			    enum dect_ring_patterns pattern)
 {
-	struct dect_short_page_msg msg;
+	DECT_DEFINE_MSG_BUF_ONSTACK(_mb), *mb = &_mb;
+	struct dect_short_page_msg *msg;
 	uint16_t page;
 
 	dect_debug(DECT_DEBUG_LCE, "\nLCE: LCE_GROUP_RING-req\n");
+	msg = dect_mbuf_put(mb, sizeof(*msg));
 
-	msg.hdr  = DECT_LCE_PAGE_W_FLAG;
-	msg.hdr |= DECT_LCE_PAGE_GENERAL_VOICE;
+	msg->hdr  = DECT_LCE_PAGE_W_FLAG;
+	msg->hdr |= DECT_LCE_PAGE_GENERAL_VOICE;
 
 	page = pattern << DECT_LCE_SHORT_PAGE_RING_PATTERN_SHIFT;
 	page = 0;
 	page |= DECT_TPUI_CBI & DECT_LCE_SHORT_PAGE_TPUI_MASK;
-	msg.information = __cpu_to_be16(page);
+	msg->information = __cpu_to_be16(page);
 
-	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg), false);
+	return dect_lce_broadcast(dh, mb, false);
 }
 EXPORT_SYMBOL(dect_lce_group_ring_req);
 
 static int dect_lce_page(const struct dect_handle *dh,
 			 const struct dect_ipui *ipui)
 {
-	struct dect_short_page_msg msg;
+	DECT_DEFINE_MSG_BUF_ONSTACK(_mb), *mb = &_mb;
+	struct dect_short_page_msg *msg;
 	struct dect_tpui tpui;
 	uint16_t page;
 
 	dect_debug(DECT_DEBUG_LCE, "\n");
-	msg.hdr = DECT_LCE_PAGE_GENERAL_VOICE;
+	msg = dect_mbuf_put(mb, sizeof(*msg));
+
+	msg->hdr = DECT_LCE_PAGE_GENERAL_VOICE;
+
 	page = dect_build_tpui(dect_ipui_to_tpui(&tpui, ipui)) &
 	       DECT_LCE_SHORT_PAGE_TPUI_MASK;
-	msg.information = __cpu_to_be16(page);
+	msg->information = __cpu_to_be16(page);
 
-	return dect_lce_broadcast(dh, &msg.hdr, sizeof(msg), false);
+	return dect_lce_broadcast(dh, mb, false);
 }
 
 static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer)
@@ -1050,7 +1050,7 @@ static void dect_lce_rcv_long_page(struct dect_handle *dh,
 static void dect_lce_bsap_event(struct dect_handle *dh, struct dect_fd *dfd,
 				uint32_t events)
 {
-	struct dect_msg_buf _mb, *mb = &_mb;
+	DECT_DEFINE_MSG_BUF_ONSTACK(_mb), *mb = &_mb;
 	struct msghdr msg;
 	struct cmsghdr *cmsg;
 	char cmsg_buf[4 * CMSG_SPACE(16)];

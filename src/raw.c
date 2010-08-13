@@ -90,7 +90,7 @@ EXPORT_SYMBOL(dect_raw_transmit);
 static void dect_raw_event(struct dect_handle *dh, struct dect_fd *dfd,
 			   uint32_t events)
 {
-	struct dect_msg_buf _mb, *mb = &_mb;
+	DECT_DEFINE_MSG_BUF_ONSTACK(_mb), *mb = &_mb;
 	struct msghdr msg;
 	struct dect_raw_auxdata *aux;
 	struct cmsghdr *cmsg;
@@ -99,9 +99,6 @@ static void dect_raw_event(struct dect_handle *dh, struct dect_fd *dfd,
 	ssize_t len;
 
 	assert(!(events & ~DECT_FD_READ));
-
-	memset(mb, 0, sizeof(*mb));
-	mb->data = mb->head;
 
 	msg.msg_name		= NULL;
 	msg.msg_namelen		= 0;
