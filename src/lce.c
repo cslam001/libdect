@@ -796,6 +796,7 @@ static ssize_t dect_lce_broadcast(const struct dect_handle *dh,
 	ssize_t size;
 
 	if (long_page) {
+		memset(cmsg_buf.buf, 0, sizeof(cmsg_buf.buf));
 		msg.msg_control		= &cmsg_buf;
 		msg.msg_controllen	= sizeof(cmsg_buf);
 
