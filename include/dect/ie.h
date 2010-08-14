@@ -41,10 +41,17 @@ extern void *dect_ie_collection_alloc(const struct dect_handle *dh, unsigned int
 
 extern struct dect_ie_collection *__dect_ie_collection_hold(struct dect_ie_collection *iec);
 
+/**
+ * Increase the reference count of an IE collection
+ */
 #define dect_ie_collection_hold(iec)	((void *)__dect_ie_collection_hold(&(iec)->common))
 
 extern void __dect_ie_collection_put(const struct dect_handle *dh, struct dect_ie_collection *iec);
 
+/**
+ * Release a reference of an IE collection. If the reference count reaches zero,
+ * the IE collection will be freed.
+ */
 #define dect_ie_collection_put(dh, iec)	__dect_ie_collection_put(dh, &(iec)->common)
 
 /**
@@ -58,6 +65,9 @@ struct dect_ie_common {
 	unsigned int			refcnt;
 };
 
+/**
+ * Get a pointer to the containing IE from a struct dect_ie_common.
+ */
 #define dect_ie_container(res, ie)	container_of(ie, typeof(*res), common)
 
 extern struct dect_ie_common *dect_ie_alloc(const struct dect_handle *dh, size_t size);
@@ -75,14 +85,23 @@ static inline struct dect_ie_common *__dect_ie_init(struct dect_ie_common *ie)
 extern struct dect_ie_common *__dect_ie_clone(const struct dect_handle *dh,
 					      const struct dect_ie_common *ie, size_t size);
 
+/**
+ * Clone an IE.
+ */
 #define dect_ie_clone(dh, ie)		dect_ie_container(ie, __dect_ie_clone(dh, &(ie)->common, sizeof(*(ie))))
 
 extern struct dect_ie_common *__dect_ie_hold(struct dect_ie_common *ie);
 
+/**
+ * Increase the reference count of an IE.
+ */
 #define dect_ie_hold(ie)		dect_ie_container(ie, __dect_ie_hold(&(ie)->common))
 
 extern void __dect_ie_put(const struct dect_handle *dh, struct dect_ie_common *ie);
 
+/**
+ * Release a reference of an IE. If the reference count drops to zero, the IE will be freed.
+ */
 #define dect_ie_put(dh, ie)		__dect_ie_put(dh, &(ie)->common)
 
 
@@ -108,18 +127,35 @@ extern void dect_ie_list_put(const struct dect_handle *dh, struct dect_ie_list *
 
 extern void __dect_ie_list_add(struct dect_ie_common *ie, struct dect_ie_list *iel);
 
+/**
+ * Add an IE to an IE list.
+ */
 #define dect_ie_list_add(ie, iel)	__dect_ie_list_add(&(ie)->common, iel)
 
+/**
+ * Iterate over all IE contained in an IE list.
+ */
 #define dect_foreach_ie(ie, iel) \
 	for (ie = (void *)(iel)->list; ie != NULL; \
 	     ie = (void *)((struct dect_ie_common *)ie)->next)
 
 /**
  * @defgroup ie_cc_related Call Control related
+ *
+ * Call Control related IEs.
+ *
  * @{
  * @defgroup ie_sending_complete Sending complete
+ *
+ * <<SENDING-COMPLETE>> IE specified in ETSI EN 300 175-5 section 7.6.2.
+ *
+ * The <<SENDING-COMPLETE>> IE indicates completion of the called party number.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.6.2
  * @{
  */
+
+/** <<SENDING-COMPLETE>> IE */
 struct dect_ie_sending_complete {
 	struct dect_ie_common		common;
 };
@@ -127,9 +163,17 @@ struct dect_ie_sending_complete {
 /**
  * @}
  * @defgroup ie_delimiter_request Delimiter request
+ *
+ * <<DELIMITER-REQUEST>> IE specified in ETSI EN 300 175-5 section 7.6.2.
+ *
+ * The <<DELIMITER-REQUEST>> IE requests the peer to return a <<SENDING-COMPLETE>>
+ * IE when the called party number is complete.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.6.2
  * @{
  */
 
+/** <<DELIMITER-REQUEST>> IE */
 struct dect_ie_delimiter_request {
 	struct dect_ie_common		common;
 };
@@ -137,6 +181,14 @@ struct dect_ie_delimiter_request {
 /**
  * @}@}
  * @defgroup ie_use_tpui Use TPUI
+ *
+ * <<USE-TPUI>> IE specified in ETSI EN 300 175-5 section 7.6.2.
+ *
+ * The <<USE-TPUI>> IE indicates that the PT may use its TPUI in the
+ * <<PORTABLE-IDENTITY>> IE in the {CC-SETUP} and {LCE-PAGE-RESPONCE}
+ * messages.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.6.2
  * @{
  */
 
@@ -149,6 +201,12 @@ struct dect_ie_use_tpui {
  * @addtogroup ie_cc_related
  * @{
  * @defgroup ie_basic_service Basic service
+ *
+ * <<BASIC-SERVICE>> IE specified in ETSI EN 300 175-5 section 7.6.4.
+ *
+ * The <<BASIC-SERVICE>> IE indicates the basic aspects of the requested service.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.6.4
  * @{
  **/
 
@@ -190,12 +248,7 @@ enum dect_basic_service {
 };
 #define DECT_SERVICE_MAX				0xf
 
-/**
- * Basic service IE specified in ETSI EN 300 175-5 section 7.6.4.
- *
- * The <<BASIC-SERVICE>> IE indicates the basic aspects of the requested
- * service.
- */
+/** <<BASIC-SERVICE>> IE */
 struct dect_ie_basic_service {
 	struct dect_ie_common		common;
 	enum dect_call_classes		class;
@@ -207,12 +260,16 @@ struct dect_ie_basic_service {
  * @defgroup ie_generic Generic
  * @{
  * @defgroup ie_release_reason Release reason
+ *
+ * <<RELEASE-REASON>> IE specified in ETSI EN 300 175-5 section 7.6.7.
+ *
+ * The <<RELEASE-REASON>> IE conveys the cause of the release.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.6.7
  * @{
  */
 
-/**
- * Release reasons specified in ETSI EN 300 175-5 section 7.6.7.
- */
+/** Release reasons */
 enum dect_release_reasons {
 	/* general values */
 	DECT_RELEASE_NORMAL				= 0x0, /**< Normal */
@@ -253,11 +310,7 @@ enum dect_release_reasons {
 	DECT_RELEASE_REKEYING_FAILED			= 0x42, /**< Re-Keying failed */
 };
 
-/**
- * Release reason IE specified in ETSI EN 300 175-5 section 7.6.7.
- *
- * The <<RELEASE-REASON>> IE conveys the cause of the release.
- */
+/** <<RELEASE-REASON>> IE */
 struct dect_ie_release_reason {
 	struct dect_ie_common		common;
 	enum dect_release_reasons	reason;
@@ -267,10 +320,20 @@ struct dect_ie_release_reason {
  * @}@}
  * @addtogroup ie_cc_related
  * @{
- * @defgroup ie_display Display IE (used for both Single Display and Multi Display)
+ * @defgroup ie_display Display IE (Single Display/Multi Display)
+ *
+ * <<SINGLE-DISPLAY>> and <<MULTI-DISPLAY>> IEs specified in ETSI EN 300 175-5
+ * section 7.6.5 and 7.7.26.
+ *
+ * The <<SINGLE-DISPLAY>> and <<MULTI-DISPLAY>> IEs convey display information
+ * that may be displayed to the PT.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.6.5
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.26
  * @{
  */
 
+/** <<SINGLE-DISPLAY>>/<<MULTI-DISPLAY>> IEs */
 struct dect_ie_display {
 	struct dect_ie_common		common;
 	uint8_t				len;
@@ -299,10 +362,20 @@ static inline void dect_display_append(struct dect_ie_display *display,
 
 /**
  * @}
- * @defgroup ie_keypad Keypad IE (used for both Single Keypad and Multi Keypad)
+ * @defgroup ie_keypad Keypad IE (Single Keypad/Multi Keypad)
+ *
+ * <<SINGLE-KEYPAD>> and <<MULTI-KEYPAD>> IEs specified in ETSI EN 300 175-6
+ * section 7.6.5 and 7.7.27.
+ *
+ * The <<SINGLE-KEYPAD>> and <<MULTI-KEYPAD>> IEs convey DECT standard characters
+ * to the FT.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.6.6
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.27
  * @{
  */
 
+/** <<SINGLE-KEYPAD>>/<<MULTI-KEYPAD>> IE */
 struct dect_ie_keypad {
 	struct dect_ie_common		common;
 	uint16_t			len;
@@ -312,42 +385,49 @@ struct dect_ie_keypad {
 /**
  * @}
  * @defgroup ie_signal Signal
+ *
+ * <SIGNAL>> IE specified in ETSI EN 300 175-6 section 7.6.8.
+ *
+ * The <<SIGNAL>> IE conveys signal information to the PT.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.6.8
  * @{
  */
 
 // FIXME: rename to alerting
+/** Ring patterns */
 enum dect_ring_patterns {
-	DECT_RING_PATTERN_0				= 0x0,
-	DECT_RING_PATTERN_1				= 0x1,
-	DECT_RING_PATTERN_2				= 0x2,
-	DECT_RING_PATTERN_3				= 0x3,
-	DECT_RING_PATTERN_4				= 0x4,
-	DECT_RING_PATTERN_5				= 0x5,
-	DECT_RING_PATTERN_6				= 0x6,
-	DECT_RING_PATTERN_7				= 0x7,
-	DECT_RING_CONTINUOUS				= 0x8,
-	DECT_RING_INCOMING_CALL_RELEASED		= 0xa,
-	DECT_RING_INCOMING_CALL_ANSWERED		= 0xb,
-	DECT_RING_OFF					= 0xf,
-	__DECT_RING_MAX
+	DECT_RING_PATTERN_0				= 0x0, /**< Alerting on - pattern 0 */
+	DECT_RING_PATTERN_1				= 0x1, /**< Alerting on - pattern 1 */
+	DECT_RING_PATTERN_2				= 0x2, /**< Alerting on - pattern 2 */
+	DECT_RING_PATTERN_3				= 0x3, /**< Alerting on - pattern 3 */
+	DECT_RING_PATTERN_4				= 0x4, /**< Alerting on - pattern 4 */
+	DECT_RING_PATTERN_5				= 0x5, /**< Alerting on - pattern 5 */
+	DECT_RING_PATTERN_6				= 0x6, /**< Alerting on - pattern 6 */
+	DECT_RING_PATTERN_7				= 0x7, /**< Alerting on - pattern 7 */
+	DECT_RING_CONTINUOUS				= 0x8, /**< Alerting on - continous */
+	DECT_RING_INCOMING_CALL_RELEASED		= 0xa, /**< Incoming call has been released by the FP */
+	DECT_RING_INCOMING_CALL_ANSWERED		= 0xb, /**< Incoming call has been answered */
+	DECT_RING_OFF					= 0xf, /**< Alerting off */
 };
-#define DECT_RING_MAX					(__DECT_RING_MAX - 1)
 
+/** Signal codes */
 enum dect_signal_codes {
-	DECT_SIGNAL_DIAL_TONE_ON			= 0x0,
-	DECT_SIGNAL_RING_BACK_TONE_ON			= 0x1,
-	DECT_SIGNAL_INTERCEPT_TONE_ON			= 0x2,
-	DECT_SIGNAL_NETWORK_CONGESTION_TONE_ON		= 0x3,
-	DECT_SIGNAL_BUSY_TONE_ON			= 0x4,
-	DECT_SIGNAL_CONFIRM_TONE_ON			= 0x5,
-	DECT_SIGNAL_ANSWER_TONE_ON			= 0x6,
-	DECT_SIGNAL_CALL_WAITING_TONE_ON		= 0x7,
-	DECT_SIGNAL_OFF_HOOK_WARNING_TONE_ON		= 0x8,
-	DECT_SIGNAL_NEGATIVE_ACKNOWLEDGEMENT_TONE	= 0x9,
-	DECT_SIGNAL_TONES_OFF				= 0x3f,
-	DECT_SIGNAL_ALERTING_BASE			= 0x40,
+	DECT_SIGNAL_DIAL_TONE_ON			= 0x0,	/**< Dial tone on */
+	DECT_SIGNAL_RING_BACK_TONE_ON			= 0x1,	/**< Dial tone off */
+	DECT_SIGNAL_INTERCEPT_TONE_ON			= 0x2,	/**< Intercept tone on */
+	DECT_SIGNAL_NETWORK_CONGESTION_TONE_ON		= 0x3,	/**< Network congestion tone on */
+	DECT_SIGNAL_BUSY_TONE_ON			= 0x4,	/**< Busy tone on */
+	DECT_SIGNAL_CONFIRM_TONE_ON			= 0x5,	/**< Confirm tone on */
+	DECT_SIGNAL_ANSWER_TONE_ON			= 0x6,	/**< Answer tone on */
+	DECT_SIGNAL_CALL_WAITING_TONE_ON		= 0x7,	/**< Call waiting tone on */
+	DECT_SIGNAL_OFF_HOOK_WARNING_TONE_ON		= 0x8,	/**< Off-hook warning tone on */
+	DECT_SIGNAL_NEGATIVE_ACKNOWLEDGEMENT_TONE	= 0x9,	/**< Negative acknowledgement tone on */
+	DECT_SIGNAL_TONES_OFF				= 0x3f,	/**< Tones off */
+	DECT_SIGNAL_ALERTING_BASE			= 0x40,	/**< Base value for ring patterns */
 };
 
+/** <<SIGNAL>> IE */
 struct dect_ie_signal {
 	struct dect_ie_common		common;
 	enum dect_signal_codes		code;
@@ -366,45 +446,73 @@ dect_signal_init(struct dect_ie_signal *signal, enum dect_signal_codes code)
  * @addtogroup ie_generic
  * @{
  * @defgroup ie_timer_restart Timer restart
+ *
+ * <<TIMER-RESTART>> IE specified in ETSI EN 300 175-5 section 7.6.9.
+ *
+ * The <<TIMER-RESTART>> IE is used to stop or restart a NWK-layer timer.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.6.9
  * @{
  */
 
-enum dect_timer_restart_codes {
-	DECT_TIMER_RESTART		= 0x0,
-	DECT_TIMER_STOP			= 0x1,
+/** Timer restart values */
+enum dect_timer_restart_values {
+	DECT_TIMER_RESTART		= 0x0, /**< Restart timer */
+	DECT_TIMER_STOP			= 0x1, /**< Stop timer */
 };
 
+/** <<TIMER-RESTART>> IE */
 struct dect_ie_timer_restart {
 	struct dect_ie_common		common;
-	enum dect_timer_restart_codes	code;
+	enum dect_timer_restart_values	code;
 };
 
 /**
  * @}
  * @defgroup ie_test_hook_control Test hook control
+ *
+ * <<TEST-HOOK-CONTROL>> IE specified in ETSI EN 300 175-5 section 7.6.10.
+ *
+ * The <<TEST-HOOK-CONTROL>> IE conveys the remote control of the PT hook switch
+ * for testing.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.6.10
  * @{
  */
 
-enum dect_test_hook_ctrls {
-	DECT_TEST_HOOK_ON_HOOK		= 0x0,
-	DECT_TEST_HOOK_OFF_HOOK		= 0x1,
+/** Test hook control values */
+enum dect_test_hook_values {
+	DECT_TEST_HOOK_ON_HOOK		= 0x0, /**< On-hook */
+	DECT_TEST_HOOK_OFF_HOOK		= 0x1, /**< Off-hook */
 };
 
+/** <<TEST-HOOK-CONTROL>> IE */
 struct dect_ie_test_hook_control {
 	struct dect_ie_common		common;
-	enum dect_test_hook_ctrls	hook;
+	enum dect_test_hook_values	hook;
 };
 
 /**
  * @}@}
  * @defgroup ie_auth Authentication related
+ *
+ * Authentication related IEs.
+ *
  * @{
  */
 /**
  * @defgroup ie_allocation_type Allocation type
+ *
+ * <<ALLOCATION-TYPE>> IE specified in ETSI EN 300 175-5 section 7.7.2.
+ *
+ * The <<ALLOCATION-TYPE>> IE defines the authentication parameters for the
+ * key allocation procedure.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.2
  * @{
  */
 
+/** <<ALLOCATION-TYPE>> IE */
 struct dect_ie_allocation_type {
 	struct dect_ie_common		common;
 	uint8_t				auth_id;
@@ -415,22 +523,32 @@ struct dect_ie_allocation_type {
 /**
  * @}@}
  * @defgroup ie_alphanumeric Alphanumeric
+ *
+ * <<ALPHANUMERIC>> IE specified in ETSI EN 300 175-5 section 7.7.3.
+ *
+ * The <<ALPHANUMERIC>> IE provides a transport mechanism for alternative
+ * character sets in both directions.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.3.
  * @{
  */
 
+/** Alphanumeric character types */
 enum dect_character_types {
-	DECT_CHARACTER_TYPE_USER_SPECIFIC	= 0x0,
-	DECT_CHARACTER_TYPE_STANDARD_8BIT	= 0x1,
-	DECT_CHARACTER_TYPE_STANDARD_4BIT	= 0x2,
+	DECT_CHARACTER_TYPE_USER_SPECIFIC	= 0x0, /**< User specific */
+	DECT_CHARACTER_TYPE_STANDARD_8BIT	= 0x1, /**< Standard 8-bit characters*/
+	DECT_CHARACTER_TYPE_STANDARD_4BIT	= 0x2, /**< Standard 4-bit characters */
 };
 
+/** Alphanumeric charcter sets */
 enum dect_character_sets {
-	DECT_CHARSET_DECT_STANDARD		= 0x1,
-	DECT_CHARSET_IA5			= 0x2,
-	DECT_CHARSET_ERMES			= 0x4,
-	DECT_CHARSET_ASCII			= 0x6,
+	DECT_CHARSET_DECT_STANDARD		= 0x1, /**< DECT standard 8-bit characters */
+	DECT_CHARSET_IA5			= 0x2, /**< IA5 characters */
+	DECT_CHARSET_ERMES			= 0x4, /**< ERMES 7-bit characters */
+	DECT_CHARSET_ASCII			= 0x6, /**< Standard ASCII 7-bit characters */
 };
 
+/** <<ALPHANUMERIC>> IE */
 struct dect_ie_alphanumeric {
 	struct dect_ie_common			common;
 	enum dect_character_types		type;
@@ -445,10 +563,7 @@ struct dect_ie_alphanumeric {
  * @{
  */
 
-/**
- * Authentication algorithm identifiers specified in ETSI EN 300 175-5
- * section 7.7.4.
- */
+/** Authentication algorithm identifiers */
 enum dect_auth_type_identifiers {
 	DECT_AUTH_DSAA				= 0x1,  /**< DECT standard authentication algorithm 1 */
 	DECT_AUTH_GSM				= 0x40, /**< GSM authentication algorithm */
@@ -456,18 +571,14 @@ enum dect_auth_type_identifiers {
 	DECT_AUTH_PROPRIETARY			= 0x7f, /**< Escape to proprietary algorithm identifier */
 };
 
-/**
- * Authentication key types specified in ETSI EN 300 175-5 section 7.7.4.
- */
+/** Authentication key types */
 enum dect_auth_key_types {
 	DECT_KEY_USER_AUTHENTICATION_KEY	= 0x1, /**< User authentication key */
 	DECT_KEY_USER_PERSONAL_IDENTITY		= 0x3, /**< User personal identity */
 	DECT_KEY_AUTHENTICATION_CODE		= 0x4, /**< Authentication code */
 };
 
-/**
- * Authentication key flags - defines the relation of the key to identities.
- */
+/** Authentication key flags - defines the relation of the key to identities. */
 enum dect_auth_key_flags {
 	DECT_AUTH_KEY_IPUI			= 0x0, /**< The key shall be related to the active IPUI */
 	DECT_AUTH_KEY_IPUI_PARK			= 0x8, /**< The key shall be related to the active IPUI/PARK pair */
@@ -475,28 +586,27 @@ enum dect_auth_key_flags {
 
 /**
  * @defgroup ie_auth_type Auth type
- * @{
- */
-
-/**
- * Authentication flags repesenting the INC/DEF/TXC/UPC bits specified in
- * ETSI EN 300 175-5 section 7.7.4.
- */
-enum dect_auth_flags {
-	DECT_AUTH_FLAG_INC			= 0x80,
-	DECT_AUTH_FLAG_DEF			= 0x40,
-	DECT_AUTH_FLAG_TXC			= 0x20,
-	DECT_AUTH_FLAG_UPC			= 0x10,
-};
-
-/**
- * Auth type IE specified in ETSI EN 300 175-5 section 7.7.4.
+ *
+ * <<AUTH-TYPE>> IE specified in ETSI EN 300 175-5 section 7.7.4.
  *
  * The <<AUTH-TYPE>> IE defines the authentication algorithm and the
  * authentication key. In addition it may be used to send a ZAP increment
  * command and/or to indicate if the cipher key shall be updated and/or
  * sent.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.4
+ * @{
  */
+
+/** Authentication flags repesenting the INC/DEF/TXC/UPC bits */
+enum dect_auth_flags {
+	DECT_AUTH_FLAG_INC			= 0x80, /**< INC bit */
+	DECT_AUTH_FLAG_DEF			= 0x40, /**< DEF bit */
+	DECT_AUTH_FLAG_TXC			= 0x20, /**< TXC bit */
+	DECT_AUTH_FLAG_UPC			= 0x10, /**< UPC bit */
+};
+
+/** <<AUTH-TYPE>> IE */
 struct dect_ie_auth_type {
 	struct dect_ie_common		common;
 	uint8_t				auth_id;
@@ -601,15 +711,17 @@ enum dect_screening_indicators {
 
 /**
  * @defgroup ie_called_party_number Called party number
- * @{
- */
-
-/**
- * Called party number IE specified in ETSI EN 300 175-5 section 7.7.4.
+ *
+ * <<CALLED-PARTY-NUMBER>> IE specified in ETSI EN 300 175-5 section 7.7.7.
  *
  * The <<CALLED-PARTY-NUMBER>> IE identifies the called party of a call in an
  * en-bloc format.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.7
+ * @{
  */
+
+/** <<CALLED-PARTY-NUMBER>> IE */
 struct dect_ie_called_party_number {
 	struct dect_ie_common			common;
 	enum dect_number_type			type;
@@ -621,9 +733,17 @@ struct dect_ie_called_party_number {
 /**
  * @}
  * @defgroup ie_called_party_subaddress Called party subaddress
+ *
+ * <<CALLED-PARTY-SUBADDRESS> IE specified in ETSI EN 300 175-5 section 7.7.8
+ *
+ * The <<CALLED-PARTY-SUBADDRESS>> IE identifies the subaddress of the called party
+ * of a call.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.8.
  * @{
  */
 
+/** <<CALLED-PARTY-SUBADDRESS> IE */
 struct dect_ie_called_party_subaddress {
 	struct dect_ie_common		common;
 };
@@ -631,9 +751,17 @@ struct dect_ie_called_party_subaddress {
 /**
  * @}
  * @defgroup ie_calling_party_number Calling party number
+ *
+ * <<CALLING-PARTY-NUMBER>> IE specified in ETSI EN 300 175-5 section 7.7.9.
+ *
+ * The <<CALLING-PARTY-NUMBER>> IE conveys the number of the calling party of a
+ * call.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.9.
  * @{
  */
 
+/** <<CALLING-PARTY-NUMBER>> IE */
 struct dect_ie_calling_party_number {
 	struct dect_ie_common			common;
 	enum dect_number_type			type:8;
@@ -647,9 +775,17 @@ struct dect_ie_calling_party_number {
 /**
  * @}
  * @defgroup ie_calling_party_name Calling party Name
+ *
+ * <<CALLING-PARTY-NAME>> IE specified in ETSI EN 300 175-5 section 7.7.53.
+ *
+ * The <<CALLING-PARTY-NAME>> IE conveys the name of the calling party of a
+ * call.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.53
  * @{
  */
 
+/** <<CALLING-PARTY-NAME>> IE */
 struct dect_ie_calling_party_name {
 	struct dect_ie_common			common;
 	enum dect_presentation_indicators	presentation:8;
@@ -662,14 +798,22 @@ struct dect_ie_calling_party_name {
 /**
  * @}@}@}
  * @defgroup ie_ciphering Ciphering related
+ *
+ * Ciphering related IEs.
+ *
  * @{
  * @defgroup ie_cipher_info Cipher info
+ *
+ * <<CIPHER-INFO>> IE specified in ETSI EN 300 175-5 section 7.7.10.
+ *
+ * The <<CIPHER-INFO>> IE indicates if a call shall be ciphered or not.
+ * In the case of ciphering it defines the cipher algorithm and the cipher key.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.10
  * @{
  */
 
-/**
- * Cipher algorithm identifiers specified in ETSI EN 300 175-5 section 7.7.10.
- */
+/** Cipher algorithm identifiers */
 enum dect_cipher_algs {
 	DECT_CIPHER_STANDARD_1		= 0x1,  /**< DECT standard cipher algorithm 1 */
 	DECT_CIPHER_GPRS_NO_CIPHERING	= 0x28, /**< GPRS ciphering not used */
@@ -683,20 +827,13 @@ enum dect_cipher_algs {
 	DECT_CIPHER_ESC_TO_PROPRIETARY	= 0x7f, /**< Escape to proprietary algorithm identifier */
 };
 
-/**
- * Cipher key types specified in ETSI EN 300 175-5 section 7.7.10.
- */
+/** Cipher key types */
 enum dect_cipher_key_types {
 	DECT_CIPHER_DERIVED_KEY		= 0x9, /**< Derived cipher key */
 	DECT_CIPHER_STATIC_KEY		= 0xa, /**< Static cipher key */
 };
 
-/**
- * Cipher info IE specified in ETSI EN 300 175-5 section 7.7.10.
- *
- * The <<CIPHER-INFO>> IE indicates if a call shall be ciphered or not.
- * In the case of ciphering it defines the cipher algorithm and the cipher key.
- */
+/** <<CIPHER-INFO>> IE */
 struct dect_ie_cipher_info {
 	struct dect_ie_common		common;
 	bool				enable;
@@ -730,38 +867,36 @@ struct dect_ie_connection_identity {
 /**
  * @}
  * @defgroup ie_duration Duration
+ *
+ * Duration IE specified in ETSI EN 300 175-5 section 7.7.13.
+ *
+ * The <<DURATION>> IE indicates a time duration. The time is defined
+ * in units of MAC layer multiframes and depends on the time limit:
+ *
+ * - @ref DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_1 "Defined time limit 1": 1 unit =  2^8 multiframes =        40.96s
+ * - @ref DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_2 "Defined time limit 2": 1 unit = 2^16 multiframes = 2h 54m 45.76s
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.13
  * @{
  */
 
-/**
- * Lock limits specified in ETSI EN 300 175-5 section 7.7.13.
- */
+/** Lock limits */
 enum dect_lock_limits {
 	DECT_LOCK_TEMPORARY_USER_LIMIT_1	= 0x6, /**< Temporary user limit */
 	DECT_LOCK_NO_LIMITS			= 0x7, /**< No limits */
 	DECT_LOCK_TEMPORARY_USER_LIMIT_2	= 0x5, /**< Temporary user limits 2 */
 };
 
-/**
- * Time limits specified in ETSI EN 300 175-5 section 7.7.13.
- */
+/** Time limits */
 enum dect_time_limits {
 	DECT_TIME_LIMIT_ERASE			= 0x0, /**< Erase (time limit zero) */
-	DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_1	= 0x1, /**< Defined time limit 1 */
-	DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_2	= 0x2, /**< Defined time limit 2 */
+	DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_1	= 0x1, /**< Defined time limit 1: 2^8 multiframes */
+	DECT_TIME_LIMIT_DEFINED_TIME_LIMIT_2	= 0x2, /**< Defined time limit 2: 2^16 multiframes */
 	DECT_TIME_LIMIT_STANDARD_TIME_LIMIT	= 0x4, /**< Standard time limit */
 	DECT_TIME_LIMIT_INFINITE		= 0xf, /**< Infinite */
 };
 
-/**
- * Duration IE specified in ETSI EN 300 175-5 section 7.7.13.
- *
- * The <<DURATION>> IE indicates a time duration. The time is defined
- * in units of MAC layer multiframes and depends on the time limit:
- *
- * - Defined time limit 1: 1 unit =  2^8 multiframes =        40.96s
- * - Defined time limit 2: 1 unit = 2^16 multiframes = 2h 54m 45.76s
- */
+/** <<DURATION>> IE */
 struct dect_ie_duration {
 	struct dect_ie_common		common;
 	enum dect_lock_limits		lock;
@@ -786,6 +921,13 @@ struct dect_ie_end_to_end_compatibility {
  * @addtogroup ie_generic
  * @{
  * @defgroup ie_facility Facility
+ *
+ * <<FACILITY>> IE specified in ETSI EN 300 175-5 section 7.7.15.
+ *
+ * The <<FACILITY>> IE indicates the invocation and operates supplementary
+ * services.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.15
  * @{
  */
 
@@ -801,8 +943,10 @@ struct dect_ie_facility {
 /**
  * @}@}
  * @defgroup ie_feature_management Feature key management related
- * @{
- * @defgroup ie_feature_activate Feature activate
+ *
+ * Feature key management protocol related IEs.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 10.3 (Feature key management protocol)
  * @{
  */
 
@@ -822,11 +966,18 @@ enum dect_feature {
 };
 
 /**
- * Feature activate IE specified in ETSI EN 300 175-5 section 7.7.16.
+ * @defgroup ie_feature_activate Feature activate
+ *
+ * <<FEATURE-ACTIVATE>> IE specified in ETSI EN 300 175-5 section 7.7.16.
  *
  * The <<FEATURE-ACTIVATE>> IE requests activation of the feature specified in
  * the feature field.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.18
+ * @{
  */
+
+/** <<FEATURE-ACTIVATE>> IE */
 struct dect_ie_feature_activate {
 	struct dect_ie_common		common;
 	enum dect_feature		feature;
@@ -835,12 +986,17 @@ struct dect_ie_feature_activate {
 /**
  * @}
  * @defgroup ie_feature_indicate Feature indicate
+ *
+ * <<FEATURE-INDICATE>> IE specified in ETSI EN 300 175-5 section 7.7.17.
+ *
+ * The <<FEATURE-INDICATE>> IE conveys FT feature indications to the user
+ * regarding the status of an activated feature.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.17
  * @{
  */
 
-/**
- * Feature status indicators specified in ETSI EN 300 175-5 section 7.7.17
- */
+/** Feature status indicators */
 enum dect_feature_status {
 	DECT_FEATURE_SERVICE_REQUEST_REJECTED		= 0x80, /**< Service request rejected */
 	DECT_FEATURE_SERVICE_REQUEST_ACCEPTED		= 0x81, /**< Service request accepted, feature is activated */
@@ -849,12 +1005,7 @@ enum dect_feature_status {
 	DECT_FEATURE_SERVICE_UNOBTAINABLE		= 0x86, /**< Service unobtainable */
 };
 
-/**
- * Feature indicate IE specified in ETSI EN 300 175-5 section 7.7.17.
- *
- * The <<FEATURE-INDICATE>> IE conveys FT feature indications to the user
- * regarding the status of an activated feature.
- */
+/** <<FEATURE-INDICATE>> IE */
 struct dect_ie_feature_indicate {
 	struct dect_ie_common		common;
 	enum dect_feature		feature;
@@ -866,12 +1017,18 @@ struct dect_ie_feature_indicate {
  * @defgroup ie_identity_related Identity related
  * @{
  * @defgroup ie_fixed_identity Fixed identity
+ *
+ * <<FIXED-IDENTITY>> IE specified in ETSI EN 300 175-5 section 7.7.18.
+ *
+ * The <<FIXED-IDENTITY>> IE transports a DECT fixed identity or a
+ * Portable Access Rights Key (PARK).
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.18
+ * @sa ETSI EN 300 175-6 (Identities and addressing)
  * @{
  */
 
-/**
- * Fixed identity types specified in ETSI EN 300 175-5 section 7.7.18.
- */
+/** Fixed identity types */
 enum dect_fixed_identity_types {
 	DECT_FIXED_ID_TYPE_ARI		= 0x00, /**< Access rights identity */
 	DECT_FIXED_ID_TYPE_ARI_RPN	= 0x01, /**< Access rights identity plus radio fixed part number */
@@ -879,14 +1036,7 @@ enum dect_fixed_identity_types {
 	DECT_FIXED_ID_TYPE_PARK		= 0x20, /**< Portable access rights key */
 };
 
-/**
- * Fixed identity IE specified in ETSI EN 300 175-5 section 7.7.18.
- *
- * The <<FIXED-IDENTITY>> IE transports a DECT fixed identity or a
- * Portable Access Rights Key (PARK).
- *
- * @sa ETSI EN 300 175-6 (Identities and addressing)
- */
+/** <<FIXED-IDENTITY>> IE */
 struct dect_ie_fixed_identity {
 	struct dect_ie_common		common;
 	enum dect_fixed_identity_types	type;
@@ -897,25 +1047,24 @@ struct dect_ie_fixed_identity {
 /**
  * @}
  * @defgroup ie_portable_identity Portable identity
+ *
+ * <<PORTABLE-IDENTITY>> IE specified in ETSI EN 300 175-5 section 7.7.30.
+ *
+ * The <<PORTABLE-IDENTITY>> IE transports a DECT portable identity.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.30
+ * @sa ETSI EN 300 175-6 (Identities and addressing)
  * @{
  */
 
-/**
- * Portable identity types specified in ETSI EN 300 175-5 section 7.7.30.
- */
+/** Portable identity types */
 enum dect_portable_identity_types {
 	DECT_PORTABLE_ID_TYPE_IPUI	= 0x0,  /**< International Portable User Identity (IPUI) */
 	DECT_PORTABLE_ID_TYPE_IPEI	= 0x10, /**< International Portable Equipment Identity (IPEI) */
 	DECT_PORTABLE_ID_TYPE_TPUI	= 0x20, /**< Temporary Portable User Identity (TPUI) */
 };
 
-/**
- * Portable identity IE specified in ETSI EN 300 175-5 section 7.7.30.
- *
- * The <<PORTABLE-IDENTITY>> IE transports a DECT portable identity.
- *
- * @sa ETSI EN 300 175-6 (Identities and addressing)
- */
+/** <<PORTABLE-IDENTITY>> IE */
 struct dect_ie_portable_identity {
 	struct dect_ie_common			common;
 	enum dect_portable_identity_types	type;
@@ -928,22 +1077,22 @@ struct dect_ie_portable_identity {
 /**
  * @}
  * @defgroup ie_nwk_assigned_identity NetWorK (NWK) assigned identity
+ *
+ * <<NWK-ASSIGNED-IDENTITY>> IE specified in ETSI EN 300 175-5 section 7.7.28.
+ *
+ * The <<NWK-ASSIGNED-IDENTITY>> IE transports a network assigned identity.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.28
  * @{
  */
 
-/**
- * Network assigned identity types specified in ETSI EN 300 175-5 section 7.7.28.
- */
+/** Network assigned identity types */
 enum dect_nwk_identity_types {
 	DECT_NWK_ID_TYPE_TMSI		= 0x74, /**< Temporary mobile subscriber identity (TMSI) */
 	DECT_NWK_ID_TYPE_PROPRIETARY	= 0x7f, /**< Proprietary (application specific) */
 };
 
-/**
- * NetWork (NWK) assigned identity IE specified in ETSI EN 300 175-5 section 7.7.28.
- *
- * The <<NWK-ASSIGNED-IDENTITY>> IE transports a network assigned identity.
- */
+/** <<NWK-ASSIGNED-IDENTITY>> IE */
 struct dect_ie_nwk_assigned_identity {
 	struct dect_ie_common		common;
 	enum dect_nwk_identity_types	type;
@@ -952,6 +1101,14 @@ struct dect_ie_nwk_assigned_identity {
 /**
  * @}
  * @defgroup ie_identity_type Identity type
+ *
+ * <<IDENTITY-TYPE>> IE specified in ETSI EN 300 175-5 section 7.7.19.
+ *
+ * The <<IDENTITY-TYPE>> IE indicates a specific identity type, e.g. used by
+ * the FT when requesting for a specific PT identity.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.19
+ * @sa ETSI EN 300 175-6 (Identities and addressing)
  * @{
  */
 
@@ -966,14 +1123,7 @@ enum dect_identity_groups {
 	DECT_IDENTITY_PROPRIETARY		= 0xf, /**< Proprietary identity (application specific) */
 };
 
-/**
- * Identity type IE specified in ETSI EN 300 175-5 section 7.7.19.
- *
- * The <<IDENTITY-TYPE>> IE indicates a specific identity type, e.g. used by
- * the FT when requesting for a specific PT identity.
- *
- * @sa ETSI EN 300 175-6 (Identities and addressing)
- */
+/** <<IDENTITY-TYPE>> IE */
 struct dect_ie_identity_type {
 	struct dect_ie_common			common;
 	enum dect_identity_groups		group;
@@ -988,9 +1138,17 @@ struct dect_ie_identity_type {
 /**
  * @}@}
  * @defgroup ie_info_type Info type
+ *
+ * <<INFO-TYPE>> IEs specified in ETSI EN 300 175-5 section 7.7.20.
+ *
+ * The <<INFO-TYPE>> IE indicates the type of requested or transmitted
+ * information.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.20
  * @{
  */
 
+/** Information parameter types */
 enum dect_info_parameter_type {
 	DECT_INFO_LOCATE_SUGGEST				= 0x00, /**< Locate suggest */
 	DECT_INFO_ACCESS_RIGHTS_MODIFY_SUGGEST			= 0x01, /**< Access rights modify suggest */
@@ -1021,6 +1179,7 @@ enum dect_info_parameter_type {
 	DECT_INFO_IDENTITY_ALLOCATION				= 0x34, /**< Identity allocation */
 };
 
+/** <<INFO-TYPE>> IE */
 struct dect_ie_info_type {
 	struct dect_ie_common		common;
 	unsigned int			num;
@@ -1044,9 +1203,17 @@ struct dect_ie_iwu_attributes {
  * @addtogroup ie_generic
  * @{
  * @defgroup ie_iwu_packet IWU packet
+ *
+ * <<IWU-PACKET>> IEs specified in ETSI EN 300 175-5 section 7.7.22.
+ *
+ * The <<IWU-PACKET>> IE encapsulates external frame or unstructured data such
+ * that is can be transported inside one or more CC, MM, COMS or CLMS messages.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.22
  * @{
  */
 
+/** <<IWU-PACKET>> IE */
 struct dect_ie_iwu_packet {
 	struct dect_ie_common		common;
 };
@@ -1054,9 +1221,17 @@ struct dect_ie_iwu_packet {
 /**
  * @}
  * @defgroup ie_iwu_to_iwu IWU to IWU
+ *
+ * <<IWU-TO-IWU>> IEs specified in ETSI EN 300 175-5 section 7.7.23.
+ *
+ * The <<IWU-TO-IWU>> IE is used to exchange information between the
+ * interworking units.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.23
  * @{
  */
 
+/** IWU-TO-IWU protocol discriminators */
 enum dect_iwu_to_iwu_discriminators {
 	DECT_IWU_TO_IWU_PD_USER_SPECIFIC			= 0x00, /**< User Specific */
 	DECT_IWU_TO_IWU_PD_OSI_HIGHER_LAYER			= 0x01, /**< OSI high layer protocols */
@@ -1084,6 +1259,7 @@ enum dect_iwu_to_iwu_discriminators {
 	DECT_IWU_TO_IWU_PD_UNKNOWN				= 0x3f, /**< Unknown */
 };
 
+/** <<IWU-TO-IWU>> IE */
 struct dect_ie_iwu_to_iwu {
 	struct dect_ie_common		common;
 	bool				sr;
@@ -1097,9 +1273,16 @@ struct dect_ie_iwu_to_iwu {
  * @addtogroup ie_auth
  * @{
  * @defgroup ie_key Key
+ *
+ * <<KEY>> IEs specified in ETSI EN 300 175-5 section 7.7.24.
+ *
+ * The <<KEY>> IE transfers a key.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.24
  * @{
  */
 
+/** <<KEY>> */
 struct dect_ie_key {
 	struct dect_ie_common		common;
 };
@@ -1107,6 +1290,12 @@ struct dect_ie_key {
 /**
  * @}@}
  * @defgroup ie_location_area Location area
+ *
+ * <<LOCATION_AREA>> IE specified in ETSI EN 300 175-5 section 7.7.25.
+ *
+ * The <<LOCATION-AREA>> IE provides an identification of the location area.
+ *
+ * @sa ETSI EN 300 175-5 section 7.7.25.
  * @{
  */
 
@@ -1115,6 +1304,7 @@ enum dect_location_area_types {
 	DECT_LOCATION_AREA_EXTENDED		= 0x1 << 1, /**<  */
 };
 
+/** <<LOCATION-AREA>> IE */
 struct dect_ie_location_area {
 	struct dect_ie_common		common;
 	uint8_t				type;
@@ -1124,6 +1314,12 @@ struct dect_ie_location_area {
 /**
  * @}
  * @defgroup ie_network_parameter Network parameter
+ *
+ * <<NETWORK-PARAMETER>> IE specified in ETSI EN 300 175-5 section 7.7.29.
+ *
+ * The <<NETWORK-PARAMETER>> IE conveys a network parameter.
+ *
+ * @sa ETSI EN 300 175-5 section 7.7.29.
  * @{
  */
 
@@ -1143,6 +1339,7 @@ enum dect_network_parameter_discriminators {
 	DECT_NETWORK_PARAMETER_HO_REFERENCE_REQUEST_UMTS_NETWORK= 0xec, /**< Handover reference request, UMTS network */
 };
 
+/** <<NETWORK-PARAMETER>> IE */
 struct dect_ie_network_parameter {
 	struct dect_ie_common				common;
 	enum dect_network_parameter_discriminators	discriminator;
@@ -1155,9 +1352,17 @@ struct dect_ie_network_parameter {
  * @addtogroup ie_cc_related
  * @{
  * @defgroup ie_progress_indicator Progress indicator
+ *
+ * <<PROGRESS-INDICATOR>> IEs specified in ETSI EN 300 175-5 section 7.7.31.
+ *
+ * The <<PROGRESS-INDICATOR>> IE describes an event which has occured during the
+ * life of a call.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.31
  * @{
  */
 
+/** Event location */
 enum dect_location {
 	DECT_LOCATION_USER					= 0x0, /**< user */
 	DECT_LOCATION_PRIVATE_NETWORK_SERVING_LOCAL_USER	= 0x1, /**< private network serving the local user */
@@ -1169,6 +1374,7 @@ enum dect_location {
 	DECT_LOCATION_NOT_APPLICABLE				= 0xf, /**< not applicable */
 };
 
+/** Progress description */
 enum dect_progress_description {
 	DECT_PROGRESS_NOT_END_TO_END_ISDN			= 0x00, /**< Call is not end-to-end ISDN, further call progress info may be available in-band */
 	DECT_PROGRESS_DESTINATION_ADDRESS_NON_ISDN		= 0x02, /**< Destination address is non-ISDN */
@@ -1180,6 +1386,7 @@ enum dect_progress_description {
 	DECT_PROGRESS_END_TO_END_ISDN				= 0x40, /**< Call is end-to-end PLMN/ISDN */
 };
 
+/** <<PROGRESS-INDICATOR>> IE */
 struct dect_ie_progress_indicator {
 	struct dect_ie_common		common;
 	enum dect_location		location;
@@ -1191,9 +1398,21 @@ struct dect_ie_progress_indicator {
  * @addtogroup ie_auth
  * @{
  * @defgroup ie_auth_value RAND/RS
+ *
+ * <<RAND>> and <<RS>> IEs specified in ETSI EN 300 175-5 section 7.7.32 and 7.7.36.
+ *
+ * The <<RAND>> IE provides a non-predictable number to by used for to calculate
+ * the authentication response.
+ *
+ * The <RS> IE provides a number to be used together with <<RAND>> and the
+ * authentication key to calculate the authentication response.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.32
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.36
  * @{
  */
 
+/** <<RAND>>/<<RS>> IE */
 struct dect_ie_auth_value {
 	struct dect_ie_common		common;
 	uint64_t			value;
@@ -1202,9 +1421,16 @@ struct dect_ie_auth_value {
 /**
  * @}
  * @defgroup ie_res RES
+ *
+ * <<RES>> IE specified in ETSI EN 300 175-5 section 7.7.35.
+ *
+ * The <<RES>> IE provides the calculated authentication responde.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.35
  * @{
  **/
 
+/** <<RES>> IE */
 struct dect_ie_auth_res {
 	struct dect_ie_common		common;
 	uint32_t			value;
@@ -1225,9 +1451,17 @@ struct dect_ie_rate_parameters {
  * @addtogroup ie_generic
  * @{
  * @defgroup ie_reject_reason Reject reason
+ *
+ * <<REJECT-REASON>> IE specified in ETSI EN 300 175-5 section 7.6.34.
+ *
+ * The <<REJECT-REASON>> IE conveys the reason why a request is rejected by
+ * the FT or PT.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.6.34
  * @{
  */
 
+/** Reject reasons */
 enum dect_reject_reasons {
 	DECT_REJECT_TPUI_UNKNOWN				= 0x01, /**< TPUI unknown */
 	DECT_REJECT_IPUI_UNKNOWN				= 0x02, /**< IPUI unknown */
@@ -1262,6 +1496,7 @@ enum dect_reject_reasons {
 	DECT_REJECT_LOCATION_NATIONAL_ROAMING_NOT_ALLOWED	= 0x81, /**< National roaming not allowed in this location area */
 };
 
+/** <<REJECT-REASON>> IE */
 struct dect_ie_reject_reason {
 	struct dect_ie_common		common;
 	enum dect_reject_reasons	reason;
@@ -1302,14 +1537,33 @@ struct dect_ie_service_class {
  * @defgroup ie_pt_capabilities PT capability related
  * @{
  * @defgroup ie_setup_capability Setup capability
+ *
+ * <<SETUP-CAPABILITY>> IE specified in ETSI EN 300 175-5 section 7.7.40.
+ *
+ * The <<SETUP-CAPABILITY>> IE conveys some aspects of the PP call setup
+ * capabilities.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.40
  * @{
  */
 
+/**
+ * Paging capabilities
+ *
+ * @sa ETSI EN 300 175-3 (Medium Access Control (MAC) layer), section 11.3.3.1,
+ *     Page detection in Idle_Locked state
+ */
 enum dect_page_capabilities {
 	DECT_PAGE_CAPABILITY_NORMAL_PAGING			= 0x1, /**< Normal paging only (normal duty cycle paging detection) */
 	DECT_PAGE_CAPABILITY_FAST_AND_NORMAL_PAGING		= 0x2, /**< paging and normal paging (high duty cycle paging detection) */
 };
 
+/**
+ * Setup capabilities
+ *
+ * @sa ETSI EN 300 175-3 (Medium Access Control (MAC) layer), section 11.3.3.2,
+ *     Setup detection in Idle_Locked state
+ */
 enum dect_setup_capabilities {
 	DECT_SETUP_SELECTIVE_FAST_SETUP				= 0x0, /**< Selective fast setup (SEL1, SEL2 or SEL2b) supported */
 	DECT_SETUP_NO_FAST_SETUP				= 0x1, /**< No fast setup supported (only indirect setup is supported) */
@@ -1317,6 +1571,7 @@ enum dect_setup_capabilities {
 	DECT_SETUP_COMPLETE_AND_SELECTIVE_FAST_SETUP		= 0x3, /**< Complete and selective (SEL1, SEL2 or SEL2b) fast setup modes supported */
 };
 
+/** <<SETUP-CAPABILITY>> IE */
 struct dect_ie_setup_capability {
 	struct dect_ie_common		common;
 	enum dect_page_capabilities	page_capability;
@@ -1326,9 +1581,16 @@ struct dect_ie_setup_capability {
 /**
  * @}
  * @defgroup ie_terminal_capability Terminal capability
+ *
+ * <<TERMINAL-CAPABILITY>> IE specified in ETSI EN 300 175-5 section 7.7.41.
+ *
+ * The <<TERMINAL-CAPABILITY>> IE conveys some aspects of the PP capabilities.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.41
  * @{
  */
 
+/** Display capabilities */
 enum dect_display_capabilities {
 	DECT_DISPLAY_CAPABILITY_NOT_APPLICABLE			= 0x0, /**< Not applicable */
 	DECT_DISPLAY_CAPABILITY_NO_DISPLAY			= 0x1, /**< No display */
@@ -1338,6 +1600,7 @@ enum dect_display_capabilities {
 	DECT_DISPLAY_CAPABILITY_FULL_DISPLAY			= 0x5, /**< Full display */
 };
 
+/** Tone capabilities */
 enum dect_tone_capabilities {
 	DECT_TONE_CAPABILITY_NOT_APPLICABLE			= 0x0, /**< Not applicable */
 	DECT_TONE_CAPABILITY_NO_TONE				= 0x1, /**< No tone capability */
@@ -1346,6 +1609,7 @@ enum dect_tone_capabilities {
 	DECT_TONE_CAPABILITY_COMPLETE_DECT_TONES		= 0x4, /**< Complete DECT tones supported */
 };
 
+/** Echo capabilities */
 enum dect_echo_parameters {
 	DECT_ECHO_PARAMETER_NOT_APPLICABLE			= 0x0, /**< Not applicable */
 	DECT_ECHO_PARAMETER_MINIMUM_TCLW			= 0x1, /**< Minimum TCLw */
@@ -1353,12 +1617,14 @@ enum dect_echo_parameters {
 	DECT_ECHO_PARAMETER_VOIP_COMPATIBLE_TLCW		= 0x3, /**< TCLw > 55 dB (VoIP compatible TCLw) */
 };
 
+/** Noise rejection capabilities */
 enum dect_noise_rejection_capabilities {
 	DECT_NOISE_REJECTION_NOT_APPLICABLE			= 0x0, /**< Not applicable */
 	DECT_NOISE_REJECTION_NONE				= 0x1, /**< No noise rejection */
 	DECT_NOISE_REJECTION_PROVIDED				= 0x2, /**< Noise rejection provided */
 };
 
+/** Volume control provision */
 enum dect_adaptive_volume_control_provision {
 	DECT_ADAPTIVE_VOLUME_NOT_APPLICABLE			= 0x0, /**< Not applicable */
 	DECT_ADAPTIVE_VOLUME_PP_CONTROL_NONE			= 0x1, /**< No PP adaptive volume control */
@@ -1366,20 +1632,23 @@ enum dect_adaptive_volume_control_provision {
 	DECT_ADAPTIVE_VOLUME_FP_CONTROL_DISABLE			= 0x3, /**< Disable FP adaptive volume control */
 };
 
+/* Slot capabilities */
 enum dect_slot_capabilities {
 	DECT_SLOT_CAPABILITY_HALF_SLOT				= 1 << 0, /**< Half slot; j = 80 */
 	DECT_SLOT_CAPABILITY_LONG_SLOT_640			= 1 << 1, /**< Long slot; j = 640 */
 	DECT_SLOT_CAPABILITY_LONG_SLOT_672			= 1 << 2, /**< Long slot; j = 672 */
-	DECT_SLOT_CAPABILITY_FULL_SLOT				= 1 << 3, /**< Full slot; */
+	DECT_SLOT_CAPABILITY_FULL_SLOT				= 1 << 3, /**< Full slot */
 	DECT_SLOT_CAPABILITY_DOUBLE_SLOT			= 1 << 4, /**< Double slot */
 };
 
+/** Scrolling behaviours */
 enum dect_scrolling_behaviours {
 	DECT_SCROLLING_NOT_SPECIFIED				= 0x0, /**< Not specified */
 	DECT_SCROLLING_TYPE_1					= 0x1, /**< Scrolling behaviour type 1 */
 	DECT_SCROLLING_TYPE_2					= 0x2, /**< Scrolling behaviour type 2 */
 };
 
+/** Profile indicators */
 enum dect_profile_indicators {
 	DECT_PROFILE_DPRS_ASYMETRIC_BEARERS_SUPPORTED		= 0x4000000000000000ULL, /**<  */
 	DECT_PROFILE_DPRS_STREAM_SUPPORTED			= 0x2000000000000000ULL, /**<  */
@@ -1430,6 +1699,7 @@ enum dect_profile_indicators {
 	DECT_PROFILE_64_LEVEL_BZ_FIELD_MODULATION		= 0x0000000000000100ULL, /**<  */
 };
 
+/** Display control capabilities */
 enum dect_display_control_codes {
 	DECT_DISPLAY_CONTROL_CODE_NOT_SPECIFIED			= 0x0, /**< Not specified */
 	DECT_DISPLAY_CONTROL_CODE_CLEAR_DISPLAY			= 0x1, /**< 0CH (clear display) */
@@ -1438,6 +1708,7 @@ enum dect_display_control_codes {
 	DECT_DISPLAY_CONTROL_CODE_CODING_3			= 0x4, /**< Coding 001 plus 08H to 0BH and 0DH. */
 };
 
+/** Supported character sets */
 enum dect_display_character_sets {
 	DECT_DISPLAY_CHARACTER_SET_ISO_8859_1			= 1 << 0, /**< ISO/IEC 8859-1 */
 	DECT_DISPLAY_CHARACTER_SET_ISO_8859_15			= 1 << 1, /**< ISO/IEC 8859-1 */
@@ -1445,6 +1716,7 @@ enum dect_display_character_sets {
 	DECT_DISPLAY_CHARACTER_SET_ISO_8859_7			= 1 << 3, /**< ISO/IEC 8859-7 */
 };
 
+/** <<TERMINAL-CAPABILITY>> IE */
 struct dect_ie_terminal_capability {
 	struct dect_ie_common				common;
 
@@ -1490,6 +1762,12 @@ struct dect_ie_window_size {
  * @addtogroup ie_ciphering
  * @{
  * @defgroup ie_zap_field ZAP field
+ *
+ * <<ZAP>> IE specified in ETSI EN 300 175-5 section 7.7.44.
+ *
+ * The <<ZAP>> IE provides the PT with a ZAP value.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.44.
  * @{
  */
 
@@ -1502,9 +1780,17 @@ struct dect_ie_zap_field {
  * @addtogroup ie_generic
  * @{
  * @defgroup ie_escape_to_proprietary Escape to proprietary
+ *
+ * <<ESCAPE-TO-PROPRIETARY>> IE specified in ETSI EN 300 175-5 section 7.7.45.
+ *
+ * The <<ESCAPE-TO-PROPRIETARY>> IE is used to send non-standardized information
+ * inside a DECT message.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.45
  * @{
  */
 
+/** <<ESCAPE-TO-PROPRIETARY>> IE */
 struct dect_ie_escape_to_proprietary {
 	struct dect_ie_common		common;
 	uint16_t			emc;
@@ -1579,6 +1865,13 @@ struct dect_ie_ext_ho_indicator {
  * @addtogroup ie_auth
  * @{
  * @defgroup ie_auth_reject_parameter Authentication Reject Parameter
+ *
+ * <<AUTHENTICATION-REJECT-PARAMETER>> IE specified in ETSI EN 300 175-5 section 7.7.52.
+ *
+ * The <<AUTHENTICATION-REJECT-PARAMETER>> IE's function is defined in the application
+ * profiles.
+ *
+ * @sa ETSI EN 300 175-5 section 7.7.52.
  * @{
  */
 
@@ -1591,14 +1884,22 @@ struct dect_ie_auth_reject_parameter {
  * @addtogroup ie_cc_related
  * @{
  * @defgroup ie_codec_list Codec List
+ *
+ * <<CODEC-LIST>> IE specified in ETSI EN 300 175-5 section 7.7.54.
+ *
+ * The <<CODEC-LIST>> IE is used for codec negotiation in speech services.
+ *
+ * @sa ETSI EN 300 175-5 section 7.7.54.
  * @{
- **/
+ */
 
+/** Codec negotiation indicators */
 enum dect_negotiation_indicator {
 	DECT_NEGOTIATION_NOT_POSSIBLE		= 0x0, /**< Negotiation not possible */
 	DECT_NEGOTIATION_CODEC			= 0x1, /**< Codec negotiation */
 };
 
+/** Codec identifiers */
 enum dect_codec_identifier {
 	DECT_CODEC_USER_SPECIFIC_32KBIT		= 0x1, /**< user specific, information transfer rate 32 kbit/s */
 	DECT_CODEC_G726_32KBIT			= 0x2, /**< G.726 ADPCM, information transfer rate 32 kbit/s */
@@ -1611,6 +1912,7 @@ enum dect_codec_identifier {
 	DECT_CODEC_USER_SPECIFIC_64KBIT		= 0x9, /**< user specific, information transfer rate 64 kbit/s */
 };
 
+/** MAC and DLC-layer services */
 enum dect_mac_dlc_service {
 	DECT_MAC_DLC_SERVICE_LU1_INA		= 0x0, /**< DLC service LU1, MAC service: INA (IN_minimum_delay) */
 	DECT_MAC_DLC_SERVICE_LU1_INB		= 0x1, /**< DLC service LU1, MAC service: INB (IN_normal_delay) */
@@ -1620,6 +1922,7 @@ enum dect_mac_dlc_service {
 	DECT_MAC_DLC_SERVICE_LU12_INB		= 0x5, /**< DLC service LU12, MAC service: INB (IN_normal_delay), encapsulation as EN 300 175-4, clause E.1 */
 };
 
+/** Slot sizes */
 enum dect_slot_size {
 	DECT_HALF_SLOT				= 0x0, /**< Half slot; j = 0. */
 	DECT_LONG_SLOT_640			= 0x1, /**< Long slot; j = 640 */
@@ -1628,6 +1931,7 @@ enum dect_slot_size {
 	DECT_DOUBLE_SLOT			= 0x5, /**< Double slot */
 };
 
+/* C-Plane routing options */
 enum dect_cplane_routing {
 	DECT_CPLANE_CS_ONLY			= 0x0, /**< CS only */
 	DECT_CPLANE_CS_PREFERRED		= 0x1, /**< CS preferred/CF accepted */
@@ -1635,6 +1939,7 @@ enum dect_cplane_routing {
 	DECT_CPLANE_CF_ONLY			= 0x4, /**< CF only */
 };
 
+/** <<CODEC-LIST>> IE */
 struct dect_ie_codec_list {
 	struct dect_ie_common		common;
 	enum dect_negotiation_indicator	negotiation;

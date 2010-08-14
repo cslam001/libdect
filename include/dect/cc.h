@@ -18,9 +18,7 @@ extern "C" {
 
 #include <dect/ie.h>
 
-/**
- * MNCC_SETUP primitive parameters
- */
+/** MNCC_SETUP primitive parameters */
 struct dect_mncc_setup_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_basic_service		*basic_service;
@@ -50,6 +48,7 @@ struct dect_mncc_setup_param {
 	struct dect_ie_codec_list		*codec_list;
 };
 
+/** MNCC_SETUP_ACK primitive parameters */
 struct dect_mncc_setup_ack_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_info_type		*info_type;
@@ -68,6 +67,7 @@ struct dect_mncc_setup_ack_param {
 	struct dect_ie_codec_list		*codec_list;
 };
 
+/** MNCC_RELEASE primitive parameters */
 struct dect_mncc_release_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_release_reason		*release_reason;
@@ -83,6 +83,7 @@ struct dect_mncc_release_param {
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
+/** MNCC_CALL_PROC primitive parameters */
 struct dect_mncc_call_proc_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_list			facility;
@@ -98,6 +99,7 @@ struct dect_mncc_call_proc_param {
 	struct dect_ie_codec_list		*codec_list;
 };
 
+/** MNCC_ALERT primitive parameters */
 struct dect_mncc_alert_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_list			facility;
@@ -114,6 +116,7 @@ struct dect_mncc_alert_param {
 	struct dect_ie_codec_list		*codec_list;
 };
 
+/** MNCC_CONNECT primitive parameters */
 struct dect_mncc_connect_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_list			facility;
@@ -130,6 +133,7 @@ struct dect_mncc_connect_param {
 	struct dect_ie_codec_list		*codec_list;
 };
 
+/** MNCC_FACILITY primitive parameters */
 struct dect_mncc_facility_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_list			facility;
@@ -141,6 +145,7 @@ struct dect_mncc_facility_param {
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
+/** MNCC_INFO primitive parameters */
 struct dect_mncc_info_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_location_area		*location_area;
@@ -164,6 +169,7 @@ struct dect_mncc_info_param {
 	struct dect_ie_codec_list		*codec_list;
 };
 
+/** MNCC_MODIFY primitive parameters */
 struct dect_mncc_modify_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_service_change_info	*service_change_info;
@@ -172,6 +178,7 @@ struct dect_mncc_modify_param {
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
+/** MNCC_HOLD primitive parameters */
 struct dect_mncc_hold_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_display			*display;
@@ -179,6 +186,7 @@ struct dect_mncc_hold_param {
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
+/** MNCC_IWU_INFO primitive parameters */
 struct dect_mncc_iwu_info_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_alphanumeric		*alphanumeric;
@@ -196,47 +204,73 @@ extern void *dect_call_priv(struct dect_call *call);
 
 extern const struct dect_ipui *dect_call_portable_identity(const struct dect_call *call);
 
+/**
+ * Call Control Ops.
+ *
+ * The CC ops are used to register callback functions for the CC primitives
+ * invoked by libdect.
+ */
 struct dect_cc_ops {
 	size_t	priv_size;
+	/**< Size of the private storage area of a Call Control Endpoint */
 	void	(*mncc_setup_ind)(struct dect_handle *dh, struct dect_call *call,
 				  struct dect_mncc_setup_param *param);
+	/**< MNCC_SETUP-ind primitive */
 	void	(*mncc_setup_ack_ind)(struct dect_handle *dh, struct dect_call *call,
 				      struct dect_mncc_setup_ack_param *param);
+	/**< MNCC_SETUP_ACK-ind primitive */
 	void	(*mncc_reject_ind)(struct dect_handle *dh, struct dect_call *call,
 				   struct dect_mncc_release_param *param);
+	/**< MNCC_REJECT-ind primitive */
 	void	(*mncc_call_proc_ind)(struct dect_handle *dh, struct dect_call *call,
 				      struct dect_mncc_call_proc_param *param);
+	/**< MNCC_CALL_PROC-ind primitve */
 	void	(*mncc_alert_ind)(struct dect_handle *dh, struct dect_call *call,
 				  struct dect_mncc_alert_param *param);
+	/**< MNCC_ALERT-ind primitive */
 	void	(*mncc_connect_ind)(struct dect_handle *dh, struct dect_call *call,
 				    struct dect_mncc_connect_param *param);
+	/**< MNCC_CONNECT-ind primitive */
 	void	(*mncc_connect_cfm)(struct dect_handle *dh, struct dect_call *call,
 				    struct dect_mncc_connect_param *param);
+	/**< MNCC_CONNECT-cfm primitive */
 	void	(*mncc_release_ind)(struct dect_handle *dh, struct dect_call *call,
 				    struct dect_mncc_release_param *param);
+	/**< MNCC_RELEASE-ind primitive */
 	void	(*mncc_release_cfm)(struct dect_handle *dh, struct dect_call *call,
 				    struct dect_mncc_release_param *param);
+	/**< MNCC_RELEASE-cfm primitive */
 	void	(*mncc_facility_ind)(struct dect_handle *dh, struct dect_call *call,
 				     struct dect_mncc_facility_param *param);
+	/**< MNCC_FACILITY-ind primitive */
 	void	(*mncc_info_ind)(struct dect_handle *dh, struct dect_call *call,
 				 struct dect_mncc_info_param *param);
+	/**< MNCC_INFO-ind primitive */
 	void	(*mncc_modify_ind)(struct dect_handle *dh, struct dect_call *call,
 				   struct dect_mncc_modify_param *param);
+	/**< MNCC_MODIFY-ind primtiive */
 	void	(*mncc_modify_cfm)(struct dect_handle *dh, struct dect_call *call,
 				   struct dect_mncc_modify_param *param);
+	/**< MNCC_MODIFY-cfm primitive */
 	void	(*mncc_hold_ind)(struct dect_handle *dh, struct dect_call *call,
 				 struct dect_mncc_hold_param *param);
+	/**< MNCC_HOLD-ind primitive */
 	void	(*mncc_hold_cfm)(struct dect_handle *dh, struct dect_call *call,
 				 struct dect_mncc_hold_param *param);
+	/**< MNCC_HOLD-cfm primitive */
 	void	(*mncc_retrieve_ind)(struct dect_handle *dh, struct dect_call *call,
 				     struct dect_mncc_hold_param *param);
+	/**< MNCC_RETRIEVE-ind primitive */
 	void	(*mncc_retrieve_cfm)(struct dect_handle *dh, struct dect_call *call,
 				     struct dect_mncc_hold_param *param);
+	/**< MNCC_RETRIEVE-cfm primitive */
 	void	(*mncc_iwu_info_ind)(struct dect_handle *dh, struct dect_call *call,
 				     struct dect_mncc_iwu_info_param *param);
+	/**< MNCC_IWU_INFO-ind primitive */
 
 	void	(*dl_u_data_ind)(struct dect_handle *dh, struct dect_call *call,
 				 struct dect_msg_buf *mb);
+	/**< DL_U_DATA-ind primitive */
 };
 
 extern int dect_mncc_setup_req(struct dect_handle *dh, struct dect_call *call,

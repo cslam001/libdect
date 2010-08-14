@@ -48,6 +48,7 @@ struct dect_msg_buf {
 	uint8_t			head[128];
 };
 
+/** Define a dect_msg_buf on the stack and initialize it approriately. */
 #define DECT_DEFINE_MSG_BUF_ONSTACK(name)	\
 	struct dect_msg_buf name = {		\
 		.data = name.head,		\
@@ -88,9 +89,7 @@ static inline void *dect_mbuf_put(struct dect_msg_buf *mb, unsigned int len)
  * @{
  */
 
-/**
- * libdect file descriptor events
- */
+/** libdect file descriptor events */
 enum dect_fd_events {
 	DECT_FD_READ	= 0x1,	/**< file descriptor is readable */
 	DECT_FD_WRITE	= 0x2	/**< file descriptor is writable */
@@ -120,6 +119,11 @@ extern void dect_timer_run(struct dect_handle *dh, struct dect_timer *timer);
  */
 
 struct timeval;
+/**
+ * Event Ops.
+ *
+ * The event ops are used to register callback functions for libdect event handling.
+ */
 struct dect_event_ops {
 	size_t		fd_priv_size;
 	size_t		timer_priv_size;
@@ -139,6 +143,11 @@ struct dect_event_ops {
 
 /** @} */
 
+/**
+ * DECT Ops.
+ *
+ * The DECT ops contain references to the individual ops of the libdect subsystems.
+ */
 struct dect_ops {
 	void				*(*malloc)(size_t size);
 	void				(*free)(void *ptr);

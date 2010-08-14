@@ -170,6 +170,7 @@ deliver:
  * @param dh		libdect DECT handle
  * @param type		message type (fixed/variable) to use
  * @param param		unitdata parameters
+ * @param mb		message buffer for {CLMS-FIXED} messages
  */
 void dect_mncl_unitdata_req(struct dect_handle *dh,
 			    enum dect_clms_message_types type,

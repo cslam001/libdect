@@ -73,13 +73,10 @@ extern bool dect_ari_cmp(const struct dect_ari *a1, const struct dect_ari *a2);
 
 /**
  * DECT Portable access rights key
- *
- * @arg park	FP ARI
- * @arg pli	FP ARI prefix length
  */
 struct dect_park {
-	struct dect_ari		park;
-	uint8_t			pli;
+	struct dect_ari		park;	/**< FP ARI */
+	uint8_t			pli;	/**< FP ARI prefix length */
 };
 
 /**
@@ -94,13 +91,10 @@ struct dect_park {
 
 /**
  * DECT International portable equipment ID
- *
- * @arg emc	Equipment Manufacturer Code
- * @arg psn	Portable Equipment Serial Number
  */
 struct dect_ipei {
-	uint16_t	emc;
-	uint32_t	psn;
+	uint16_t	emc;		/**< Equipment manufacturer code */
+	uint32_t	psn;		/**< Portable equipment Serial Number */
 };
 
 /* IPUI */
@@ -210,8 +204,8 @@ extern struct dect_tpui *dect_ipui_to_tpui(struct dect_tpui *tpui,
 					   const struct dect_ipui *ipui);
 extern void dect_dump_tpui(const struct dect_tpui *tpui);
 
-/* Collective broadcast identifier */
-#define DECT_TPUI_CBI		0xcfff
+/** Collective broadcast identifier */
+#define DECT_TPUI_CBI		0x0cfff
 
 /** @} */
 /** @} */

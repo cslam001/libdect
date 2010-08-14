@@ -24,9 +24,17 @@ struct dect_fp_capabilities {
 
 
 struct dect_handle;
+
+/**
+ * Lower Layer Management Entity Ops.
+ *
+ * The LLME ops are used to register callback functions for the LLME primitives
+ * invoked by libdect.
+ */
 struct dect_llme_ops_ {
 	void	(*mac_me_info_ind)(struct dect_handle *dh,
 				   const struct dect_fp_capabilities *fpc);
+	/**< MAC_ME_INFO-ind primtiive */
 };
 
 extern const struct dect_fp_capabilities *dect_llme_fp_capabilities(const struct dect_handle *dh);

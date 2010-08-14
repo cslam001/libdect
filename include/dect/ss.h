@@ -18,6 +18,7 @@ extern "C" {
 
 #include <dect/ie.h>
 
+/** DECT_MNSS primitive parameters. */
 struct dect_mnss_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_list			facility;
@@ -34,14 +35,24 @@ struct dect_ss_endpoint;
 extern void *dect_ss_priv(struct dect_ss_endpoint *sse);
 extern struct dect_ss_endpoint *dect_ss_endpoint_alloc(struct dect_handle *dh);
 
+/**
+ * Supplementary Services Ops.
+ *
+ * The SS ops are used to register callback functions for the SS primitives
+ * invoked by libdect.
+ */
 struct dect_ss_ops {
 	size_t	priv_size;
+	/**< Size of the private storage area of an SS endpoint */
 	void	(*mnss_setup_ind)(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 				  struct dect_mnss_param *param);
+	/**< MNSS_SETUP-ind primitive */
 	void	(*mnss_facility_ind)(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 				     struct dect_mnss_param *param);
+	/**< MNSS_FACILITY-ind primitive */
 	void	(*mnss_release_ind)(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 				    struct dect_mnss_param *param);
+	/**< MNSS_RELEASE-ind primitve */
 };
 
 extern int dect_mnss_setup_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,

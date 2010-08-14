@@ -22,6 +22,11 @@
 #include <utils.h>
 #include <lce.h>
 
+/**
+ * Allocate a new libdect DECT handle
+ *
+ * @param ops		DECT ops
+ */
 struct dect_handle *dect_alloc_handle(struct dect_ops *ops)
 {
 	struct dect_handle *dh;
@@ -43,6 +48,12 @@ struct dect_handle *dect_alloc_handle(struct dect_ops *ops)
 }
 EXPORT_SYMBOL(dect_alloc_handle);
 
+/**
+ * Initialize the libdect subsystems and bind to a cluster
+ *
+ * @param dh		libdect DECT handle
+ * @param cluster	Cluster name
+ */
 int dect_init(struct dect_handle *dh, const char *cluster)
 {
 	int err;
@@ -68,6 +79,11 @@ err1:
 }
 EXPORT_SYMBOL(dect_init);
 
+/**
+ * Unbind from a cluster and release the libdect DECT handle
+ *
+ * @param dh		libdect DECT handle
+ */
 void dect_close_handle(struct dect_handle *dh)
 {
 	dect_lce_exit(dh);

@@ -1846,7 +1846,10 @@ err1:
  *   information elements.
  *
  * - The P-MM invokes the @ref dect_mm_ops::mm_locate_cfm() "MM_LOCATE-cfm"
- *   primitive.
+ *   primitive. The P-IWU responds with a @ref dect_mm_locate_res "MM_LOCATE-res"
+ *   primitive, the P-MM sends a {LOCATE-ACCEPT} message to the F-MM.
+ *
+ * - The F-MM invokes the @ref dect_mm_ops::mm_locate_cfm() "MM_LOCATE-cfm" primitive.
  *
  * @msc
  *  "P-IWU", "P-MM", "F-MM", "F-IWU";
@@ -2132,6 +2135,16 @@ err1:
 }
 
 /**
+ * @}
+ * @defgroup mm_detach Detach
+ *
+ * This module implements the detach procedure specified in ETSI EN 300 175-5
+ * section 13.4.2.
+ *
+ * @{
+ */
+
+/**
  * MM_DETACH-req primitive
  *
  * @param dh		libdect DECT handle
@@ -2211,6 +2224,17 @@ err1:
  *
  * This module implements the identification procedure specified in
  * ETSI EN 300 175-5 section 13.2.1.
+ *
+ * @msc
+ *  "F-IWU", "F-MM", "P-MM", "P-IWU";
+ *
+ *  "F-IWU" => "F-MM"    [label="MM_IDENTITY-req", URL="\ref dect_mm_identity_req()"];
+ *  "F-MM"  -> "P-MM"    [label="IDENTITY-REQUEST"];
+ *  "P-MM" =>> "P-IWU"   [label="MM_IDENTITY-ind", URL="\ref dect_mm_ops::mm_identity_ind"];
+ *  "P-IWU" => "P-MM"    [label="MM_IDENTITY-res", URL="\ref dect_mm_identity_res()"];
+ *  "P-MM"  -> "F-MM"    [label="IDENTITY-ACCEPT"];
+ *  "F-MM" =>> "F-IWU"   [label="MM_IDENTITY-cfm", URL="\ref dect_mm_ops::mm_identity_cfm"];
+ * @endmsc
  *
  * @{
  */

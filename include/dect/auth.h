@@ -16,23 +16,16 @@ extern "C" {
  * @{
  */
 
-#define DECT_AUTH_KEY_LEN	16
-#define DECT_CIPHER_KEY_LEN	8
+#define DECT_AUTH_KEY_LEN	16	/**< Length of a DECT authentication key */
+#define DECT_CIPHER_KEY_LEN	8	/**< Length of a DECT cipher key */
 
-/**
- * struct dect_aalg - DECT authentication algorithm
- *
- * @arg type		algorithm ID
- * @arg d1_len		length of input D1
- * @arg d2_len		length of input D2
- * @arg calc		function to calculate output E
- */
+/** DECT authentication algorithm */
 struct dect_aalg {
-	uint8_t		type;
-	unsigned int	d1_len;
-	unsigned int	d2_len;
+	uint8_t		type;						/**< algorithm ID */
+	unsigned int	d1_len;						/**< length of input D1 */
+	unsigned int	d2_len;						/**< length of input D2 */
 	void		(*calc)(const uint8_t *d1, const uint8_t *d2,
-				uint8_t *e);
+				uint8_t *e);				/**< function to calculate output E */
 };
 
 extern const struct dect_aalg dect_dsaa_aalg;
