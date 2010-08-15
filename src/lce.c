@@ -902,7 +902,7 @@ static int dect_lce_send_full_page(const struct dect_handle *dh,
 static int dect_lce_page(const struct dect_handle *dh,
 			 const struct dect_ipui *ipui)
 {
-	if (0)
+	if (1)
 		return dect_lce_send_short_page(dh, ipui);
 	else
 		return dect_lce_send_full_page(dh, ipui);
