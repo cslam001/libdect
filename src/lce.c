@@ -847,17 +847,15 @@ int dect_lce_group_ring_req(struct dect_handle *dh,
 }
 EXPORT_SYMBOL(dect_lce_group_ring_req);
 
-static int dect_lce_page(const struct dect_handle *dh,
-			 const struct dect_ipui *ipui)
+static int dect_lce_send_short_page(const struct dect_handle *dh,
+				    const struct dect_ipui *ipui)
 {
 	DECT_DEFINE_MSG_BUF_ONSTACK(_mb), *mb = &_mb;
 	struct dect_short_page_msg *msg;
 	struct dect_tpui tpui;
 	uint16_t page;
 
-	dect_debug(DECT_DEBUG_LCE, "\n");
 	msg = dect_mbuf_put(mb, sizeof(*msg));
-
 	msg->hdr = DECT_LCE_PAGE_GENERAL_VOICE;
 
 	page = dect_build_tpui(dect_ipui_to_tpui(&tpui, ipui)) &
@@ -867,11 +865,58 @@ static int dect_lce_page(const struct dect_handle *dh,
 	return dect_lce_broadcast(dh, mb, false);
 }
 
+static int dect_lce_send_full_page(const struct dect_handle *dh,
+				   const struct dect_ipui *ipui)
+{
+	DECT_DEFINE_MSG_BUF_ONSTACK(_mb), *mb = &_mb;
+	struct dect_full_page_msg *msg;
+	struct dect_tpui tpui;
+	uint8_t ipui_buf[8];
+	uint32_t page;
+
+	msg = dect_mbuf_put(mb, sizeof(*msg));
+	msg->hdr = DECT_LCE_PAGE_GENERAL_VOICE;
+
+	if (1) {
+		msg->hdr |= DECT_LCE_PAGE_W_FLAG;
+
+		page  = dect_build_tpui(dect_ipui_to_tpui(&tpui, ipui)) <<
+			DECT_LCE_FULL_PAGE_TPUI_SHIFT;
+		page |= DECT_LCE_PAGE_FULL_SLOT <<
+			DECT_LCE_FULL_PAGE_SLOT_TYPE_SHIFT;
+		page |= DECT_LCE_PAGE_BASIC_CONN_ATTR_OPTIONAL <<
+			DECT_LCE_FULL_PAGE_SETUP_INFO_SHIFT;
+	} else {
+		dect_build_ipui(ipui_buf, ipui);
+		page  = ipui->put << 24;
+		page |= (ipui_buf[1] & 0x0f) << 24;
+		page |= ipui_buf[2] << 16;
+		page |= ipui_buf[3] << 8;
+		page |= ipui_buf[4];
+	}
+	msg->information = __cpu_to_be32(page);
+
+	return dect_lce_broadcast(dh, mb, false);
+}
+
+static int dect_lce_page(const struct dect_handle *dh,
+			 const struct dect_ipui *ipui)
+{
+	if (0)
+		return dect_lce_send_short_page(dh, ipui);
+	else
+		return dect_lce_send_full_page(dh, ipui);
+}
+
 static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer)
 {
 	struct dect_data_link *ddl = timer->data;
 
-	ddl_debug(ddl, "Page timer");
+	if (ddl->page_count) {
+		dect_debug(DECT_DEBUG_LCE, "\n");
+		ddl_debug(ddl, "Page timer");
+	}
+
 	if (ddl->page_count++ == DECT_DDL_PAGE_RETRANS_MAX)
 		dect_ddl_shutdown(dh, ddl);
 	else {
@@ -1002,7 +1047,7 @@ static void dect_lce_rcv_short_page(struct dect_handle *dh,
 	w    = msg->hdr & DECT_LCE_PAGE_W_FLAG;
 	hdr  = msg->hdr & DECT_LCE_PAGE_HDR_MASK;
 	info = __be16_to_cpu(msg->information);
-	lce_debug("short page: w=%u hdr=%u information=%04x\n", w, hdr, info);
+	lce_debug("short page: w: %u hdr: %u information: %04x\n", w, hdr, info);
 
 	if (hdr == DECT_LCE_PAGE_UNKNOWN_RINGING) {
 		pattern = (info & DECT_LCE_SHORT_PAGE_RING_PATTERN_MASK) >>
@@ -1040,7 +1085,58 @@ static void dect_lce_rcv_short_page(struct dect_handle *dh,
 static void dect_lce_rcv_full_page(struct dect_handle *dh,
 				   struct dect_msg_buf *mb)
 {
-	lce_debug("full page\n");
+	struct dect_full_page_msg *msg = (void *)mb->data;
+	uint32_t info, ipui, tpui, t;
+	uint8_t ipui_buf[8];
+	uint8_t hdr, pattern;
+	bool w;
+
+	w    = msg->hdr & DECT_LCE_PAGE_W_FLAG;
+	hdr  = msg->hdr & DECT_LCE_PAGE_HDR_MASK;
+	info = __be32_to_cpu(msg->information);
+	lce_debug("full page: w: %u hdr: %u information: %08x\n", w, hdr, info);
+
+	if (hdr == DECT_LCE_PAGE_UNKNOWN_RINGING) {
+		pattern = (info & DECT_LCE_FULL_PAGE_RING_PATTERN_MASK) >>
+			  DECT_LCE_FULL_PAGE_RING_PATTERN_SHIFT;
+		tpui    = (info & DECT_LCE_FULL_PAGE_GROUP_MASK) >>
+			  DECT_LCE_FULL_PAGE_GROUP_SHIFT;
+
+		if (w == 0) {
+			/* assigned connectionless group TPUI or CBI */
+			if (tpui != DECT_TPUI_CBI)
+				return;
+		} else {
+			/* group mask */
+			return;
+		}
+
+		lce_debug("LCE_GROUP_RING-ind: pattern: %x\n", pattern);
+		dh->ops->lce_ops->lce_group_ring_ind(dh, pattern);
+	} else {
+		if (w == 0) {
+			/* IPUI */
+			dect_build_ipui(ipui_buf, &dh->ipui);
+			ipui  = dh->ipui.put << 24;
+			ipui |= (ipui_buf[1] & 0x0f) << 24;
+			ipui |= ipui_buf[2] << 16;
+			ipui |= ipui_buf[3] << 8;
+			ipui |= ipui_buf[4];
+
+			if (info != ipui)
+				return;
+		} else {
+			/* assigned TPUI or CBI */
+			tpui = (info & DECT_LCE_FULL_PAGE_TPUI_MASK) >>
+			       DECT_LCE_FULL_PAGE_TPUI_SHIFT;
+
+			t = dect_build_tpui(&dh->tpui);
+			if (tpui != t && tpui != DECT_TPUI_CBI)
+				return;
+		}
+
+		dect_lce_send_page_response(dh);
+	}
 }
 
 static void dect_lce_rcv_long_page(struct dect_handle *dh,
@@ -1127,7 +1223,7 @@ static void dect_lce_open(struct dect_handle *dh,
 static void dect_lce_shutdown(struct dect_handle *dh,
 			      struct dect_transaction *ta)
 {
-	lce_debug("shutdown page transaction");
+	lce_debug("shutdown page transaction\n");
 	dect_transaction_close(dh, ta, DECT_DDL_RELEASE_NORMAL);
 }
 

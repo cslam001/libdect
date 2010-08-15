@@ -19,7 +19,7 @@ static struct dect_llme_ops_ dummy_llme_ops;
 static bool lce_page_response(struct dect_handle *dh,
 			      struct dect_lce_page_param *param)
 {
-	return true;
+	return false;
 }
 
 static void lce_group_ring_ind(struct dect_handle *dh,
