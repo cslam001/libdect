@@ -188,13 +188,30 @@ static const char * const ddl_states[DECT_DATA_LINK_STATE_MAX + 1] = {
 	[DECT_DATA_LINK_RESUME_PENDING]		= "RESUME_PENDING",
 };
 
+int dect_ddl_set_ipui(struct dect_handle *dh, struct dect_data_link *ddl,
+		      const struct dect_ipui *ipui)
+{
+	if (ddl->flags & DECT_DATA_LINK_IPUI_VALID) {
+		if (dect_ipui_cmp(&ddl->ipui, ipui))
+			return -1;
+	} else {
+		ddl_debug(ddl, "set IPUI N EMC: %04x PSN: %05x",
+			  ipui->pun.n.ipei.emc, ipui->pun.n.ipei.psn);
+
+		ddl->ipui   = *ipui;
+		ddl->flags |= DECT_DATA_LINK_IPUI_VALID;
+	}
+	return 0;
+}
+
 static struct dect_data_link *dect_ddl_get_by_ipui(const struct dect_handle *dh,
 						   const struct dect_ipui *ipui)
 {
 	struct dect_data_link *ddl;
 
 	list_for_each_entry(ddl, &dh->links, list) {
-		if (!dect_ipui_cmp(&ddl->ipui, ipui))
+		if (ddl->flags & DECT_DATA_LINK_IPUI_VALID &&
+		    !dect_ipui_cmp(&ddl->ipui, ipui))
 			return ddl;
 	}
 	return NULL;
@@ -618,7 +635,7 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 	dect_free(dh, req->page_timer);
 
 	ddl_debug(ddl, "complete indirect link establishment req %p", req);
-	ddl->ipui = req->ipui;
+	dect_ddl_set_ipui(dh, ddl, &req->ipui);
 
 	/* Transfer transactions to the new link */
 	list_for_each_entry_safe(ta, ta_next, &req->transactions, list) {
@@ -654,7 +671,7 @@ static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
 	if (ddl == NULL)
 		goto err1;
 	ddl->state = DECT_DATA_LINK_ESTABLISH_PENDING;
-	ddl->ipui  = *ipui;
+	dect_ddl_set_ipui(dh, ddl, ipui);
 
 	if (dh->mode == DECT_MODE_FP) {
 		ddl->page_timer = dect_timer_alloc(dh);
@@ -968,7 +985,7 @@ static void dect_lce_rcv_page_response(struct dect_handle *dh,
 		break;
 	}
 
-	ta->link->ipui = msg.portable_identity->ipui;
+	dect_ddl_set_ipui(dh, ta->link, &msg.portable_identity->ipui);
 
 	if (req == NULL && dh->ops->lce_ops &&
 	    dh->ops->lce_ops->lce_page_response) {

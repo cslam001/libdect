@@ -183,6 +183,7 @@ void dect_mncl_unitdata_req(struct dect_handle *dh,
 EXPORT_SYMBOL(dect_mncl_unitdata_req);
 
 static void dect_clms_rcv_variable(struct dect_handle *dh,
+				   struct dect_transaction *ta,
 				   struct dect_msg_buf *mb)
 {
 	struct dect_clms_variable_msg msg;
@@ -192,6 +193,11 @@ static void dect_clms_rcv_variable(struct dect_handle *dh,
 				&msg.common, mb) < 0)
 		return;
 
+	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
+		goto out;
+	if (dect_ddl_set_ipui(dh, ta->link, &msg.portable_identity->ipui) < 0)
+		goto out;
+out:
 	dect_msg_free(dh, &clms_variable_msg_desc, &msg.common);
 }
 
@@ -203,7 +209,7 @@ static void dect_clms_open(struct dect_handle *dh,
 
 	switch (mb->type) {
 	case CLMS_VARIABLE:
-		return dect_clms_rcv_variable(dh, mb);
+		return dect_clms_rcv_variable(dh, req, mb);
 	default:
 		return;
 	}

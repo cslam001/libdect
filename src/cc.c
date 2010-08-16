@@ -1550,6 +1550,8 @@ static void dect_cc_rcv_setup(struct dect_handle *dh,
 	/* Validate portable_identity type */
 	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
 		goto out;
+	if (dect_ddl_set_ipui(dh, req->link, &msg.portable_identity->ipui) < 0)
+		goto out;
 
 	dect_foreach_ie(call_attributes, &msg.call_attributes)
 		dect_debug(DECT_DEBUG_CC, "call attributes\n");

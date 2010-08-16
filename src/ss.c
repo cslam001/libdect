@@ -298,6 +298,11 @@ static void dect_ciss_rcv_register(struct dect_handle *dh,
 	if (dect_parse_sfmt_msg(dh, &ciss_register_msg_desc, &msg.common, mb) < 0)
 		return;
 
+	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
+		goto out;
+	if (dect_ddl_set_ipui(dh, req->link, &msg.portable_identity->ipui) < 0)
+		goto out;
+
 	sse = dect_ss_endpoint_alloc(dh);
 	if (sse == NULL)
 		goto out;

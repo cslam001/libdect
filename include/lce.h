@@ -73,6 +73,9 @@ extern int dect_ddl_transaction_open(struct dect_handle *dh,
 				     enum dect_pds pd);
 extern struct dect_data_link *dect_ddl_connect(struct dect_handle *dh,
 					       const struct dect_ipui *ipui);
+extern int dect_ddl_set_ipui(struct dect_handle *dh, struct dect_data_link *ddl,
+			     const struct dect_ipui *ipui);
+
 extern int dect_transaction_open(struct dect_handle *dh,
 				 struct dect_transaction *ta,
 				 const struct dect_ipui *ipui,
@@ -155,6 +158,10 @@ enum dect_data_link_states {
 };
 #define DECT_DATA_LINK_STATE_MAX	(__DECT_DATA_LINK_STATE_MAX - 1)
 
+enum dect_data_link_flags {
+	DECT_DATA_LINK_IPUI_VALID	= 0x1,
+};
+
 /**
  * struct dect_data_link
  *
@@ -180,6 +187,7 @@ struct dect_data_link {
 	struct dect_timer		*release_timer;
 	struct dect_timer		*page_timer;
 	uint8_t				page_count;
+	uint8_t				flags;
 	struct list_head		msg_queue;
 	struct list_head		transactions;
 };

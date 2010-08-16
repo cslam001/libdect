@@ -1473,6 +1473,8 @@ static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
 
 	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
 		goto err2;
+	if (dect_ddl_set_ipui(dh, mme->link, &msg.portable_identity->ipui) < 0)
+		goto err2;
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
@@ -1732,6 +1734,11 @@ static void dect_mm_rcv_access_rights_terminate_request(struct dect_handle *dh,
 		dect_mm_send_reject(dh, mp, access_rights_terminate, err);
 		goto err1;
 	}
+
+	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
+		goto err2;
+	if (dect_ddl_set_ipui(dh, mme->link, &msg.portable_identity->ipui) < 0)
+		goto err2;
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
@@ -2014,6 +2021,8 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 
 	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
 		goto err2;
+	if (dect_ddl_set_ipui(dh, mme->link, &msg.portable_identity->ipui) < 0)
+		goto err2;
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
@@ -2195,6 +2204,8 @@ static void dect_mm_rcv_detach(struct dect_handle *dh,
 		goto err1;
 
 	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
+		goto err2;
+	if (dect_ddl_set_ipui(dh, mme->link, &msg.portable_identity->ipui) < 0)
 		goto err2;
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
@@ -2535,9 +2546,12 @@ static void dect_mm_rcv_temporary_identity_assign(struct dect_handle *dh,
 		goto err1;
 	}
 
-	if (msg.portable_identity &&
-	    msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
-		goto err2;
+	if (msg.portable_identity) {
+		if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
+			goto err2;
+		if (dect_ddl_set_ipui(dh, mme->link, &msg.portable_identity->ipui) < 0)
+			goto err2;
+	}
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
 	if (param == NULL)
@@ -2797,6 +2811,13 @@ static void dect_mm_rcv_info_request(struct dect_handle *dh,
 	if (err < 0) {
 		dect_mm_send_reject(dh, mp, info, err);
 		goto err1;
+	}
+
+	if (msg.portable_identity != NULL) {
+		if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
+			goto err2;
+		if (dect_ddl_set_ipui(dh, mme->link, &msg.portable_identity->ipui) < 0)
+			goto err2;
 	}
 
 	param = dect_ie_collection_alloc(dh, sizeof(*param));
