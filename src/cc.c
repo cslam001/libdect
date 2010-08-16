@@ -1325,6 +1325,10 @@ static void dect_mncc_release_cfm(struct dect_handle *dh, struct dect_call *call
 	cc_debug(call, "MNCC_RELEASE-cfm");
 	dh->ops->cc_ops->mncc_release_cfm(dh, call, param);
 	dect_ie_collection_put(dh, param);
+
+	dect_call_disconnect_uplane(dh, call);
+	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
+	dect_call_destroy(dh, call);
 }
 
 static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *call,
@@ -1357,10 +1361,6 @@ static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *ca
 	}
 out:
 	dect_msg_free(dh, &cc_release_com_msg_desc, &msg.common);
-
-	dect_call_disconnect_uplane(dh, call);
-	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
-	dect_call_destroy(dh, call);
 }
 
 static void dect_mncc_iwu_info_ind(struct dect_handle *dh, struct dect_call *call,
