@@ -1271,6 +1271,21 @@ static int dect_transaction_alloc_tv(const struct dect_data_link *ddl,
 	return -1;
 }
 
+static void dect_transaction_link(struct dect_data_link *ddl,
+				  struct dect_transaction *ta)
+{
+	/* Insert MM transactions at the end of the list to make sure they get
+	 * destroyed last on shutdown. This makes sure that other protocols
+	 * which might invoke and wait for the completion of MM transactions
+	 * have their transactions terminated first and don't mistake a link
+	 * shutdown or a protocol specific error for a MM error.
+	 */
+	if (ta->pd == DECT_PD_MM)
+		list_add_tail(&ta->list, &ddl->transactions);
+	else
+		list_add(&ta->list, &ddl->transactions);
+}
+
 int dect_ddl_transaction_open(struct dect_handle *dh, struct dect_transaction *ta,
 			      struct dect_data_link *ddl, enum dect_pds pd)
 {
@@ -1289,7 +1304,7 @@ int dect_ddl_transaction_open(struct dect_handle *dh, struct dect_transaction *t
 	ta->state = DECT_TRANSACTION_OPEN;
 	ta->tv    = tv;
 
-	list_add_tail(&ta->list, &ddl->transactions);
+	dect_transaction_link(ddl, ta);
 	return 0;
 }
 
@@ -1317,7 +1332,7 @@ void dect_transaction_confirm(struct dect_handle *dh, struct dect_transaction *t
 
 	ddl_debug(req->link, "confirm transaction: %s TV: %u Role: %u",
 		  protocols[ta->pd]->name, ta->tv, ta->role);
-	list_add_tail(&ta->list, &req->link->transactions);
+	dect_transaction_link(req->link, ta);
 }
 
 void dect_transaction_close(struct dect_handle *dh, struct dect_transaction *ta,
