@@ -225,6 +225,9 @@ static void mm_identity_ind(struct dect_handle *dh,
 			    struct dect_mm_endpoint *mme,
 			    struct dect_mm_identity_param *param)
 {
+	struct dect_mm_identity_param reply = {};
+
+	dect_mm_identity_res(dh, mme, &reply);
 }
 
 static void mm_identity_cfm(struct dect_handle *dh,

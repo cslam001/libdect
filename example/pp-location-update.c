@@ -25,6 +25,11 @@ static const struct dect_ipui ipui = {
 static void mm_locate_cfm(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			  bool accept, struct dect_mm_locate_param *param)
 {
+	struct dect_mm_identity_assign_param reply = {};
+
+	if (param->portable_identity)
+		dect_mm_identity_assign_res(dh, mme, true, &reply);
+
 	dect_event_loop_stop();
 }
 

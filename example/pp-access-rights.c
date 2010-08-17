@@ -191,8 +191,11 @@ int main(int argc, char **argv)
 
 	dect_common_init(&ops, argv[1]);
 
-	debug("waiting for ACCESS_RIGHTS_REQUESTS capability ...\n");
-	dect_event_loop();
+	if (!(dect_llme_fp_capabilities(dh)->hlc &
+	      DECT_HLC_ACCESS_RIGHTS_REQUESTS)) {
+		debug("waiting for ACCESS_RIGHTS_REQUESTS capability ...\n");
+		dect_event_loop();
+	}
 
 	mme = dect_mm_endpoint_alloc(dh, &ipui);
 	if (mme == NULL)
