@@ -508,6 +508,10 @@ static int dect_sfmt_parse_portable_identity(const struct dect_handle *dh,
 	struct dect_ie_portable_identity *dst = dect_ie_container(dst, *ie);
 	uint8_t len;
 
+	/* Empty <<PORTABLE-IDENTITY>> IEs are of length 2 */
+	if (src->len == 2)
+		return 0;
+
 	if (src->len < DECT_IE_PORTABLE_IDENTITY_MIN_SIZE)
 		return -1;
 
