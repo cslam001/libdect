@@ -506,7 +506,7 @@ static void dect_cc_send_release_com(struct dect_handle *dh,
 
 	release_reason.reason = reason;
 	dect_lce_send(dh, ta, &cc_release_com_msg_desc,
-		      &msg.common, CC_RELEASE_COM);
+		      &msg.common, DECT_CC_RELEASE_COM);
 }
 
 static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer)
@@ -589,7 +589,7 @@ int dect_mncc_setup_req(struct dect_handle *dh, struct dect_call *call,
 	portable_identity.ipui = *ipui;
 
 	if (dect_cc_send_msg(dh, call, &cc_setup_msg_desc, &msg.common,
-			     CC_SETUP) < 0)
+			     DECT_CC_SETUP) < 0)
 		goto err2;
 	call->state = DECT_CC_CALL_PRESENT;
 
@@ -638,7 +638,7 @@ int dect_mncc_setup_ack_req(struct dect_handle *dh, struct dect_call *call,
 
 	cc_debug_entry(call, "MNCC_SETUP_ACK-req");
 	return dect_cc_send_msg(dh, call, &cc_setup_ack_msg_desc,
-				&msg.common, CC_SETUP_ACK);
+				&msg.common, DECT_CC_SETUP_ACK);
 }
 EXPORT_SYMBOL(dect_mncc_setup_ack_req);
 
@@ -672,7 +672,7 @@ int dect_mncc_reject_req(struct dect_handle *dh, struct dect_call *call,
 
 	cc_debug_entry(call, "MNCC_REJECT-req");
 	dect_cc_send_msg(dh, call, &cc_release_com_msg_desc,
-			 &msg.common, CC_RELEASE_COM);
+			 &msg.common, DECT_CC_RELEASE_COM);
 
 	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
@@ -711,7 +711,7 @@ int dect_mncc_call_proc_req(struct dect_handle *dh, struct dect_call *call,
 
 	cc_debug_entry(call, "MNCC_CALL_PROC-req");
 	return dect_cc_send_msg(dh, call, &cc_call_proc_msg_desc,
-				&msg.common, CC_CALL_PROC);
+				&msg.common, DECT_CC_CALL_PROC);
 }
 EXPORT_SYMBOL(dect_mncc_call_proc_req);
 
@@ -747,7 +747,7 @@ int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 
 	cc_debug_entry(call, "MNCC_ALERT-req");
 	return dect_cc_send_msg(dh, call, &cc_alerting_msg_desc,
-				&msg.common, CC_ALERTING);
+				&msg.common, DECT_CC_ALERTING);
 }
 EXPORT_SYMBOL(dect_mncc_alert_req);
 
@@ -782,7 +782,7 @@ int dect_mncc_connect_req(struct dect_handle *dh, struct dect_call *call,
 
 	cc_debug_entry(call, "MNCC_CONNECT-req");
 	dect_cc_send_msg(dh, call, &cc_connect_msg_desc,
-			 &msg.common, CC_CONNECT);
+			 &msg.common, DECT_CC_CONNECT);
 	dect_call_connect_uplane(dh, call);
 	return 0;
 }
@@ -809,7 +809,7 @@ int dect_mncc_connect_res(struct dect_handle *dh, struct dect_call *call,
 	cc_debug_entry(call, "MNCC_CONNECT-res");
 	dect_call_connect_uplane(dh, call);
 	if (dect_cc_send_msg(dh, call, &cc_connect_ack_msg_desc,
-			     &msg.common, CC_CONNECT_ACK) < 0)
+			     &msg.common, DECT_CC_CONNECT_ACK) < 0)
 		goto err1;
 
 	call->state = DECT_CC_ACTIVE;
@@ -843,7 +843,7 @@ int dect_mncc_release_req(struct dect_handle *dh, struct dect_call *call,
 
 	cc_debug_entry(call, "MNCC_RELEASE-req");
 	dect_cc_send_msg(dh, call, &cc_release_msg_desc,
-			 &msg.common, CC_RELEASE);
+			 &msg.common, DECT_CC_RELEASE);
 	call->state = DECT_CC_RELEASE_PENDING;
 	return 0;
 }
@@ -875,7 +875,7 @@ int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
 
 	cc_debug_entry(call, "MNCC_RELEASE-res");
 	dect_cc_send_msg(dh, call, &cc_release_com_msg_desc,
-			 &msg.common, CC_RELEASE_COM);
+			 &msg.common, DECT_CC_RELEASE_COM);
 
 	dect_call_disconnect_uplane(dh, call);
 	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
@@ -932,7 +932,7 @@ int dect_mncc_info_req(struct dect_handle *dh, struct dect_call *call,
 	};
 
 	cc_debug_entry(call, "MNCC_INFO-req");
-	dect_cc_send_msg(dh, call, &cc_info_msg_desc, &msg.common, CC_INFO);
+	dect_cc_send_msg(dh, call, &cc_info_msg_desc, &msg.common, DECT_CC_INFO);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mncc_info_req);
@@ -1051,7 +1051,8 @@ int dect_mncc_iwu_info_req(struct dect_handle *dh, struct dect_call *call,
 	};
 
 	cc_debug_entry(call, "MNCC_IWU_INFO-req");
-	dect_cc_send_msg(dh, call, &cc_iwu_info_msg_desc, &msg.common, CC_IWU_INFO);
+	dect_cc_send_msg(dh, call, &cc_iwu_info_msg_desc, &msg.common,
+			 DECT_CC_IWU_INFO);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mncc_iwu_info_req);
@@ -1464,31 +1465,31 @@ static void dect_cc_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 
 	cc_debug(call, "receive msg type %x", mb->type);
 	switch (mb->type) {
-	case CC_ALERTING:
+	case DECT_CC_ALERTING:
 		return dect_cc_rcv_alerting(dh, call, mb);
-	case CC_CALL_PROC:
+	case DECT_CC_CALL_PROC:
 		return dect_cc_rcv_call_proc(dh, call, mb);
-	case CC_CONNECT:
+	case DECT_CC_CONNECT:
 		return dect_cc_rcv_connect(dh, call, mb);
-	case CC_SETUP_ACK:
+	case DECT_CC_SETUP_ACK:
 		return dect_cc_rcv_setup_ack(dh, call, mb);
-	case CC_CONNECT_ACK:
+	case DECT_CC_CONNECT_ACK:
 		return dect_cc_rcv_connect_ack(dh, call, mb);
-	case CC_SERVICE_CHANGE:
+	case DECT_CC_SERVICE_CHANGE:
 		return dect_cc_rcv_service_change(dh, call, mb);
-	case CC_SERVICE_ACCEPT:
+	case DECT_CC_SERVICE_ACCEPT:
 		return dect_cc_rcv_service_accept(dh, call, mb);
-	case CC_SERVICE_REJECT:
+	case DECT_CC_SERVICE_REJECT:
 		return dect_cc_rcv_service_reject(dh, call, mb);
-	case CC_RELEASE:
+	case DECT_CC_RELEASE:
 		return dect_cc_rcv_release(dh, call, mb);
-	case CC_RELEASE_COM:
+	case DECT_CC_RELEASE_COM:
 		return dect_cc_rcv_release_com(dh, call, mb);
-	case CC_IWU_INFO:
+	case DECT_CC_IWU_INFO:
 		return dect_cc_rcv_iwu_info(dh, call, mb);
-	case CC_NOTIFY:
+	case DECT_CC_NOTIFY:
 		return dect_cc_rcv_notify(dh, call, mb);
-	case CC_INFO:
+	case DECT_CC_INFO:
 		return dect_cc_rcv_info(dh, call, mb);
 	}
 }
@@ -1581,10 +1582,10 @@ static void dect_cc_open(struct dect_handle *dh,
 		   mb->type);
 
 	switch (mb->type) {
-	case CC_SETUP:
+	case DECT_CC_SETUP:
 		return dect_cc_rcv_setup(dh, req, mb);
-	case CC_RELEASE:
-	case CC_RELEASE_COM:
+	case DECT_CC_RELEASE:
+	case DECT_CC_RELEASE_COM:
 		break;
 	default:
 		return dect_cc_send_release_com(dh, req,

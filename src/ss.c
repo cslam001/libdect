@@ -82,7 +82,7 @@ void dect_clss_rcv(struct dect_handle *dh, struct dect_msg_buf *mb)
 {
 	struct dect_ciss_facility_msg msg;
 
-	if (mb->type != CISS_FACILITY)
+	if (mb->type != DECT_CISS_FACILITY)
 		return;
 
 	if (dect_parse_sfmt_msg(dh, &ciss_facility_msg_desc, &msg.common, mb) < 0)
@@ -154,7 +154,7 @@ int dect_mnss_setup_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 	}
 
 	if (dect_lce_send(dh, &sse->transaction, &ciss_register_msg_desc,
-			  &msg.common, CISS_REGISTER) < 0)
+			  &msg.common, DECT_CISS_REGISTER) < 0)
 		goto err2;
 	return 0;
 
@@ -185,7 +185,7 @@ int dect_mnss_facility_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 
 	ss_debug_entry(sse, "MNSS_FACILITY-req");
 	return dect_lce_send(dh, &sse->transaction, &ciss_facility_msg_desc,
-			     &msg.common, CISS_FACILITY);
+			     &msg.common, DECT_CISS_FACILITY);
 }
 EXPORT_SYMBOL(dect_mnss_facility_req);
 
@@ -238,7 +238,7 @@ int dect_mnss_release_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 
 	ss_debug_entry(sse, "MNSS_RELEASE-req");
 	return dect_lce_send(dh, &sse->transaction, &ciss_release_com_msg_desc,
-			     &msg.common, CISS_RELEASE_COM);
+			     &msg.common, DECT_CISS_RELEASE_COM);
 }
 EXPORT_SYMBOL(dect_mnss_release_req);
 
@@ -277,9 +277,9 @@ static void dect_ciss_rcv(struct dect_handle *dh, struct dect_transaction *ta,
 	struct dect_ss_endpoint *sse = dect_ss_endpoint(ta);
 
 	switch (mb->type) {
-	case CISS_FACILITY:
+	case DECT_CISS_FACILITY:
 		return dect_ciss_rcv_facility(dh, sse, mb);
-	case CISS_RELEASE_COM:
+	case DECT_CISS_RELEASE_COM:
 		return dect_ciss_rcv_release_com(dh, sse, mb);
 	}
 
@@ -333,7 +333,7 @@ static void dect_ciss_open(struct dect_handle *dh,
 {
 	dect_debug(DECT_DEBUG_SS, "SS: unknown transaction: msg type: %x\n", mb->type);
 	switch (mb->type) {
-	case CISS_REGISTER:
+	case DECT_CISS_REGISTER:
 		return dect_ciss_rcv_register(dh, req, mb);
 	default:
 		return;

@@ -11,21 +11,21 @@
  * Call Control message types
  */
 enum dect_cc_msg_types {
-	CC_RESERVED				= 0x0,
-	CC_ALERTING				= 0x1,
-	CC_CALL_PROC				= 0x2,
-	CC_SETUP				= 0x5,
-	CC_CONNECT				= 0x7,
-	CC_SETUP_ACK				= 0xd,
-	CC_CONNECT_ACK				= 0xf,
-	CC_SERVICE_CHANGE			= 0x20,
-	CC_SERVICE_ACCEPT			= 0x21,
-	CC_SERVICE_REJECT			= 0x22,
-	CC_RELEASE				= 0x4d,
-	CC_RELEASE_COM				= 0x5a,
-	CC_IWU_INFO				= 0x60,
-	CC_NOTIFY				= 0x6e,
-	CC_INFO					= 0x7b,
+	DECT_CC_RESERVED			= 0x0,
+	DECT_CC_ALERTING			= 0x1,
+	DECT_CC_CALL_PROC			= 0x2,
+	DECT_CC_SETUP				= 0x5,
+	DECT_CC_CONNECT				= 0x7,
+	DECT_CC_SETUP_ACK			= 0xd,
+	DECT_CC_CONNECT_ACK			= 0xf,
+	DECT_CC_SERVICE_CHANGE			= 0x20,
+	DECT_CC_SERVICE_ACCEPT			= 0x21,
+	DECT_CC_SERVICE_REJECT			= 0x22,
+	DECT_CC_RELEASE				= 0x4d,
+	DECT_CC_RELEASE_COM			= 0x5a,
+	DECT_CC_IWU_INFO			= 0x60,
+	DECT_CC_NOTIFY				= 0x6e,
+	DECT_CC_INFO				= 0x7b,
 };
 
 struct dect_cc_setup_msg {

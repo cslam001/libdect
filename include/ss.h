@@ -11,9 +11,9 @@
  * Call Independant Supplementary Services messages types
  */
 enum dect_ciss_msg_types {
-	CISS_RELEASE_COM	= 0x5a,
-	CISS_FACILITY		= 0x62,
-	CISS_REGISTER		= 0x64,
+	DECT_CISS_RELEASE_COM		= 0x5a,
+	DECT_CISS_FACILITY		= 0x62,
+	DECT_CISS_REGISTER		= 0x64,
 };
 
 struct dect_ciss_release_com_msg {
