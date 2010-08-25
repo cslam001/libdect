@@ -1007,6 +1007,16 @@ static void dect_sfmt_dump_feature_activate(const struct dect_ie_common *_ie)
 	sfmt_debug("\tfeature: %s\n", dect_val2str(dect_features, buf, ie->feature));
 }
 
+static int dect_sfmt_parse_feature_activate(const struct dect_handle *dh,
+					    struct dect_ie_common **ie,
+					    const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_feature_activate *dst = dect_ie_container(dst, *ie);
+
+	dst->feature = src->data[2] & ~DECT_OCTET_GROUP_END;
+	return 0;
+}
+
 static int dect_sfmt_build_feature_activate(struct dect_sfmt_ie *dst,
 					    const struct dect_ie_common *ie)
 {
@@ -2127,6 +2137,7 @@ static const struct dect_ie_handler {
 	[DECT_IE_FEATURE_ACTIVATE]		= {
 		.name	= "FEATURE-ACTIVATE",
 		.size	= sizeof(struct dect_ie_feature_activate),
+		.parse	= dect_sfmt_parse_feature_activate,
 		.build	= dect_sfmt_build_feature_activate,
 		.dump	= dect_sfmt_dump_feature_activate,
 	},
