@@ -1842,12 +1842,38 @@ struct dect_ie_mms_extended_header {
 
 /**
  * @}@}
- * @defgroup ie_time_data Time-Date
+ * @defgroup ie_time_date Time-Date
+ *
+ * <<TIME-DATE>> IE specified in ETSI EN 300 175-5 section 7.7.50.
+ *
+ * The <<TIME-DATE>> IE is used to provide a time and/or date.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.50
  * @{
  */
 
+enum dect_time_date_coding {
+	DECT_TIME_DATE_TIME			= 0x1, /**< Time */
+	DECT_TIME_DATE_DATE			= 0x2, /**< Date */
+	DECT_TIME_DATE_TIME_AND_DATE		= 0x3, /**< Time and Date */
+};
+
+enum dect_time_date_interpretation {
+	DECT_TIME_DATE_CURRENT			= 0x0, /**< The current time/date */
+	DECT_TIME_DATE_DURATION			= 0x1, /**< Time duration */
+};
+
 struct dect_ie_time_date {
-	struct dect_ie_common		common;
+	struct dect_ie_common			common;
+	enum dect_time_date_coding		coding;
+	enum dect_time_date_interpretation	interpretation;
+	uint8_t					year;
+	uint8_t					month;
+	uint8_t					day;
+	uint8_t					hour;
+	uint8_t					minute;
+	uint8_t					second;
+	uint8_t					timezone;
 };
 
 /**

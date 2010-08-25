@@ -941,6 +941,79 @@ static int dect_sfmt_build_progress_indicator(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static void dect_sfmt_dump_time_date(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_time_date *ie = dect_ie_container(ie, _ie);
+
+	if (ie->coding & 0x2)
+		sfmt_debug("\tDate: %u%u.%u%u.20%u%u\n",
+			   ie->day >> 4, ie->day & 0x0f,
+			   ie->month >> 4, ie->month & 0x0f,
+			   ie->year >> 4, ie->year & 0xf);
+
+	if (ie->coding & 0x1)
+		sfmt_debug("\tTime: %u%u:%u%u:%u%u %+dmin\n",
+			   ie->hour >> 4, ie->hour & 0x0f,
+			   ie->minute >> 4, ie->minute & 0x0f,
+			   ie->second >> 4, ie->second & 0xf,
+			   15 * (ie->timezone & 0x8 ? -1 : 1) *
+			   ((10 * (ie->timezone >> 4) & 0x7) +
+			    (ie->timezone & 0x0f)));
+}
+
+static int dect_sfmt_parse_time_date(const struct dect_handle *dh,
+				     struct dect_ie_common **ie,
+				     const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_time_date *dst = dect_ie_container(dst, *ie);
+	unsigned int n;
+
+	dst->coding         = src->data[2] >> 6;
+	dst->interpretation = src->data[2] & 0x3f;
+	n = 3;
+
+	if (dst->coding & 0x2) {
+		dst->year     = src->data[n++];
+		dst->month    = src->data[n++];
+		dst->day      = src->data[n++];
+	}
+
+	if (dst->coding & 0x1) {
+		dst->hour     = src->data[n++];
+		dst->minute   = src->data[n++];
+		dst->second   = src->data[n++];
+		dst->timezone = src->data[n++];
+	}
+	return 0;
+}
+
+static int dect_sfmt_build_time_date(struct dect_sfmt_ie *dst,
+				     const struct dect_ie_common *ie)
+{
+	struct dect_ie_time_date *src = dect_ie_container(src, ie);
+	unsigned int n;
+
+	dst->data[2]  = src->coding << 6;
+	dst->data[2] |= src->interpretation;
+	n = 3;
+
+	if (src->coding & 0x2) {
+		dst->data[n++] = src->year;
+		dst->data[n++] = src->month;
+		dst->data[n++] = src->day;
+	}
+
+	if (src->coding & 0x1) {
+		dst->data[n++] = src->hour;
+		dst->data[n++] = src->minute;
+		dst->data[n++] = src->second;
+		dst->data[n++] = src->timezone;
+	}
+
+	dst->len = n;
+	return 0;
+}
+
 static int dect_sfmt_parse_multi_display(const struct dect_handle *dh,
 					 struct dect_ie_common **ie,
 					 const struct dect_sfmt_ie *src)
@@ -2119,6 +2192,9 @@ static const struct dect_ie_handler {
 	[DECT_IE_TIME_DATE]			= {
 		.name	= "TIME-DATA",
 		.size	= sizeof(struct dect_ie_time_date),
+		.parse	= dect_sfmt_parse_time_date,
+		.build	= dect_sfmt_build_time_date,
+		.dump	= dect_sfmt_dump_time_date,
 	},
 	[DECT_IE_MULTI_DISPLAY]			= {
 		.name	= "MULTI-DISPLAY",
