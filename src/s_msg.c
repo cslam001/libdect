@@ -2190,7 +2190,7 @@ static const struct dect_ie_handler {
 		.size	= sizeof(struct dect_ie_mms_extended_header),
 	},
 	[DECT_IE_TIME_DATE]			= {
-		.name	= "TIME-DATA",
+		.name	= "TIME-DATE",
 		.size	= sizeof(struct dect_ie_time_date),
 		.parse	= dect_sfmt_parse_time_date,
 		.build	= dect_sfmt_build_time_date,
@@ -2655,8 +2655,11 @@ __dect_build_sfmt_ie(const struct dect_handle *dh,
 		     struct dect_msg_buf *mb,
 		     const struct dect_ie_common *ie)
 {
-	if (dect_tx_status(dh, desc) == DECT_SFMT_IE_NONE)
+	if (dect_tx_status(dh, desc) == DECT_SFMT_IE_NONE) {
+		sfmt_debug("  IE <%s> id: %x not allowed\n",
+			   dect_ie_handlers[desc->type].name, desc->type);
 		return DECT_SFMT_INVALID_IE;
+	}
 	return dect_build_sfmt_ie(dh, desc->type, mb, ie);
 }
 
