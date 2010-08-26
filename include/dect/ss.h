@@ -26,7 +26,11 @@ struct dect_mnss_param {
 	struct dect_ie_keypad			*keypad;
 	struct dect_ie_feature_activate		*feature_activate;
 	struct dect_ie_feature_indicate		*feature_indicate;
+	struct dect_ie_list			iwu_to_iwu;
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
+	struct dect_ie_time_date		*time_date;
+	struct dect_ie_events_notification	*events_notification;
+	struct dect_ie_call_information		*call_information;
 };
 
 struct dect_handle;

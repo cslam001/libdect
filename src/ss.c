@@ -70,7 +70,8 @@ static DECT_SFMT_MSG_DESC(ciss_facility,
 
 #define __ss_debug(pfx, fmt, args...) \
 	dect_debug(DECT_DEBUG_SS, "%sSS (link %d): " fmt "\n", pfx, \
-		   (sse)->transaction.link ? (sse)->transaction.link->dfd->fd : -1, \
+		   (sse)->transaction.link && (sse)->transaction.link->dfd ? \
+			(sse)->transaction.link->dfd->fd : -1, \
 		   ## args)
 
 #define ss_debug(sse, fmt, args...) \
@@ -181,6 +182,11 @@ int dect_mnss_facility_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 		.keypad			= param->keypad,
 		.feature_activate	= param->feature_activate,
 		.feature_indicate	= param->feature_indicate,
+		.iwu_to_iwu		= param->iwu_to_iwu,
+		.escape_to_proprietary	= param->escape_to_proprietary,
+		.time_date		= param->time_date,
+		.events_notification	= param->events_notification,
+		.call_information	= param->call_information,
 	};
 
 	ss_debug_entry(sse, "MNSS_FACILITY-req");
