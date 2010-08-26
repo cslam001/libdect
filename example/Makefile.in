@@ -52,7 +52,7 @@ pp-list-access-obj		+= $(pp-common-obj)
 pp-list-access-obj		+= pp-list-access.o
 
 pp-wait-page-destdir		:= $(destdir)
-pp-wait-page-obj		+= $(common-obj)
+pp-wait-page-obj		+= $(pp-common-obj)
 pp-wait-page-obj		+= pp-wait-page.o
 
 discover-destdir:= $(destdir)

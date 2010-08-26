@@ -68,8 +68,7 @@ int main(int argc, char **argv)
 	const struct dect_fp_capabilities *fpc;
 	struct dect_mm_endpoint *mme;
 
-	dect_pp_auth_init(&ops, &ipui);
-	dect_common_init(&ops, argv[1]);
+	dect_pp_common_init(&ops, argv[1], &ipui);
 
 	fpc = dect_llme_fp_capabilities(dh);
 	if (!(fpc->hlc & DECT_HLC_LOCATION_REGISTRATION)) {

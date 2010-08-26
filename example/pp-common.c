@@ -34,3 +34,11 @@ void dect_pp_init_terminal_capability(struct dect_ie_terminal_capability *tcap)
 				  DECT_PROFILE_NG_DECT_PART_1 |
 				  DECT_PROFILE_NG_DECT_PART_3;
 }
+
+void dect_pp_common_init(struct dect_ops *ops, const char *cluster,
+			 const struct dect_ipui *ipui)
+{
+	dect_pp_auth_init(ops, ipui);
+	dect_common_init(ops, cluster);
+	dect_pp_set_ipui(dh, ipui);
+}

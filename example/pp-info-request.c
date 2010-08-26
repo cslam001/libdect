@@ -57,8 +57,7 @@ int main(int argc, char **argv)
 {
 	struct dect_mm_endpoint *mme;
 
-	dect_pp_auth_init(&ops, &ipui);
-	dect_common_init(&ops, argv[1]);
+	dect_pp_common_init(&ops, argv[1], &ipui);
 
 	mme = dect_mm_endpoint_alloc(dh, &ipui);
 	if (mme == NULL)

@@ -1,5 +1,5 @@
 /*
- * DECT PP location update example
+ * DECT PP paging example
  *
  * Copyright (c) 2010 Patrick McHardy <kaber@trash.net>
  *
@@ -24,8 +24,7 @@ static struct dect_ops ops;
 
 int main(int argc, char **argv)
 {
-	dect_common_init(&ops, argv[1]);
-	dect_pp_set_ipui(dh, &ipui);
+	dect_pp_common_init(&ops, argv[1], &ipui);
 
 	dect_event_loop();
 
