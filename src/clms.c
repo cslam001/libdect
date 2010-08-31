@@ -13,6 +13,7 @@
  * @{
  */
 
+#include <stdint.h>
 #include <linux/byteorder/little_endian.h>
 
 #include <libdect.h>
