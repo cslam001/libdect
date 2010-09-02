@@ -2054,7 +2054,7 @@ static void dect_mm_locate_abort(struct dect_handle *dh,
 				 struct dect_mm_endpoint *mme,
 				 struct dect_mm_procedure *mp)
 {
-	mm_debug(mme, "MM_ACCESS_LOCATE-cfm: accept: 0");
+	mm_debug(mme, "MM_LOCATE-cfm: accept: 0");
 	dh->ops->mm_ops->mm_locate_cfm(dh, mme, false, NULL);
 }
 
@@ -3296,7 +3296,8 @@ static void dect_mm_shutdown(struct dect_handle *dh,
 	dect_mm_procedure_complete(dh, mme, mp);
 	if (mme->current == NULL)
 		mme->link = NULL;
-	proc->abort(dh, mme, mp);
+	if (mp->role == DECT_TRANSACTION_INITIATOR)
+		proc->abort(dh, mme, mp);
 }
 
 static const struct dect_nwk_protocol mm_protocol = {
