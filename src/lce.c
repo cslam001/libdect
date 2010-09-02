@@ -1274,15 +1274,25 @@ static int dect_transaction_alloc_tv(const struct dect_data_link *ddl,
 static void dect_transaction_link(struct dect_data_link *ddl,
 				  struct dect_transaction *ta)
 {
+	struct dect_transaction *last;
+
 	/* Insert MM transactions at the end of the list to make sure they get
 	 * destroyed last on shutdown. This makes sure that other protocols
 	 * which might invoke and wait for the completion of MM transactions
 	 * have their transactions terminated first and don't mistake a link
 	 * shutdown or a protocol specific error for a MM error.
+	 *
+	 * Ordering among MM transactions is such that the transaction opened
+	 * last is shut down first.
 	 */
-	if (ta->pd == DECT_PD_MM)
-		list_add_tail(&ta->list, &ddl->transactions);
-	else
+	if (ta->pd == DECT_PD_MM) {
+		last = list_last_entry(&ddl->transactions, struct dect_transaction, list);
+
+		if (!list_empty(&ddl->transactions) && last->pd == DECT_PD_MM)
+			list_add_tail(&ta->list, &last->list);
+		else
+			list_add_tail(&ta->list, &ddl->transactions);
+	} else
 		list_add(&ta->list, &ddl->transactions);
 }
 

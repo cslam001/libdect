@@ -440,7 +440,8 @@ static void dect_mm_procedure_complete(struct dect_handle *dh,
 				       struct dect_mm_endpoint *mme,
 				       struct dect_mm_procedure *mp)
 {
-	mm_debug(mme, "complete procedure");
+	mm_debug(mme, "complete %s procedure", dect_mm_proc[mp->type].name);
+	assert(mme->current == mp);
 
 	if (dect_timer_running(mp->timer))
 		dect_timer_stop(dh, mp->timer);
@@ -451,8 +452,8 @@ static void dect_mm_procedure_complete(struct dect_handle *dh,
 	dect_transaction_close(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
 	mp->type = DECT_MMP_NONE;
 
-	if (mme->procedure[!mme->current->role].type != DECT_MMP_NONE)
-		mme->current = &mme->procedure[!mme->current->role];
+	if (mme->procedure[!mp->role].type != DECT_MMP_NONE)
+		mme->current = &mme->procedure[!mp->role];
 	else
 		mme->current = NULL;
 }
