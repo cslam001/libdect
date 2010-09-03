@@ -1,8 +1,9 @@
 CFLAGS		+= $(EVENT_CFLAGS)
 LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect $(EVENT_LDFLAGS)
-PROGRAMS	+= cc ss clms mm-fp discover hijack
+PROGRAMS	+= cc ss hijack
+PROGRAMS	+= fp-mm fp-clms fp-broadcast-page
 PROGRAMS	+= pp-access-rights pp-access-rights-terminate pp-location-update
-PROGRAMS	+= pp-detach pp-info-request pp-list-access pp-wait-page
+PROGRAMS	+= pp-detach pp-info-request pp-list-access pp-clms pp-wait-page
 
 destdir		:= usr/share/dect/examples
 
@@ -19,13 +20,17 @@ ss-destdir	:= $(destdir)
 ss-obj		+= $(common-obj)
 ss-obj		+= ss.o
 
-clms-destdir	:= $(destdir)
-clms-obj	+= $(common-obj)
-clms-obj	+= clms.o
+fp-mm-destdir			:= $(destdir)
+fp-mm-obj			+= $(common-obj)
+fp-mm-obj			+= fp-mm.o
 
-mm-fp-destdir	:= $(destdir)
-mm-fp-obj	+= $(common-obj)
-mm-fp-obj	+= mm-fp.o
+fp-clms-destdir			:= $(destdir)
+fp-clms-obj			+= $(common-obj)
+fp-clms-obj			+= fp-clms.o
+
+fp-broadcast-page-destdir	:= $(destdir)
+fp-broadcast-page-obj		+= $(common-obj)
+fp-broadcast-page-obj		+= fp-broadcast-page.o
 
 pp-access-rights-destdir	:= $(destdir)
 pp-access-rights-obj		+= $(pp-common-obj)
@@ -51,13 +56,13 @@ pp-list-access-destdir		:= $(destdir)
 pp-list-access-obj		+= $(pp-common-obj)
 pp-list-access-obj		+= pp-list-access.o
 
+pp-clms-destdir			:= $(destdir)
+pp-clms-obj			+= $(pp-common-obj)
+pp-clms-obj			+= pp-clms.o
+
 pp-wait-page-destdir		:= $(destdir)
 pp-wait-page-obj		+= $(pp-common-obj)
 pp-wait-page-obj		+= pp-wait-page.o
-
-discover-destdir:= $(destdir)
-discover-obj	+= $(common-obj)
-discover-obj	+= discover.o
 
 hijack-destdir	:= $(destdir)
 hijack-obj	+= $(common-obj)
