@@ -1597,11 +1597,12 @@ static void dect_cc_shutdown(struct dect_handle *dh,
 			     struct dect_transaction *ta)
 {
 	struct dect_call *call = container_of(ta, struct dect_call, transaction);
+	struct dect_mncc_release_param param = {};
 
 	cc_debug(call, "shutdown");
 
 	cc_debug(call, "MNCC_REJECT-ind");
-	dh->ops->cc_ops->mncc_reject_ind(dh, call, NULL);
+	dh->ops->cc_ops->mncc_reject_ind(dh, call, &param);
 	dect_call_disconnect_uplane(dh, call);
 	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);

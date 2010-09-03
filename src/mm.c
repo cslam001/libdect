@@ -947,8 +947,10 @@ static void dect_mm_authentication_abort(struct dect_handle *dh,
 					 struct dect_mm_procedure *mp)
 
 {
+	struct dect_mm_authenticate_param param = {};
+
 	mm_debug(mme, "MM_AUTHENTICATE-cfm: accept: 0");
-	dh->ops->mm_ops->mm_authenticate_cfm(dh, mme, false, NULL);
+	dh->ops->mm_ops->mm_authenticate_cfm(dh, mme, false, &param);
 }
 
 static void dect_mm_rcv_authentication_reply(struct dect_handle *dh,
@@ -1240,8 +1242,10 @@ static void dect_mm_cipher_abort(struct dect_handle *dh,
 				 struct dect_mm_endpoint *mme,
 				 struct dect_mm_procedure *mp)
 {
+	struct dect_mm_cipher_param param = {};
+
 	mm_debug(mme, "MM_CIPHER-cfm: accept: 0");
-	dh->ops->mm_ops->mm_cipher_cfm(dh, mme, false, NULL);
+	dh->ops->mm_ops->mm_cipher_cfm(dh, mme, false, &param);
 }
 
 static void dect_mm_rcv_cipher_reject(struct dect_handle *dh,
@@ -1505,8 +1509,10 @@ static void dect_mm_access_rights_abort(struct dect_handle *dh,
 					struct dect_mm_endpoint *mme,
 					struct dect_mm_procedure *mp)
 {
+	struct dect_mm_access_rights_param param = {};
+
 	mm_debug(mme, "MM_ACCESS_RIGHTS-cfm: accept: 0");
-	dh->ops->mm_ops->mm_access_rights_cfm(dh, mme, false, NULL);
+	dh->ops->mm_ops->mm_access_rights_cfm(dh, mme, false, &param);
 }
 
 static void dect_mm_rcv_access_rights_accept(struct dect_handle *dh,
@@ -1764,8 +1770,10 @@ static void dect_mm_access_rights_terminate_abort(struct dect_handle *dh,
 						  struct dect_mm_endpoint *mme,
 						  struct dect_mm_procedure *mp)
 {
+	struct dect_mm_access_rights_terminate_param param = {};
+
 	mm_debug(mme, "MM_ACCESS_RIGHTS_TERMINATE-cfm: accept: 0");
-	dh->ops->mm_ops->mm_access_rights_terminate_cfm(dh, mme, false, NULL);
+	dh->ops->mm_ops->mm_access_rights_terminate_cfm(dh, mme, false, &param);
 }
 
 static void dect_mm_rcv_access_rights_terminate_accept(struct dect_handle *dh,
@@ -2055,8 +2063,10 @@ static void dect_mm_locate_abort(struct dect_handle *dh,
 				 struct dect_mm_endpoint *mme,
 				 struct dect_mm_procedure *mp)
 {
+	struct dect_mm_locate_param param = {};
+
 	mm_debug(mme, "MM_LOCATE-cfm: accept: 0");
-	dh->ops->mm_ops->mm_locate_cfm(dh, mme, false, NULL);
+	dh->ops->mm_ops->mm_locate_cfm(dh, mme, false, &param);
 }
 
 static void dect_mm_rcv_locate_accept(struct dect_handle *dh,
@@ -2368,8 +2378,10 @@ static void dect_mm_identity_abort(struct dect_handle *dh,
 				   struct dect_mm_endpoint *mme,
 				   struct dect_mm_procedure *mp)
 {
+	struct dect_mm_identity_param param = {};
+
 	mm_debug(mme, "MM_IDENTITY-cfm");
-	dh->ops->mm_ops->mm_identity_cfm(dh, mme, NULL);
+	dh->ops->mm_ops->mm_identity_cfm(dh, mme, &param);
 }
 
 static void dect_mm_rcv_identity_reply(struct dect_handle *dh,
@@ -2580,8 +2592,10 @@ static void dect_mm_temporary_identity_assign_abort(struct dect_handle *dh,
 						    struct dect_mm_endpoint *mme,
 						    struct dect_mm_procedure *mp)
 {
+	struct dect_mm_identity_assign_param param = {};
+
 	mm_debug(mme, "MM_IDENTITY_ASSIGN-cfm: accept: 0");
-	dh->ops->mm_ops->mm_identity_assign_cfm(dh, mme, false, NULL);
+	dh->ops->mm_ops->mm_identity_assign_cfm(dh, mme, false, &param);
 }
 
 static void dect_mm_rcv_temporary_identity_assign_ack(struct dect_handle *dh,
@@ -2849,8 +2863,10 @@ static void dect_mm_info_abort(struct dect_handle *dh,
 			       struct dect_mm_endpoint *mme,
 			       struct dect_mm_procedure *mp)
 {
+	struct dect_mm_info_param param = {};
+
 	mm_debug(mme, "MM_INFO-cfm: accept: 0");
-	dh->ops->mm_ops->mm_info_cfm(dh, mme, false, NULL);
+	dh->ops->mm_ops->mm_info_cfm(dh, mme, false, &param);
 }
 
 static void dect_mm_rcv_info_accept(struct dect_handle *dh,
