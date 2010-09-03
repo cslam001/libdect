@@ -19,11 +19,8 @@ void dect_common_init(struct dect_ops *ops, const char *cluster)
 	if (dect_event_ops_init(ops))
 		pexit("dect_event_ops_init");
 
-	dh = dect_alloc_handle(ops);
+	dh = dect_open_handle(ops, cluster);
 	if (dh == NULL)
-		pexit("dect_alloc_handle");
-
-	if (dect_init(dh, cluster) < 0)
 		pexit("dect_init");
 }
 

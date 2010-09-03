@@ -162,10 +162,9 @@ struct dect_ops {
 	const struct dect_raw_ops	*raw_ops;
 };
 
-extern struct dect_handle *dect_alloc_handle(struct dect_ops *ops);
+extern struct dect_handle *dect_open_handle(struct dect_ops *ops,
+					    const char *cluster);
 extern void dect_close_handle(struct dect_handle *dh);
-
-extern int dect_init(struct dect_handle *dh, const char *cluster);
 
 extern void dect_pp_set_ipui(struct dect_handle *dh,
 			     const struct dect_ipui *ipui);

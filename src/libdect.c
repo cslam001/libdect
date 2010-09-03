@@ -22,12 +22,7 @@
 #include <utils.h>
 #include <lce.h>
 
-/**
- * Allocate a new libdect DECT handle
- *
- * @param ops		DECT ops
- */
-struct dect_handle *dect_alloc_handle(struct dect_ops *ops)
+static struct dect_handle *dect_alloc_handle(struct dect_ops *ops)
 {
 	struct dect_handle *dh;
 
@@ -46,38 +41,43 @@ struct dect_handle *dect_alloc_handle(struct dect_ops *ops)
 	init_list_head(&dh->mme_list);
 	return dh;
 }
-EXPORT_SYMBOL(dect_alloc_handle);
 
 /**
  * Initialize the libdect subsystems and bind to a cluster
  *
- * @param dh		libdect DECT handle
+ * @param ops		DECT ops
  * @param cluster	Cluster name
+ *
+ * @return		a new libdect DECT handle or NULL on error.
  */
-int dect_init(struct dect_handle *dh, const char *cluster)
+struct dect_handle *dect_open_handle(struct dect_ops *ops, const char *cluster)
 {
-	int err;
+	struct dect_handle *dh;
 
 	if (cluster == NULL)
 		cluster = "cluster0";
 
 	srand(time(NULL));
 
-	err = dect_netlink_init(dh, cluster);
-	if (err < 0)
+	dh = dect_alloc_handle(ops);
+	if (dh == NULL)
 		goto err1;
 
-	err = dect_lce_init(dh);
-	if (err < 0)
+	if (dect_netlink_init(dh, cluster) < 0)
 		goto err2;
-	return 0;
+	if (dect_lce_init(dh) < 0)
+		goto err3;
 
-err2:
+	return dh;
+
+err3:
 	dect_netlink_exit(dh);
+err2:
+	dect_free(dh, dh);
 err1:
-	return err;
+	return NULL;
 }
-EXPORT_SYMBOL(dect_init);
+EXPORT_SYMBOL(dect_open_handle);
 
 /**
  * Unbind from a cluster and release the libdect DECT handle

@@ -495,6 +495,7 @@ int dect_lce_send(const struct dect_handle *dh,
 		list_add_tail(&mb->list, &ddl->msg_queue);
 		return 0;
 	default:
+		ddl_debug(ddl, "Invalid state: %u\n", ddl->state);
 		BUG();
 	}
 }
