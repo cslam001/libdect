@@ -337,4 +337,6 @@ struct dect_call {
 
 #define DECT_CC_SETUP_TIMEOUT		20 /* seconds */
 
+extern const struct dect_nwk_protocol dect_cc_protocol;
+
 #endif /* _LIBDECT_CC_H */

@@ -355,7 +355,7 @@ static void dect_ciss_shutdown(struct dect_handle *dh,
 	dect_transaction_close(dh, &sse->transaction, DECT_DDL_RELEASE_NORMAL);
 }
 
-static const struct dect_nwk_protocol ciss_protocol = {
+const struct dect_nwk_protocol dect_ciss_protocol = {
 	.name			= "Call Independant Supplementary Services",
 	.pd			= DECT_PD_CISS,
 	.max_transactions	= 7,
@@ -364,9 +364,3 @@ static const struct dect_nwk_protocol ciss_protocol = {
 	.rcv			= dect_ciss_rcv,
 };
 
-static void __init dect_ciss_init(void)
-{
-	dect_lce_register_protocol(&ciss_protocol);
-}
-
-/** @} */

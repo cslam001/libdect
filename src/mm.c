@@ -3317,7 +3317,7 @@ static void dect_mm_shutdown(struct dect_handle *dh,
 		proc->abort(dh, mme, mp);
 }
 
-static const struct dect_nwk_protocol mm_protocol = {
+const struct dect_nwk_protocol dect_mm_protocol = {
 	.name			= "Mobility Management",
 	.pd			= DECT_PD_MM,
 	.max_transactions	= 1,
@@ -3326,10 +3326,5 @@ static const struct dect_nwk_protocol mm_protocol = {
 	.rcv			= dect_mm_rcv,
 	.encrypt_ind		= dect_mm_encrypt_ind,
 };
-
-static void __init dect_mm_init(void)
-{
-	dect_lce_register_protocol(&mm_protocol);
-}
 
 /** @} */

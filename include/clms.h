@@ -70,4 +70,6 @@ enum dect_clms_protocol_discriminators {
 
 extern void dect_clms_rcv_fixed(struct dect_handle *dh, struct dect_msg_buf *mb);
 
+extern const struct dect_nwk_protocol dect_clms_protocol;
+
 #endif /* _LIBDECT_CLMS_H */

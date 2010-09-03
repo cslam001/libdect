@@ -78,4 +78,6 @@ enum dect_crss_msg_types {
 	CRSS_FACILITY		= 0x62,
 };
 
+extern const struct dect_nwk_protocol dect_ciss_protocol;
+
 #endif /* _LIBDECT_SS_H */

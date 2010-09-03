@@ -216,16 +216,11 @@ static void dect_clms_open(struct dect_handle *dh,
 	}
 }
 
-static const struct dect_nwk_protocol clms_protocol = {
+const struct dect_nwk_protocol dect_clms_protocol = {
 	.name			= "ConnectionLess Message Service",
 	.pd			= DECT_PD_CLMS,
 	.max_transactions	= 1,
 	.open			= dect_clms_open,
 };
-
-static void __init dect_clms_init(void)
-{
-	dect_lce_register_protocol(&clms_protocol);
-}
 
 /** @} */

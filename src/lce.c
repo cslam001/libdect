@@ -35,6 +35,8 @@
 #include <b_fmt.h>
 #include <clms.h>
 #include <lce.h>
+#include <cc.h>
+#include <mm.h>
 #include <ss.h>
 #include <dect/auth.h>
 
@@ -1499,6 +1501,10 @@ int dect_lce_init(struct dect_handle *dh)
 	}
 
 	dect_lce_register_protocol(&lce_protocol);
+	dect_lce_register_protocol(&dect_cc_protocol);
+	dect_lce_register_protocol(&dect_ciss_protocol);
+	dect_lce_register_protocol(&dect_clms_protocol);
+	dect_lce_register_protocol(&dect_mm_protocol);
 	return 0;
 
 err4:

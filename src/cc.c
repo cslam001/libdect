@@ -1608,7 +1608,7 @@ static void dect_cc_shutdown(struct dect_handle *dh,
 	dect_call_destroy(dh, call);
 }
 
-static const struct dect_nwk_protocol cc_protocol = {
+const struct dect_nwk_protocol dect_cc_protocol = {
 	.name			= "Call Control",
 	.pd			= DECT_PD_CC,
 	.max_transactions	= 7,
@@ -1616,10 +1616,5 @@ static const struct dect_nwk_protocol cc_protocol = {
 	.shutdown		= dect_cc_shutdown,
 	.rcv			= dect_cc_rcv,
 };
-
-static void __init dect_cc_init(void)
-{
-	dect_lce_register_protocol(&cc_protocol);
-}
 
 /** @} */

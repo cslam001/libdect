@@ -376,4 +376,6 @@ struct dect_mm_endpoint {
 	uint8_t					priv[] __aligned(__alignof__(uint64_t));
 };
 
+extern const struct dect_nwk_protocol dect_mm_protocol;
+
 #endif /* _LIBDECT_MM_H */
