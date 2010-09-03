@@ -14,7 +14,7 @@ AC_DEFINE([_GNU_SOURCE], [], [Enable various GNU extensions])
 AC_DEFINE([_STDC_FORMAT_MACROS], [], [printf-style format macros])
 
 AC_ARG_ENABLE([debug],
-	      AS_HELP_STRING([--enable-debug], [enable debugging [yes]]),
+	      [AS_HELP_STRING([--enable-debug], [enable debugging [yes]])],
 	      [CONFIG_DEBUG="$(echo $enableval | cut -b1)"],
 	      [CONFIG_DEBUG="y"])
 AC_SUBST([CONFIG_DEBUG])
@@ -27,23 +27,23 @@ AC_PROG_LN_S
 AC_PROG_SED
 
 AC_ARG_ENABLE([doc],
-	      AS_HELP_STRING([--enable-doc], [build documentation [no]]),
-	      AC_CHECK_PROG(DOXYGEN, doxygen, doxygen),
-	      AC_MSG_NOTICE([Documentation build disabled])
-	      DOXYGEN=/bin/true)
+	      [AS_HELP_STRING([--enable-doc], [build documentation [no]])],
+	      [AC_CHECK_PROG(DOXYGEN, doxygen, doxygen)],
+	      [AC_MSG_NOTICE([Documentation build disabled])]
+	      [DOXYGEN=/bin/true])
 
 # Checks for libraries.
 AC_CHECK_LIB([nl], [nl_socket_alloc], ,
-	     AC_MSG_ERROR([No suitable version of libnl found]))
+	     [AC_MSG_ERROR([No suitable version of libnl found])])
 
 AC_CHECK_LIB([nl-dect], [nl_dect_cluster_alloc], ,
-	     AC_MSG_ERROR([No suitable version of libnl-dect found]))
+	     [AC_MSG_ERROR([No suitable version of libnl-dect found])])
 
-AC_CHECK_LIB(ev, event_init,
+AC_CHECK_LIB([ev], [event_init],
 	     [EVENTLIB="-lev"],
-	     AC_CHECK_LIB(event, event_init,
-			  [EVENTLIB="-levent"],
-			  AC_ERROR(libev or libevent not found)))
+	     [AC_CHECK_LIB([event], [event_init],
+			   [EVENTLIB="-levent"],
+			   [AC_ERROR([libev or libevent not found])])])
 EVENT_LDFLAGS=$EVENTLIB
 AC_SUBST(EVENT_LDFLAGS)
 
@@ -53,16 +53,16 @@ AC_HEADER_ASSERT
 AC_CHECK_HEADERS([fcntl.h inttypes.h libintl.h limits.h malloc.h \
 		  stddef.h stdint.h stdlib.h string.h unistd.h \
 		  sys/socket.h], ,
-		 AC_MSG_ERROR([Header file not found]))
+		 [AC_MSG_ERROR([Header file not found])])
 AC_CHECK_HEADERS([linux/dect.h linux/dect_netlink.h], ,
-		 AC_MSG_ERROR([DECT kernel header files not found]),
+		 [AC_MSG_ERROR([DECT kernel header files not found])],
 		 [#include <sys/socket.h>])
 
-AC_CHECK_HEADER(event.h,
+AC_CHECK_HEADER([event.h],
 		[EVENTINC="-include event.h"],
-		AC_CHECK_HEADER(libev/event.h,
-				[EVENTINC="-include libev/event.h"],
-				AC_MSG_ERROR([event.h not found])))
+		[AC_CHECK_HEADER([libev/event.h],
+				 [EVENTINC="-include libev/event.h"],
+				 [AC_MSG_ERROR([event.h not found])])])
 EVENT_CFLAGS=$EVENTINC
 AC_SUBST(EVENT_CFLAGS)
 
