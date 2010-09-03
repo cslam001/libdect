@@ -45,7 +45,8 @@ int main(int argc, char **argv)
 {
 	struct dect_mm_endpoint *mme;
 
-	dect_pp_common_init(&ops, argv[1], &ipui);
+	dect_pp_common_options(argc, argv);
+	dect_pp_common_init(&ops, cluster, &ipui);
 
 	mme = dect_mm_endpoint_alloc(dh, &ipui);
 	if (mme == NULL)

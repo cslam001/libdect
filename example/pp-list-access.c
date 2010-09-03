@@ -71,7 +71,8 @@ int main(int argc, char **argv)
 {
 	const struct dect_fp_capabilities *fpc;
 
-	dect_pp_common_init(&ops, argv[1], &ipui);
+	dect_pp_common_options(argc, argv);
+	dect_pp_common_init(&ops, cluster, &ipui);
 
 	fpc = dect_llme_fp_capabilities(dh);
 	if (!(fpc->ehlc2 & DECT_EHLC2_LIST_ACCESS_FEATURES)) {

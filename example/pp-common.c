@@ -8,6 +8,11 @@
  * published by the Free Software Foundation.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <getopt.h>
+
 #include <dect/libdect.h>
 #include <dect/auth.h>
 #include "common.h"
@@ -41,4 +46,43 @@ void dect_pp_common_init(struct dect_ops *ops, const char *cluster,
 	dect_pp_auth_init(ops, ipui);
 	dect_common_init(ops, cluster);
 	dect_pp_set_ipui(dh, ipui);
+}
+
+enum {
+	OPT_CLUSTER	= 'c',
+	OPT_IPUI	= 'i',
+	OPT_HELP	= 'h',
+};
+
+static const struct option options[] = {
+	{ .name = "cluster",	.has_arg = true,  .flag = NULL, .val = OPT_CLUSTER },
+	{ .name = "ipui",	.has_arg = true,  .flag = NULL, .val = OPT_IPUI },
+	{ .name = "help",	.has_arg = false, .flag = NULL, .val = OPT_HELP },
+	{ }
+};
+
+void dect_pp_common_options(int argc, char **argv)
+{
+	int optidx = 0, c;
+
+	for (;;) {
+		c = getopt_long(argc, argv, "c:h", options, &optidx);
+		if (c == -1)
+			break;
+
+		switch (c) {
+		case OPT_CLUSTER:
+			break;
+		case OPT_IPUI:
+			if (dect_parse_ipui(&ipui, optarg))
+				exit(1);
+			break;
+		case OPT_HELP:
+			printf("%s [ -c/--cluster NAME ] [ -h/--help ]\n",
+			       argv[0]);
+			exit(0);
+		case '?':
+			exit(1);
+		}
+	}
 }

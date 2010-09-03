@@ -5,13 +5,26 @@
 #include <dect/libdect.h>
 #include "common.h"
 
-const struct dect_ipui ipui = {
+const char *cluster;
+struct dect_ipui ipui = {
 	.put		= DECT_IPUI_N,
 	.pun.n.ipei	= {
 		.emc	= 0x0ba8,
 		.psn	= 0xa782a,
 	},
 };
+
+int dect_parse_ipui(struct dect_ipui *ipui, const char *optarg)
+{
+	ipui->put = DECT_IPUI_N;
+	if (sscanf(optarg, "%04hx%05x",
+		   &ipui->pun.n.ipei.emc,
+		   &ipui->pun.n.ipei.psn) != 2) {
+		fprintf(stderr, "could not parse IPUI '%s'\n", optarg);
+		return -1;
+	}
+	return 0;
+}
 
 void pexit(const char *str)
 {

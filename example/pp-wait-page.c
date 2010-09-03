@@ -16,7 +16,8 @@ static struct dect_ops ops;
 
 int main(int argc, char **argv)
 {
-	dect_pp_common_init(&ops, argv[1], &ipui);
+	dect_pp_common_options(argc, argv);
+	dect_pp_common_init(&ops, cluster, &ipui);
 
 	dect_event_loop();
 

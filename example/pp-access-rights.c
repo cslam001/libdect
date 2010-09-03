@@ -7,10 +7,10 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <fcntl.h>
 #include <string.h>
 #include <inttypes.h>
@@ -173,15 +173,57 @@ static struct dect_ops ops = {
 	.mm_ops			= &mm_ops,
 };
 
+enum {
+	OPT_CLUSTER	= 'c',
+	OPT_IPUI	= 'i',
+	OPT_PIN		= 'p',
+	OPT_HELP	= 'h',
+};
+
+static const struct option options[] = {
+	{ .name = "cluster",	.has_arg = true,  .flag = NULL, .val = OPT_CLUSTER },
+	{ .name = "ipui",	.has_arg = true,  .flag = NULL, .val = OPT_IPUI },
+	{ .name = "pin",	.has_arg = true,  .flag = NULL, .val = OPT_PIN },
+	{ .name = "help",	.has_arg = false, .flag = NULL, .val = OPT_HELP },
+	{ },
+};
+
 int main(int argc, char **argv)
 {
 	struct dect_mm_endpoint *mme;
+	const char *cluster = NULL;
+	int optidx = 0, c;
+
+	for (;;) {
+		c = getopt_long(argc, argv, "c:p:h", options, &optidx);
+		if (c == -1)
+			break;
+
+		switch (c) {
+		case OPT_CLUSTER:
+			cluster = optarg;
+			break;
+		case OPT_IPUI:
+			if (dect_parse_ipui(&ipui, optarg) < 0)
+				exit(1);
+			break;
+		case OPT_PIN:
+			pin = optarg;
+			break;
+		case OPT_HELP:
+			printf("%s [ -c/--cluster NAME ] [ -p/--pin PIN ] [ -h/--help ]\n",
+			      argv[0]);
+			exit(0);
+		case '?':
+			exit(1);
+		}
+	}
 
 	rand_fd = open("/dev/urandom", O_RDONLY);
 	if (rand_fd < 0)
 		pexit("open /dev/urandom");
 
-	dect_common_init(&ops, argv[1]);
+	dect_common_init(&ops, cluster);
 
 	if (!(dect_llme_fp_capabilities(dh)->hlc &
 	      DECT_HLC_ACCESS_RIGHTS_REQUESTS)) {
