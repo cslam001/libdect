@@ -437,11 +437,10 @@ static int dect_mm_procedure_respond(struct dect_handle *dh,
 }
 
 static void dect_mm_procedure_complete(struct dect_handle *dh,
-				       struct dect_mm_endpoint *mme,
-				       struct dect_mm_procedure *mp)
+				       struct dect_mm_endpoint *mme)
 {
+	struct dect_mm_procedure *mp = mme->current;
 	mm_debug(mme, "complete %s procedure", dect_mm_proc[mp->type].name);
-	assert(mme->current == mp);
 
 	if (dect_timer_running(mp->timer))
 		dect_timer_stop(dh, mp->timer);
@@ -476,7 +475,7 @@ static void dect_mm_procedure_timeout(struct dect_handle *dh,
 		dect_timer_start(dh, mp->timer, proc->param[dh->mode].timeout);
 	} else {
 		mm_debug(mme, "procedure timeout");
-		dect_mm_procedure_complete(dh, mme, mp);
+		dect_mm_procedure_complete(dh, mme);
 		dect_mm_proc[type].abort(dh, mme, mp);
 	}
 }
@@ -667,7 +666,6 @@ int dect_mm_key_allocate_req(struct dect_handle *dh,
 			     struct dect_mm_endpoint *mme,
 			     const struct dect_mm_key_allocate_param *param)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_key_allocate_msg msg;
 	int err;
 
@@ -690,7 +688,7 @@ int dect_mm_key_allocate_req(struct dect_handle *dh,
 	return 0;
 
 err2:
-	dect_mm_procedure_cancel(dh, mme, mp);
+	dect_mm_procedure_cancel(dh, mme);
 err1:
 	return err;
 }
@@ -700,7 +698,6 @@ static void dect_mm_rcv_key_allocate(struct dect_handle *dh,
 				     struct dect_mm_endpoint *mme,
 				     struct dect_msg_buf *mb)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_key_allocate_msg msg;
 	struct dect_mm_key_allocate_param *param;
 
@@ -730,7 +727,7 @@ static void dect_mm_rcv_key_allocate(struct dect_handle *dh,
 err2:
 	dect_msg_free(dh, &mm_key_allocate_msg_desc, &msg.common);
 err1:
-	dect_mm_procedure_cancel(dh, mme, mp);
+	dect_mm_procedure_cancel(dh, mme);
 }
 
 /**
@@ -825,7 +822,7 @@ int dect_mm_authenticate_req(struct dect_handle *dh,
 	return 0;
 
 err2:
-	dect_mm_procedure_cancel(dh, mme, mp);
+	dect_mm_procedure_cancel(dh, mme);
 err1:
 	return err;
 }
@@ -894,7 +891,7 @@ int dect_mm_authenticate_res(struct dect_handle *dh,
 	if (err < 0)
 		return err;
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mm_authenticate_res);
@@ -984,7 +981,7 @@ static void dect_mm_rcv_authentication_reply(struct dect_handle *dh,
 	param->iwu_to_iwu		= *dect_ie_list_hold(&msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_AUTHENTICATE-cfm: accept: 1");
 	dh->ops->mm_ops->mm_authenticate_cfm(dh, mme, true, param);
@@ -1021,7 +1018,7 @@ static void dect_mm_rcv_authentication_reject(struct dect_handle *dh,
 	param->iwu_to_iwu		= *dect_ie_list_hold(&msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_AUTHENTICATE-cfm: accept: 0");
 	dh->ops->mm_ops->mm_authenticate_cfm(dh, mme, false, param);
@@ -1071,7 +1068,6 @@ int dect_mm_cipher_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		       const struct dect_mm_cipher_param *param,
 		       const uint8_t ck[])
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_cipher_request_msg msg;
 	int err;
 
@@ -1105,7 +1101,7 @@ int dect_mm_cipher_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	return 0;
 
 err2:
-	dect_mm_procedure_cancel(dh, mme, mp);
+	dect_mm_procedure_cancel(dh, mme);
 err1:
 	return err;
 }
@@ -1156,7 +1152,7 @@ int dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	} else
 		err = dect_mm_send_cipher_reject(dh, mme, param);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 	return 0;
 
 err1:
@@ -1168,7 +1164,6 @@ static void dect_mm_rcv_cipher_request(struct dect_handle *dh,
 				       struct dect_mm_endpoint *mme,
 				       struct dect_msg_buf *mb)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_cipher_request_msg msg;
 	struct dect_mm_cipher_param *param;
 	enum dect_sfmt_error err;
@@ -1203,14 +1198,13 @@ static void dect_mm_rcv_cipher_request(struct dect_handle *dh,
 err2:
 	dect_msg_free(dh, &mm_cipher_request_msg_desc, &msg.common);
 err1:
-	dect_mm_procedure_cancel(dh, mme, mp);
+	dect_mm_procedure_cancel(dh, mme);
 }
 
 static void dect_mm_rcv_cipher_suggest(struct dect_handle *dh,
 				       struct dect_mm_endpoint *mme,
 				       struct dect_msg_buf *mb)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_cipher_suggest_msg msg;
 	struct dect_mm_cipher_param *param;
 
@@ -1241,7 +1235,7 @@ static void dect_mm_rcv_cipher_suggest(struct dect_handle *dh,
 err2:
 	dect_msg_free(dh, &mm_cipher_suggest_msg_desc, &msg.common);
 err1:
-	dect_mm_procedure_cancel(dh, mme, mp);
+	dect_mm_procedure_cancel(dh, mme);
 }
 
 static void dect_mm_cipher_abort(struct dect_handle *dh,
@@ -1258,7 +1252,6 @@ static void dect_mm_rcv_cipher_reject(struct dect_handle *dh,
 				      struct dect_mm_endpoint *mme,
 				      struct dect_msg_buf *mb)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_cipher_reject_msg msg;
 	struct dect_mm_cipher_param *param;
 
@@ -1275,7 +1268,7 @@ static void dect_mm_rcv_cipher_reject(struct dect_handle *dh,
 	param->reject_reason		= dect_ie_hold(msg.reject_reason);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_CIPHER-cfm: accept: 0");
 	dh->ops->mm_ops->mm_cipher_cfm(dh, mme, false, param);
@@ -1287,11 +1280,9 @@ err1:
 static void dect_mm_cipher_cfm(struct dect_handle *dh,
 			       struct dect_mm_endpoint *mme)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
-
 	mm_debug(mme, "CIPHER-cfm");
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_CIPHER-cfm: accept: 1");
 	dh->ops->mm_ops->mm_cipher_cfm(dh, mme, true, NULL);
@@ -1351,7 +1342,6 @@ int dect_mm_access_rights_req(struct dect_handle *dh,
 			      struct dect_mm_endpoint *mme,
 			      const struct dect_mm_access_rights_param *param)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_access_rights_request_msg msg;
 	int err;
 
@@ -1378,7 +1368,7 @@ int dect_mm_access_rights_req(struct dect_handle *dh,
 	return 0;
 
 err2:
-	dect_mm_procedure_cancel(dh, mme, mp);
+	dect_mm_procedure_cancel(dh, mme);
 err1:
 	return err;
 }
@@ -1457,7 +1447,7 @@ int dect_mm_access_rights_res(struct dect_handle *dh,
 	if (err < 0)
 		return err;
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mm_access_rights_res);
@@ -1466,7 +1456,6 @@ static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
 					      struct dect_mm_endpoint *mme,
 					      struct dect_msg_buf *mb)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_access_rights_request_msg msg;
 	struct dect_mm_access_rights_param *param;
 	enum dect_sfmt_error err;
@@ -1508,7 +1497,7 @@ static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
 err2:
 	dect_msg_free(dh, &mm_access_rights_request_msg_desc, &msg.common);
 err1:
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 }
 
 static void dect_mm_access_rights_abort(struct dect_handle *dh,
@@ -1525,7 +1514,6 @@ static void dect_mm_rcv_access_rights_accept(struct dect_handle *dh,
 					     struct dect_mm_endpoint *mme,
 					     struct dect_msg_buf *mb)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_access_rights_accept_msg msg;
 	struct dect_mm_access_rights_param *param;
 
@@ -1553,7 +1541,7 @@ static void dect_mm_rcv_access_rights_accept(struct dect_handle *dh,
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 	param->codec_list		= dect_ie_hold(msg.codec_list);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_ACCESS_RIGHTS-cfm: accept: 1");
 	dh->ops->mm_ops->mm_access_rights_cfm(dh, mme, true, param);
@@ -1566,7 +1554,6 @@ static void dect_mm_rcv_access_rights_reject(struct dect_handle *dh,
 					     struct dect_mm_endpoint *mme,
 					     struct dect_msg_buf *mb)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_access_rights_reject_msg msg;
 	struct dect_mm_access_rights_param *param;
 
@@ -1584,7 +1571,7 @@ static void dect_mm_rcv_access_rights_reject(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_ACCESS_RIGHTS-cfm: accept: 0");
 	dh->ops->mm_ops->mm_access_rights_cfm(dh, mme, false, param);
@@ -1628,7 +1615,6 @@ int dect_mm_access_rights_terminate_req(struct dect_handle *dh,
 					struct dect_mm_endpoint *mme,
 					const struct dect_mm_access_rights_terminate_param *param)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_access_rights_terminate_request_msg msg;
 	struct dect_ie_fixed_identity fixed_identity;
 	int err;
@@ -1659,7 +1645,7 @@ int dect_mm_access_rights_terminate_req(struct dect_handle *dh,
 	return 0;
 
 err2:
-	dect_mm_procedure_cancel(dh, mme, mp);
+	dect_mm_procedure_cancel(dh, mme);
 err1:
 	return err;
 }
@@ -1721,7 +1707,7 @@ int dect_mm_access_rights_terminate_res(struct dect_handle *dh,
 	if (err < 0)
 		return err;
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mm_access_rights_terminate_res);
@@ -1730,7 +1716,6 @@ static void dect_mm_rcv_access_rights_terminate_request(struct dect_handle *dh,
 							struct dect_mm_endpoint *mme,
 							struct dect_msg_buf *mb)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_access_rights_terminate_request_msg msg;
 	struct dect_mm_access_rights_terminate_param *param;
 	enum dect_sfmt_error err;
@@ -1769,7 +1754,7 @@ static void dect_mm_rcv_access_rights_terminate_request(struct dect_handle *dh,
 err2:
 	dect_msg_free(dh, &mm_access_rights_terminate_request_msg_desc, &msg.common);
 err1:
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 }
 
 static void dect_mm_access_rights_terminate_abort(struct dect_handle *dh,
@@ -1804,7 +1789,7 @@ static void dect_mm_rcv_access_rights_terminate_accept(struct dect_handle *dh,
 
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_ACCESS_RIGHTS_TERMINATE-cfm: accept: 1");
 	dh->ops->mm_ops->mm_access_rights_terminate_cfm(dh, mme, true, param);
@@ -1837,7 +1822,7 @@ static void dect_mm_rcv_access_rights_terminate_reject(struct dect_handle *dh,
 	param->duration			= dect_ie_hold(msg.duration);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_ACCESS_RIGHTS_TERMINATE-cfm: accept: 0");
 	dh->ops->mm_ops->mm_access_rights_terminate_cfm(dh, mme, false, param);
@@ -1895,7 +1880,6 @@ err1:
 int dect_mm_locate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		       const struct dect_mm_locate_param *param)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_ie_fixed_identity fixed_identity;
 	struct dect_mm_locate_request_msg msg;
 	int err;
@@ -1929,7 +1913,7 @@ int dect_mm_locate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	return 0;
 
 err2:
-	dect_mm_procedure_cancel(dh, mme, mp);
+	dect_mm_procedure_cancel(dh, mme);
 err1:
 	return err;
 }
@@ -2007,7 +1991,7 @@ int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		return 0;
 	}
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mm_locate_res);
@@ -2016,7 +2000,6 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 				       struct dect_mm_endpoint *mme,
 				       struct dect_msg_buf *mb)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_locate_request_msg msg;
 	struct dect_mm_locate_param *param;
 	enum dect_sfmt_error err;
@@ -2062,7 +2045,7 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 err2:
 	dect_msg_free(dh, &mm_locate_request_msg_desc, &msg.common);
 err1:
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 }
 
 static void dect_mm_locate_abort(struct dect_handle *dh,
@@ -2115,7 +2098,7 @@ static void dect_mm_rcv_locate_accept(struct dect_handle *dh,
 		mp->iec  = dect_ie_collection_hold(param);
 		mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;
 	} else
-		dect_mm_procedure_complete(dh, mme, mp);
+		dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_LOCATE-cfm: accept: 1");
 	dh->ops->mm_ops->mm_locate_cfm(dh, mme, true, param);
@@ -2149,7 +2132,7 @@ static void dect_mm_rcv_locate_reject(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_LOCATE-cfm: accept: 0");
 	dh->ops->mm_ops->mm_locate_cfm(dh, mme, false, param);
@@ -2178,7 +2161,6 @@ err1:
 int dect_mm_detach_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		       struct dect_mm_detach_param *param)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_detach_msg msg;
 	int err;
 
@@ -2196,7 +2178,7 @@ int dect_mm_detach_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	err = dect_mm_send_msg(dh, mme, &mm_detach_msg_desc,
 			       &msg.common, DECT_MM_DETACH);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 err1:
 	return err;
 }
@@ -2241,7 +2223,7 @@ static void dect_mm_rcv_detach(struct dect_handle *dh,
 err2:
 	dect_msg_free(dh, &mm_detach_msg_desc, &msg.common);
 err1:
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 }
 
 /**
@@ -2275,7 +2257,6 @@ err1:
 int dect_mm_identity_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			 const struct dect_mm_identity_param *param)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_identity_request_msg msg;
 	int err;
 
@@ -2298,7 +2279,7 @@ int dect_mm_identity_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	return 0;
 
 err2:
-	dect_mm_procedure_cancel(dh, mme, mp);
+	dect_mm_procedure_cancel(dh, mme);
 err1:
 	return err;
 }
@@ -2336,7 +2317,7 @@ int dect_mm_identity_res(struct dect_handle *dh,
 	if (err < 0)
 		return err;
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mm_identity_res);
@@ -2345,7 +2326,6 @@ static void dect_mm_rcv_identity_request(struct dect_handle *dh,
 					 struct dect_mm_endpoint *mme,
 					 struct dect_msg_buf *mb)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_identity_param *param;
 	struct dect_mm_identity_request_msg msg;
 	enum dect_sfmt_error err;
@@ -2377,7 +2357,7 @@ static void dect_mm_rcv_identity_request(struct dect_handle *dh,
 err2:
 	dect_msg_free(dh, &mm_identity_request_msg_desc, &msg.common);
 err1:
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 }
 
 static void dect_mm_identity_abort(struct dect_handle *dh,
@@ -2417,7 +2397,7 @@ static void dect_mm_rcv_identity_reply(struct dect_handle *dh,
 	//param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_IDENTITY-cfm");
 	dh->ops->mm_ops->mm_identity_cfm(dh, mme, param);
@@ -2446,7 +2426,6 @@ err1:
 int dect_mm_identity_assign_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 				const struct dect_mm_identity_assign_param *param)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
 	struct dect_mm_temporary_identity_assign_msg msg;
 	int err;
 
@@ -2472,7 +2451,7 @@ int dect_mm_identity_assign_req(struct dect_handle *dh, struct dect_mm_endpoint 
 	return 0;
 
 err2:
-	dect_mm_procedure_cancel(dh, mme, mp);
+	dect_mm_procedure_cancel(dh, mme);
 err1:
 	return err;
 }
@@ -2535,7 +2514,7 @@ int dect_mm_identity_assign_res(struct dect_handle *dh,
 	if (err < 0)
 		return err;
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mm_identity_assign_res);
@@ -2547,7 +2526,6 @@ static void dect_mm_rcv_temporary_identity_assign(struct dect_handle *dh,
 						  struct dect_mm_endpoint *mme,
 						  struct dect_msg_buf *mb)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_temporary_identity_assign_msg msg;
 	struct dect_mm_identity_assign_param *param;
 	enum dect_sfmt_error err;
@@ -2591,7 +2569,7 @@ static void dect_mm_rcv_temporary_identity_assign(struct dect_handle *dh,
 err2:
 	dect_msg_free(dh, &mm_temporary_identity_assign_msg_desc, &msg.common);
 err1:
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 }
 
 static void dect_mm_temporary_identity_assign_abort(struct dect_handle *dh,
@@ -2627,7 +2605,7 @@ static void dect_mm_rcv_temporary_identity_assign_ack(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_IDENTITY_ASSIGN-cfm: accept: 1");
 	dh->ops->mm_ops->mm_identity_assign_cfm(dh, mme, true, param);
@@ -2659,7 +2637,7 @@ static void dect_mm_rcv_temporary_identity_assign_rej(struct dect_handle *dh,
 	param->reject_reason 		= dect_ie_hold(msg.reject_reason);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_IDENTITY_ASSIGN-cfm: accept: 0");
 	dh->ops->mm_ops->mm_identity_assign_cfm(dh, mme, false, param);
@@ -2717,7 +2695,7 @@ int dect_mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		if (err < 0)
 			goto err2;
 
-		dect_mm_procedure_complete(dh, mme, mp);
+		dect_mm_procedure_complete(dh, mme);
 	} else {
 		struct dect_mm_info_request_msg msg;
 
@@ -2741,7 +2719,7 @@ int dect_mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	return 0;
 
 err2:
-	dect_mm_procedure_cancel(dh, mme, mp);
+	dect_mm_procedure_cancel(dh, mme);
 err1:
 	return err;
 }
@@ -2807,7 +2785,7 @@ int dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	if (err < 0)
 		return err;
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mm_info_res);
@@ -2816,7 +2794,6 @@ static void dect_mm_rcv_info_request(struct dect_handle *dh,
 				     struct dect_mm_endpoint *mme,
 				     struct dect_msg_buf *mb)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_info_request_msg msg;
 	struct dect_mm_info_param *param;
 	enum dect_sfmt_error err;
@@ -2862,7 +2839,7 @@ static void dect_mm_rcv_info_request(struct dect_handle *dh,
 err2:
 	dect_msg_free(dh, &mm_info_request_msg_desc, &msg.common);
 err1:
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 }
 
 static void dect_mm_info_abort(struct dect_handle *dh,
@@ -2905,7 +2882,7 @@ static void dect_mm_rcv_info_accept(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_INFO-cfm: accept: 1");
 	dh->ops->mm_ops->mm_info_cfm(dh, mme, true, param);
@@ -2939,7 +2916,7 @@ static void dect_mm_rcv_info_reject(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_INFO-cfm: accept: 0");
 	dh->ops->mm_ops->mm_info_cfm(dh, mme, false, param);
@@ -3316,7 +3293,7 @@ static void dect_mm_shutdown(struct dect_handle *dh,
 	const struct dect_mm_proc *proc = &dect_mm_proc[mp->type];
 
 	mm_debug(mme, "shutdown");
-	dect_mm_procedure_complete(dh, mme, mp);
+	dect_mm_procedure_complete(dh, mme);
 	if (mme->current == NULL)
 		mme->link = NULL;
 	if (mp->role == DECT_TRANSACTION_INITIATOR)
