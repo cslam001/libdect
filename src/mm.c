@@ -998,10 +998,16 @@ static void dect_mm_rcv_authentication_reject(struct dect_handle *dh,
 					      struct dect_msg_buf *mb)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_INITIATOR];
+	struct dect_mm_procedure *mpr = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_authentication_reject_msg msg;
 	struct dect_mm_authenticate_param *param;
 
 	mm_debug(mme, "AUTHENTICATION-REJECT");
+	if (mpr->type == DECT_MMP_KEY_ALLOCATION)
+		mp = mpr;
+	else if (mp->type != DECT_MMP_AUTHENTICATE)
+		return;
+
 	if (dect_parse_sfmt_msg(dh, &mm_authentication_reject_msg_desc,
 				&msg.common, mb) < 0)
 		return;
