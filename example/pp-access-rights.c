@@ -24,14 +24,6 @@
 static const char *pin = "0000";
 static int rand_fd;
 
-static const struct dect_ipui ipui = {
-	.put		= DECT_IPUI_N,
-	.pun.n.ipei = {
-		.emc	= 0x0ba8,
-		.psn	= 0xa782a,
-	}
-};
-
 struct mm_priv {
 	uint64_t	rand;
 	uint64_t	rs;

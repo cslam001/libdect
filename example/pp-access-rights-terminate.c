@@ -12,14 +12,6 @@
 #include <dect/auth.h>
 #include "common.h"
 
-static const struct dect_ipui ipui = {
-	.put		= DECT_IPUI_N,
-	.pun.n.ipei = {
-		.emc	= 0x0ba8,
-		.psn	= 0xa782a,
-	}
-};
-
 static void mm_access_rights_terminate_cfm(struct dect_handle *dh,
 					   struct dect_mm_endpoint *mme, bool accept,
 					   struct dect_mm_access_rights_terminate_param *param)

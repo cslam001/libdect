@@ -7,14 +7,6 @@
 #include <dect/libdect.h>
 #include "common.h"
 
-static struct dect_ipui ipui = {
-	.put		= DECT_IPUI_N,
-	.pun.n.ipei = {
-		.emc	= 0x0ba8,
-		.psn	= 0xa782a,
-	},
-};
-
 static void mnss_setup_ind(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 			   struct dect_mnss_param *param)
 {

@@ -5,6 +5,14 @@
 #include <dect/libdect.h>
 #include "common.h"
 
+const struct dect_ipui ipui = {
+	.put		= DECT_IPUI_N,
+	.pun.n.ipei	= {
+		.emc	= 0x0ba8,
+		.psn	= 0xa782a,
+	},
+};
+
 void pexit(const char *str)
 {
 	perror(str);

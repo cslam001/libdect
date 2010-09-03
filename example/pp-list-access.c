@@ -15,14 +15,6 @@
 #include <dect/lia.h>
 #include "common.h"
 
-static const struct dect_ipui ipui = {
-	.put		= DECT_IPUI_N,
-	.pun.n.ipei = {
-		.emc	= 0x0ba8,
-		.psn	= 0xa782a,
-	},
-};
-
 static void dect_iwu_info_req(struct dect_handle *dh, struct dect_call *call)
 {
 	struct dect_ie_iwu_to_iwu iwu_to_iwu;
