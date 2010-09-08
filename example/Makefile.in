@@ -1,7 +1,7 @@
 CFLAGS		+= $(EVENT_CFLAGS)
 LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect $(EVENT_LDFLAGS)
-PROGRAMS	+= cc ss hijack
-PROGRAMS	+= fp-mm fp-clms fp-broadcast-page
+PROGRAMS	+= ss hijack
+PROGRAMS	+= fp-mm fp-cc fp-clms fp-broadcast-page
 PROGRAMS	+= pp-access-rights pp-access-rights-terminate pp-location-update
 PROGRAMS	+= pp-detach pp-info-request pp-cc pp-list-access pp-clms
 PROGRAMS	+= pp-wait-page
@@ -11,12 +11,6 @@ destdir		:= usr/share/dect/examples
 common-obj	+= common.o event_ops.o keys.o dummy_ops.o debug.o
 pp-common-obj	+= $(common-obj) pp-common.o pp-auth.o
 
-cc-destdir	:= $(destdir)
-cc-obj		+= $(common-obj)
-cc-obj		+= audio.o
-cc-obj		+= cc.o
-cc-ldflags	+= -lSDL
-
 ss-destdir	:= $(destdir)
 ss-obj		+= $(common-obj)
 ss-obj		+= ss.o
@@ -24,6 +18,12 @@ ss-obj		+= ss.o
 fp-mm-destdir			:= $(destdir)
 fp-mm-obj			+= $(common-obj)
 fp-mm-obj			+= fp-mm.o
+
+fp-cc-destdir			:= $(destdir)
+fp-cc-obj			+= $(common-obj)
+fp-cc-obj			+= audio.o
+fp-cc-obj			+= fp-cc.o
+fp-cc-ldflags			+= -lSDL
 
 fp-clms-destdir			:= $(destdir)
 fp-clms-obj			+= $(common-obj)
