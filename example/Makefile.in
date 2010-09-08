@@ -3,7 +3,8 @@ LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect $(EVENT_LDFLAGS)
 PROGRAMS	+= cc ss hijack
 PROGRAMS	+= fp-mm fp-clms fp-broadcast-page
 PROGRAMS	+= pp-access-rights pp-access-rights-terminate pp-location-update
-PROGRAMS	+= pp-detach pp-info-request pp-list-access pp-clms pp-wait-page
+PROGRAMS	+= pp-detach pp-info-request pp-cc pp-list-access pp-clms
+PROGRAMS	+= pp-wait-page
 
 destdir		:= usr/share/dect/examples
 
@@ -51,6 +52,12 @@ pp-detach-obj			+= pp-detach.o
 pp-info-request-destdir		:= $(destdir)
 pp-info-request-obj		+= $(pp-common-obj)
 pp-info-request-obj		+= pp-info-request.o
+
+pp-cc-destdir			:= $(destdir)
+pp-cc-obj			+= $(pp-common-obj)
+pp-cc-obj			+= audio.o
+pp-cc-obj			+= pp-cc.o
+pp-cc-ldflags			+= -lSDL
 
 pp-list-access-destdir		:= $(destdir)
 pp-list-access-obj		+= $(pp-common-obj)

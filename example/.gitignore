@@ -10,6 +10,7 @@ pp-access-rights-terminate
 pp-location-update
 pp-detach
 pp-info-request
+pp-cc
 pp-list-access
 pp-clms
 pp-wait-page

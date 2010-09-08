@@ -17,3 +17,6 @@ autom4te.cache
 
 # Debian package build temporary files
 build-stamp
+
+# vim swap files
+.*.swp
