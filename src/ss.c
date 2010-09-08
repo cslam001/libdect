@@ -364,3 +364,4 @@ const struct dect_nwk_protocol dect_ciss_protocol = {
 	.rcv			= dect_ciss_rcv,
 };
 
+/** @} */
