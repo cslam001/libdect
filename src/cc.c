@@ -426,7 +426,6 @@ static int dect_call_connect_uplane(const struct dect_handle *dh,
 		goto err1;
 
 	dect_transaction_get_ulei(&addr, &call->transaction);
-	addr.dect_index = dh->index;
 	if (connect(call->lu_sap->fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
 		goto err2;
 
