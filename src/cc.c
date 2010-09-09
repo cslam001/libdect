@@ -407,7 +407,7 @@ static void dect_cc_lu_event(struct dect_handle *dh, struct dect_fd *fd,
 	if (mb == NULL)
 		return;
 
-	len = recv(call->lu_sap->fd, mb->data, sizeof(mb->head), 0);
+	len = recv(call->lu_sap->fd, mb->data, 40, 0);
 	if (len < 0)
 		return;
 	mb->len = len;
@@ -415,6 +415,35 @@ static void dect_cc_lu_event(struct dect_handle *dh, struct dect_fd *fd,
 	//dect_mbuf_dump(mb, "LU1");
 	dh->ops->cc_ops->dl_u_data_ind(dh, call, mb);
 }
+
+static void dect_cc_get_queue_stats(const struct dect_call *call)
+{
+	struct dect_lu1_queue_stats qstats;
+	socklen_t optlen;
+
+	optlen = sizeof(qstats);
+	if (getsockopt(call->lu_sap->fd, SOL_DECT, DECT_LU1_QUEUE_STATS,
+		       &qstats, &optlen) < 0) {
+		cc_debug(call, "Failed to get queue statistics: %s", strerror(errno));
+		return;
+	}
+
+	cc_debug(call, "LU1 Queue-Statistic:");
+	cc_debug(call, "  RX-Bytes:     %u", qstats.rx_bytes);
+	cc_debug(call, "  RX-Underflow: %u", qstats.rx_underflow);
+	cc_debug(call, "  TX-Bytes:     %u", qstats.tx_bytes);
+	cc_debug(call, "  TX-Underflow: %u", qstats.tx_underflow);
+}
+
+#ifdef DEBUG
+static void dect_cc_qstats_timer(struct dect_handle *dh, struct dect_timer *timer)
+{
+	struct dect_call *call = timer->data;
+
+	dect_cc_get_queue_stats(call);
+	dect_timer_start(dh, call->qstats_timer, DECT_CC_QUEUE_STATS_TIMER);
+}
+#endif
 
 static int dect_call_connect_uplane(const struct dect_handle *dh,
 				    struct dect_call *call)
@@ -432,9 +461,21 @@ static int dect_call_connect_uplane(const struct dect_handle *dh,
 	dect_fd_setup(call->lu_sap, dect_cc_lu_event, call);
 	if (dect_fd_register(dh, call->lu_sap, DECT_FD_READ) < 0)
 		goto err2;
+
+#ifdef DEBUG
+	call->qstats_timer = dect_timer_alloc(dh);
+	if (call->qstats_timer == NULL)
+		goto err3;
+	dect_timer_setup(call->qstats_timer, dect_cc_qstats_timer, call);
+	dect_timer_start(dh, call->qstats_timer, DECT_CC_QUEUE_STATS_TIMER);
+#endif
 	cc_debug(call, "U-Plane connected");
 	return 0;
 
+#ifdef DEBUG
+err3:
+	dect_fd_unregister(dh, call->lu_sap);
+#endif
 err2:
 	dect_close(dh, call->lu_sap);
 	call->lu_sap = NULL;
@@ -448,10 +489,17 @@ static void dect_call_disconnect_uplane(const struct dect_handle *dh,
 {
 	if (call->lu_sap == NULL)
 		return;
+#ifdef DEBUG
+	dect_timer_stop(dh, call->qstats_timer);
+	dect_free(dh, call->qstats_timer);
+	call->qstats_timer = NULL;
+#endif
+	dect_cc_get_queue_stats(call);
 
 	dect_fd_unregister(dh, call->lu_sap);
 	dect_close(dh, call->lu_sap);
 	call->lu_sap = NULL;
+
 	cc_debug(call, "U-Plane disconnected");
 }
 

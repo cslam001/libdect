@@ -332,10 +332,14 @@ struct dect_call {
 	enum dect_cc_states			state;
 	struct dect_timer			*setup_timer;
 	struct dect_fd				*lu_sap;
+#ifdef DEBUG
+	struct dect_timer			*qstats_timer;
+#endif
 	uint8_t					priv[] __aligned(__alignof__(uint64_t));
 };
 
 #define DECT_CC_SETUP_TIMEOUT		20 /* seconds */
+#define DECT_CC_QUEUE_STATS_TIMER	1  /* seconds */
 
 extern const struct dect_nwk_protocol dect_cc_protocol;
 
