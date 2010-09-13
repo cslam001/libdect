@@ -40,32 +40,35 @@ static void dect_keypad_complete(struct dect_handle *dh, void *call,
 	printf("keypad complete: '%.*s'\n", keypad->len, keypad->info);
 }
 
+static void dect_call_init(struct dect_handle *dh, struct dect_call *call)
+{
+	struct call *priv = dect_call_priv(call);
+
+	priv->timer  = dect_timer_alloc(dh);
+	priv->keybuf = dect_keypad_buffer_init(dh, 3, dect_keypad_complete, call);
+	priv->audio  = dect_audio_open();
+}
+
 static void dect_mncc_connect_ind(struct dect_handle *dh, struct dect_call *call,
 				  struct dect_mncc_connect_param *param)
 {
+	struct dect_mncc_connect_param reply = {};
+
+	dect_mncc_connect_res(dh, call, &reply);
 }
 
 static void dect_mncc_setup_ind(struct dect_handle *dh, struct dect_call *call,
 				struct dect_mncc_setup_param *setup)
 {
-	struct call *priv = dect_call_priv(call);
 	struct dect_ie_signal signal;
 	struct dect_mncc_connect_param connect = {
 		//.signal		= &signal,
 	};
 
+	dect_call_init(dh, call);
+
 	signal.code = DECT_SIGNAL_DIAL_TONE_ON;
-
-	priv->timer  = dect_timer_alloc(dh);
-	priv->keybuf = dect_keypad_buffer_init(dh, 3, dect_keypad_complete, call);
-	priv->audio  = dect_audio_open();
-
 	dect_mncc_connect_req(dh, call, &connect);
-}
-
-static void dect_mncc_setup_ack_ind(struct dect_handle *dh, struct dect_call *call,
-				    struct dect_mncc_setup_ack_param *param)
-{
 }
 
 static void dect_mncc_info_ind(struct dect_handle *dh, struct dect_call *call,
@@ -174,12 +177,11 @@ static void dect_open_call(struct dect_handle *dh, const struct dect_ipui *ipui)
 		.basic_service = &basic_service,
 	};
 	struct dect_call *call;
-	struct call *priv;
 
 	call = dect_call_alloc(dh);
 	if (call == NULL)
 		return;
-	priv = dect_call_priv(call);
+	dect_call_init(dh, call);
 
 	basic_service.class   = DECT_CALL_CLASS_NORMAL;
 	basic_service.service = DECT_SERVICE_BASIC_SPEECH_DEFAULT;
@@ -193,14 +195,14 @@ static void dect_dl_u_data_ind(struct dect_handle *dh, struct dect_call *call,
 	struct call *priv = dect_call_priv(call);
 
 	dect_dl_u_data_req(dh, call, mb);
-	dect_audio_queue(priv->audio, mb);
+	if (priv->audio != NULL)
+		dect_audio_queue(priv->audio, mb);
 }
 
 static struct dect_cc_ops cc_ops = {
 	.priv_size		= sizeof(struct call),
 	.mncc_connect_ind	= dect_mncc_connect_ind,
 	.mncc_setup_ind		= dect_mncc_setup_ind,
-	.mncc_setup_ack_ind	= dect_mncc_setup_ack_ind,
 	.mncc_info_ind		= dect_mncc_info_ind,
 	.mncc_alert_ind		= dect_mncc_alert_ind,
 	.mncc_reject_ind	= dect_mncc_reject_ind,
