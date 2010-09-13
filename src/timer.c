@@ -38,10 +38,24 @@
 
 struct dect_timer *dect_timer_alloc(const struct dect_handle *dh)
 {
-	return dect_zalloc(dh, sizeof(struct dect_timer) +
-			   dh->ops->event_ops->timer_priv_size);
+	struct dect_timer *timer;
+
+	timer = dect_zalloc(dh, sizeof(struct dect_timer) +
+			    dh->ops->event_ops->timer_priv_size);
+	if (timer != NULL)
+		timer->state = DECT_TIMER_STOPPED;
+
+	return timer;
 }
 EXPORT_SYMBOL(dect_timer_alloc);
+
+void dect_timer_free(const struct dect_handle *dh, struct dect_timer *timer)
+{
+	if (timer != NULL)
+		assert(timer->state == DECT_TIMER_STOPPED);
+	dect_free(dh, timer);
+}
+EXPORT_SYMBOL(dect_timer_free);
 
 /**
  * Get a pointer to the private data area from a DECT timer
@@ -58,9 +72,9 @@ void dect_timer_setup(struct dect_timer *timer,
 		      void (*cb)(struct dect_handle *, struct dect_timer *),
 		      void *data)
 {
-	timer->callback = cb;
-	timer->data = data;
-	timer->state = DECT_TIMER_STOPPED;
+	assert(timer->state == DECT_TIMER_STOPPED);
+	timer->callback	= cb;
+	timer->data	= data;
 }
 EXPORT_SYMBOL(dect_timer_setup);
 
@@ -82,6 +96,7 @@ EXPORT_SYMBOL(dect_timer_start);
 
 void dect_timer_stop(const struct dect_handle *dh, struct dect_timer *timer)
 {
+	assert(timer->state == DECT_TIMER_RUNNING);
 	dh->ops->event_ops->stop_timer(dh, timer);
 	timer->state = DECT_TIMER_STOPPED;
 }
@@ -101,6 +116,7 @@ EXPORT_SYMBOL(dect_timer_running);
  */
 void dect_timer_run(struct dect_handle *dh, struct dect_timer *timer)
 {
+	assert(timer->state == DECT_TIMER_RUNNING);
 	timer->state = DECT_TIMER_STOPPED;
 	timer->callback(dh, timer);
 }

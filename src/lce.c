@@ -273,11 +273,11 @@ static void dect_ddl_destroy(struct dect_handle *dh, struct dect_data_link *ddl)
 
 	if (dect_timer_running(ddl->sdu_timer))
 		dect_timer_stop(dh, ddl->sdu_timer);
-	dect_free(dh, ddl->sdu_timer);
+	dect_timer_free(dh, ddl->sdu_timer);
 
 	if (ddl->release_timer != NULL && dect_timer_running(ddl->release_timer))
 		dect_timer_stop(dh, ddl->release_timer);
-	dect_free(dh, ddl->release_timer);
+	dect_timer_free(dh, ddl->release_timer);
 	dect_free(dh, ddl);
 }
 
@@ -635,7 +635,7 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 
 	/* Stop page timer */
 	dect_timer_stop(dh, req->page_timer);
-	dect_free(dh, req->page_timer);
+	dect_timer_free(dh, req->page_timer);
 
 	ddl_debug(ddl, "complete indirect link establishment req %p", req);
 	dect_ddl_set_ipui(dh, ddl, &req->ipui);

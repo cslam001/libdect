@@ -491,7 +491,7 @@ static void dect_call_disconnect_uplane(const struct dect_handle *dh,
 		return;
 #ifdef DEBUG
 	dect_timer_stop(dh, call->qstats_timer);
-	dect_free(dh, call->qstats_timer);
+	dect_timer_free(dh, call->qstats_timer);
 	call->qstats_timer = NULL;
 #endif
 	dect_cc_get_queue_stats(call);
@@ -530,7 +530,7 @@ static void dect_call_destroy(const struct dect_handle *dh,
 {
 	if (call->state == DECT_CC_CALL_PRESENT)
 		dect_timer_stop(dh, call->setup_timer);
-	dect_free(dh, call->setup_timer);
+	dect_timer_free(dh, call->setup_timer);
 	dect_free(dh, call);
 }
 
@@ -1145,7 +1145,7 @@ static void dect_cc_rcv_alerting(struct dect_handle *dh, struct dect_call *call,
 
 	if (call->setup_timer != NULL) {
 		dect_timer_stop(dh, call->setup_timer);
-		dect_free(dh, call->setup_timer);
+		dect_timer_free(dh, call->setup_timer);
 		call->setup_timer = NULL;
 	}
 
@@ -1191,7 +1191,7 @@ static void dect_cc_rcv_call_proc(struct dect_handle *dh, struct dect_call *call
 
 	if (call->setup_timer != NULL) {
 		dect_timer_stop(dh, call->setup_timer);
-		dect_free(dh, call->setup_timer);
+		dect_timer_free(dh, call->setup_timer);
 		call->setup_timer = NULL;
 	}
 
@@ -1242,7 +1242,7 @@ static void dect_cc_rcv_connect(struct dect_handle *dh, struct dect_call *call,
 
 	if (call->setup_timer != NULL) {
 		dect_timer_stop(dh, call->setup_timer);
-		dect_free(dh, call->setup_timer);
+		dect_timer_free(dh, call->setup_timer);
 		call->setup_timer = NULL;
 	}
 

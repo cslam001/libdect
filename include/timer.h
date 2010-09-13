@@ -33,6 +33,7 @@ struct dect_timer {
 };
 
 extern struct dect_timer *dect_timer_alloc(const struct dect_handle *dh);
+extern void dect_timer_free(const struct dect_handle *dh, struct dect_timer *timer);
 extern void dect_timer_setup(struct dect_timer *timer,
 			     void (*cb)(struct dect_handle *, struct dect_timer *),
 			     void *data);
