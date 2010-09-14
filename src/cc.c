@@ -503,6 +503,7 @@ static void dect_call_disconnect_uplane(const struct dect_handle *dh,
 	cc_debug(call, "U-Plane disconnected");
 }
 
+static void dect_cc_overlap_sending_timer(struct dect_handle *dh, struct dect_timer *timer);
 static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer);
 
 /* All CC timers should be stopped upon starting the release timer, receiving
@@ -512,6 +513,8 @@ static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer
 static void dect_cc_stop_timers(const struct dect_handle *dh,
 				struct dect_call *call)
 {
+	if (dect_timer_running(call->overlap_sending_timer))
+		dect_timer_stop(dh, call->overlap_sending_timer);
 	if (dect_timer_running(call->setup_timer))
 		dect_timer_stop(dh, call->setup_timer);
 }
@@ -524,14 +527,21 @@ struct dect_call *dect_call_alloc(const struct dect_handle *dh)
 	if (call == NULL)
 		goto err1;
 
+	call->overlap_sending_timer = dect_timer_alloc(dh);
+	if (call->overlap_sending_timer == NULL)
+		goto err2;
+	dect_timer_setup(call->overlap_sending_timer, dect_cc_overlap_sending_timer, call);
+
 	call->setup_timer = dect_timer_alloc(dh);
 	if (call->setup_timer == NULL)
-		goto err2;
+		goto err3;
 	dect_timer_setup(call->setup_timer, dect_cc_setup_timer, call);
 
 	call->state = DECT_CC_NULL;
 	return call;
 
+err3:
+	dect_timer_free(dh, call->overlap_sending_timer);
 err2:
 	dect_free(dh, call);
 err1:
@@ -543,6 +553,7 @@ static void dect_call_destroy(const struct dect_handle *dh,
 			      struct dect_call *call)
 {
 	dect_cc_stop_timers(dh, call);
+	dect_timer_free(dh, call->overlap_sending_timer);
 	dect_timer_free(dh, call->setup_timer);
 	dect_free(dh, call);
 }
@@ -576,11 +587,41 @@ static void dect_cc_send_release_com(struct dect_handle *dh,
 		      &msg.common, DECT_CC_RELEASE_COM);
 }
 
+static void dect_cc_send_release(struct dect_handle *dh, struct dect_call *call,
+				 enum dect_release_reasons reason)
+{
+	struct dect_ie_release_reason release_reason;
+	struct dect_cc_release_msg msg = {
+		.release_reason		= &release_reason,
+	};
+
+	release_reason.reason = reason;
+	dect_cc_send_msg(dh, call, &cc_release_msg_desc,
+			 &msg.common, DECT_CC_RELEASE);
+}
+
+static void dect_cc_timer_release(struct dect_handle *dh, struct dect_call *call)
+{
+	dect_cc_send_release(dh, call, DECT_RELEASE_TIMER_EXPIRY);
+	call->state = DECT_CC_RELEASE_PENDING;
+
+	cc_debug(call, "MNCC_REJECT-ind: cause: DECT_CAUSE_LOCAL_TIMER_EXPIRY");
+	dh->ops->cc_ops->mncc_reject_ind(dh, call, DECT_CAUSE_LOCAL_TIMER_EXPIRY, NULL);
+}
+
+static void dect_cc_overlap_sending_timer(struct dect_handle *dh, struct dect_timer *timer)
+{
+	struct dect_call *call = timer->data;
+
+	cc_debug(call, "<CC.01>: overlap sending timer");
+	dect_cc_timer_release(dh, call);
+}
+
 static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer)
 {
 	struct dect_call *call = timer->data;
 
-	cc_debug(call, "setup timer");
+	cc_debug(call, "<CC.03>: setup timer");
 	dect_cc_send_release_com(dh, &call->transaction, DECT_RELEASE_TIMER_EXPIRY);
 	dect_cc_stop_timers(dh, call);
 
@@ -705,6 +746,7 @@ int dect_mncc_setup_ack_req(struct dect_handle *dh, struct dect_call *call,
 			     &msg.common, DECT_CC_SETUP_ACK) < 0)
 		return -1;
 
+	dect_timer_start(dh, call->overlap_sending_timer, DECT_CC_OVERLAP_SENDING_TIMEOUT);
 	call->state = DECT_CC_OVERLAP_SENDING;
 	return 0;
 }
@@ -780,6 +822,10 @@ int dect_mncc_call_proc_req(struct dect_handle *dh, struct dect_call *call,
 
 	cc_debug_entry(call, "MNCC_CALL_PROC-req");
 
+	if (dh->mode == DECT_MODE_FP &&
+	    call->state == DECT_CC_OVERLAP_SENDING)
+		dect_timer_stop(dh, call->overlap_sending_timer);
+
 	call->state = DECT_CC_CALL_PROCEEDING;
 	return dect_cc_send_msg(dh, call, &cc_call_proc_msg_desc,
 				&msg.common, DECT_CC_CALL_PROC);
@@ -821,9 +867,11 @@ int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 			     &msg.common, DECT_CC_ALERTING) < 0)
 		return -1;
 
-	if (dh->mode == DECT_MODE_FP)
+	if (dh->mode == DECT_MODE_FP) {
+		if (call->state == DECT_CC_OVERLAP_SENDING)
+			dect_timer_stop(dh, call->overlap_sending_timer);
 		call->state = DECT_CC_CALL_DELIVERED;
-	else
+	} else
 		call->state = DECT_CC_CALL_RECEIVED;
 
 	return 0;
@@ -861,6 +909,10 @@ int dect_mncc_connect_req(struct dect_handle *dh, struct dect_call *call,
 
 	cc_debug_entry(call, "MNCC_CONNECT-req");
 	dect_call_connect_uplane(dh, call);
+
+	if (dh->mode == DECT_MODE_FP &&
+	    call->state == DECT_CC_OVERLAP_SENDING)
+		dect_timer_stop(dh, call->overlap_sending_timer);
 
 	if (dect_cc_send_msg(dh, call, &cc_connect_msg_desc,
 			      &msg.common, DECT_CC_CONNECT) < 0)
@@ -1587,6 +1639,13 @@ static void dect_cc_rcv_info(struct dect_handle *dh, struct dect_call *call,
 		return;
 
 	dect_mncc_info_ind(dh, call, &msg);
+
+	/* Restart overlap sending timer on receipt of a {CC-INFO} message */
+	if (dh->mode == DECT_MODE_FP &&
+	    call->state == DECT_CC_OVERLAP_SENDING)
+		dect_timer_start(dh, call->overlap_sending_timer,
+				 DECT_CC_OVERLAP_SENDING_TIMEOUT);
+
 	dect_msg_free(dh, &cc_info_msg_desc, &msg.common);
 }
 

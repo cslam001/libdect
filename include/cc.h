@@ -319,17 +319,22 @@ enum dect_cc_states {
 #define DECT_CC_STATE_MAX		(__DECT_CC_STATE_MAX - 1)
 
 /**
- * @transaction:	LCE link transaction
- * @state:		call state
- * @setup_timer:	call setup watchdog timer
- * @lu_sap:		U-Plane file descriptor
- * @priv:		libdect user private storage
+ * @transaction:		LCE link transaction
+ * @ft_id:			FT ID
+ * @pt_id:			PT ID
+ * @state:			call state
+ * @overlap_sending_timer:	overlap sending timer (<CC.01>)
+ * @setup_timer:		call setup timer (<CC.03>)
+ * @lu_sap:			U-Plane file descriptor
+ * @qstats_timer:		LU1 queue statistics debugging timer
+ * @priv:			libdect user private storage
  */
 struct dect_call {
 	struct dect_transaction			transaction;
 	struct dect_ie_fixed_identity		*ft_id;
 	struct dect_ie_portable_identity	*pt_id;
 	enum dect_cc_states			state;
+	struct dect_timer			*overlap_sending_timer;
 	struct dect_timer			*setup_timer;
 	struct dect_fd				*lu_sap;
 #ifdef DEBUG
@@ -338,8 +343,9 @@ struct dect_call {
 	uint8_t					priv[] __aligned(__alignof__(uint64_t));
 };
 
-#define DECT_CC_SETUP_TIMEOUT		20 /* seconds */
-#define DECT_CC_QUEUE_STATS_TIMER	1  /* seconds */
+#define DECT_CC_OVERLAP_SENDING_TIMEOUT	20	/* <CC.01>: 20 seconds */
+#define DECT_CC_SETUP_TIMEOUT		20	/* <CC.03>: 20 seconds */
+#define DECT_CC_QUEUE_STATS_TIMER	1 	/* 1 second */
 
 extern const struct dect_nwk_protocol dect_cc_protocol;
 
