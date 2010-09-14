@@ -534,6 +534,13 @@ static void dect_call_destroy(const struct dect_handle *dh,
 	dect_free(dh, call);
 }
 
+static void dect_call_shutdown(struct dect_handle *dh, struct dect_call *call)
+{
+	dect_call_disconnect_uplane(dh, call);
+	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
+	dect_call_destroy(dh, call);
+}
+
 static int dect_cc_send_msg(struct dect_handle *dh, struct dect_call *call,
 			    const struct dect_sfmt_msg_desc *desc,
 			    const struct dect_msg_common *msg,
@@ -924,9 +931,7 @@ int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
 	dect_cc_send_msg(dh, call, &cc_release_com_msg_desc,
 			 &msg.common, DECT_CC_RELEASE_COM);
 
-	dect_call_disconnect_uplane(dh, call);
-	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
-	dect_call_destroy(dh, call);
+	dect_call_shutdown(dh, call);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mncc_release_res);
@@ -1373,9 +1378,7 @@ static void dect_mncc_release_cfm(struct dect_handle *dh, struct dect_call *call
 	dh->ops->cc_ops->mncc_release_cfm(dh, call, param);
 	dect_ie_collection_put(dh, param);
 
-	dect_call_disconnect_uplane(dh, call);
-	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
-	dect_call_destroy(dh, call);
+	dect_call_shutdown(dh, call);
 }
 
 static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *call,
@@ -1650,9 +1653,8 @@ static void dect_cc_shutdown(struct dect_handle *dh,
 
 	cc_debug(call, "MNCC_REJECT-ind");
 	dh->ops->cc_ops->mncc_reject_ind(dh, call, &param);
-	dect_call_disconnect_uplane(dh, call);
-	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
-	dect_call_destroy(dh, call);
+
+	dect_call_shutdown(dh, call);
 }
 
 const struct dect_nwk_protocol dect_cc_protocol = {
