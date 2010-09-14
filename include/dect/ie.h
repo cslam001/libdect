@@ -25,16 +25,21 @@ extern "C" {
 struct dect_handle;
 
 /**
- * struct dect_ie_collection - common representation of a DECT IE collection
+ * Common representation of a DECT IE collection
  *
- * @arg refcnt		reference count
- * @arg size		size of entire collection
- * @arg ie		dynamic amount of IEs/IE lists
+ * IE collections are used to encapsulate sets of IEs, like parameters of libdect
+ * primitives. IE collections passed upwards from libdect are allocated and
+ * reference counted, the contained IEs will not be released while references to
+ * the IE collection are held. IE collections passed to libdect primitives may be
+ * allocated on the stack.
+ *
+ * The members of this structure may only be manipulated through the appropriate
+ * helper functions.
  */
 struct dect_ie_collection {
-	unsigned int			refcnt;
-	unsigned int			size;
-	struct dect_ie_common		*ie[];
+	unsigned int			refcnt;	/**< Reference count */
+	unsigned int			size;	/**< Size if bytes of entire collection */
+	struct dect_ie_common		*ie[];	/**< Dynamic amount of IEs/IE lists */
 };
 
 extern void *dect_ie_collection_alloc(const struct dect_handle *dh, unsigned int size);
@@ -55,14 +60,19 @@ extern void __dect_ie_collection_put(const struct dect_handle *dh, struct dect_i
 #define dect_ie_collection_put(dh, iec)	__dect_ie_collection_put(dh, &(iec)->common)
 
 /**
- * struct dect_ie_common - common representation of a DECT IE
+ * Common representation of a DECT IE
  *
- * @arg next		IE list list node
- * @arg refcnt		reference count
+ * Every IE contains a struct dect_ie_common to support operations common to all
+ * IE types. IEs passed upwards from libdect are allocated and reference counted,
+ * they will not be freed while references to the Information Element are held.
+ * IEs Elements passed to libdect primitives may be allocated on the stack.
+ *
+ * The members of this structure may only be manipulated through the appropriate
+ * helper functions.
  */
 struct dect_ie_common {
-	struct dect_ie_common		*next;
-	unsigned int			refcnt;
+	struct dect_ie_common		*next;	/**< IE list list node */
+	unsigned int			refcnt;	/**< Reference count */
 };
 
 /**
@@ -108,13 +118,18 @@ extern void __dect_ie_put(const struct dect_handle *dh, struct dect_ie_common *i
 /* Repeat indicator */
 
 /**
- * enum dect_ie_list_types - Repeat indicator list types
+ * Repeat indicator list types
  */
 enum dect_ie_list_types {
 	DECT_IE_LIST_NORMAL		= 0x1, /**< Non prioritized list */
 	DECT_IE_LIST_PRIORITIZED	= 0x2, /**< Prioritized list */
 };
 
+/**
+ * Repeat indicator
+ *
+ * A repeat indicator contains a list of Information Elements.
+ */
 struct dect_ie_list {
 	struct dect_ie_common		common;
 	enum dect_ie_list_types		type;

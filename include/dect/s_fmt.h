@@ -11,6 +11,11 @@
 extern "C" {
 #endif
 
+/**
+ * @addtogroup ie_sfmt
+ * @{
+ */
+
 /*
  * Information elements
  */
@@ -137,6 +142,7 @@ extern enum dect_sfmt_error dect_parse_sfmt_ie_header(struct dect_sfmt_ie *ie,
 extern enum dect_sfmt_error dect_parse_sfmt_ie(const struct dect_handle *dh, uint8_t type,
 					       struct dect_ie_common **dst,
 					       const struct dect_sfmt_ie *ie);
+/** @} */
 
 #ifdef __cplusplus
 }

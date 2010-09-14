@@ -8,6 +8,16 @@
  * published by the Free Software Foundation.
  */
 
+/**
+ * @defgroup ie_sfmt S-Format encoded IEs
+ *
+ * Raw S-Format encoded IE construction and parsing functions. Usually the
+ * libdect user deals only with readily parsed IE structures representing the
+ * S-Format encoded IEs, however the CLMS service carries raw encoded IEs.
+ *
+ * @{
+ */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -2414,6 +2424,17 @@ static void dect_msg_ie_init(const struct dect_sfmt_ie_desc *desc,
 #endif
 }
 
+/**
+ * Parse a S-Format encoded Information Element header
+ *
+ * @ie:		result pointer to the Information Element
+ * @mb:		message buffer
+ *
+ * Parse a S-Format encoded Information Element header and return the parsed
+ * information in the ie structure.
+ *
+ * @return 0 on success or -1 if a parsing error occured.
+ */
 enum dect_sfmt_error
 dect_parse_sfmt_ie_header(struct dect_sfmt_ie *ie,
 			  const struct dect_msg_buf *mb)
@@ -2472,10 +2493,25 @@ static int dect_build_sfmt_ie_header(struct dect_sfmt_ie *dst, uint8_t id)
 	return 0;
 }
 
+/**
+ * Parse a S-Format encoded Information Element
+ *
+ * @param dh		libdect DECT handle
+ * @param type		IE type
+ * @param dst		result pointer to the allocated information element
+ * @param ie		information element
+ *
+ * Parse a S-Format encoded Information Element and return an allocated IE
+ * structure.
+ *
+ * @return #DECT_SFMT_OK on success or one of the @ref dect_sfmt_error
+ * "S-Format error codes" on error. On success the dst parameter is set to
+ * point to the allocated information element structure.
+ */
 enum dect_sfmt_error
 dect_parse_sfmt_ie(const struct dect_handle *dh, uint8_t type,
 		   struct dect_ie_common **dst,
-		   const const struct dect_sfmt_ie *ie)
+		   const struct dect_sfmt_ie *ie)
 {
 	const struct dect_ie_handler *ieh;
 	int err = -1;
@@ -2606,6 +2642,20 @@ out:
 	return DECT_SFMT_OK;
 }
 
+/**
+ * Construct a S-Format encoded Information Element
+ *
+ * @param dh		libdect DECT handle
+ * @param type		IE type
+ * @param mb		message buffer to append IE to
+ * @param ie		information element
+ *
+ * Construct a S-Format encoded Information Element and append it to the message
+ * buffer.
+ *
+ * @return #DECT_SFMT_OK on success or one of the @ref dect_sfmt_error
+ * "S-Format error codes" on error.
+ */
 enum dect_sfmt_error
 dect_build_sfmt_ie(const struct dect_handle *dh, uint8_t type,
 		   struct dect_msg_buf *mb,
@@ -2740,3 +2790,5 @@ void dect_msg_free(const struct dect_handle *dh,
 		desc++;
 	}
 }
+
+/** @} */
