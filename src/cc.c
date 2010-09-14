@@ -507,6 +507,7 @@ static void dect_cc_overlap_sending_timer(struct dect_handle *dh, struct dect_ti
 static void dect_cc_release_timer(struct dect_handle *dh, struct dect_timer *timer);
 static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer);
 static void dect_cc_completion_timer(struct dect_handle *dh, struct dect_timer *timer);
+static void dect_cc_connect_timer(struct dect_handle *dh, struct dect_timer *timer);
 
 /* All CC timers should be stopped upon starting the release timer, receiving
  * or sending a {RELEASE-COM} message or a data link failure indication from
@@ -521,6 +522,8 @@ static void dect_cc_stop_timers(const struct dect_handle *dh,
 		dect_timer_stop(dh, call->setup_timer);
 	if (dect_timer_running(call->completion_timer))
 		dect_timer_stop(dh, call->completion_timer);
+	if (dect_timer_running(call->connect_timer))
+		dect_timer_stop(dh, call->connect_timer);
 }
 
 struct dect_call *dect_call_alloc(const struct dect_handle *dh)
@@ -551,9 +554,16 @@ struct dect_call *dect_call_alloc(const struct dect_handle *dh)
 		goto err5;
 	dect_timer_setup(call->completion_timer, dect_cc_completion_timer, call);
 
+	call->connect_timer = dect_timer_alloc(dh);
+	if (call->connect_timer == NULL)
+		goto err6;
+	dect_timer_setup(call->connect_timer, dect_cc_connect_timer, call);
+
 	call->state = DECT_CC_NULL;
 	return call;
 
+err6:
+	dect_timer_free(dh, call->completion_timer);
 err5:
 	dect_timer_free(dh, call->setup_timer);
 err4:
@@ -578,6 +588,7 @@ static void dect_call_destroy(const struct dect_handle *dh,
 	dect_timer_free(dh, call->release_timer);
 	dect_timer_free(dh, call->setup_timer);
 	dect_timer_free(dh, call->completion_timer);
+	dect_timer_free(dh, call->connect_timer);
 	dect_free(dh, call);
 }
 
@@ -675,6 +686,14 @@ static void dect_cc_completion_timer(struct dect_handle *dh, struct dect_timer *
 	struct dect_call *call = timer->data;
 
 	cc_debug(call, "<CC.04>: completion timer");
+	dect_cc_timer_release(dh, call);
+}
+
+static void dect_cc_connect_timer(struct dect_handle *dh, struct dect_timer *timer)
+{
+	struct dect_call *call = timer->data;
+
+	cc_debug(call, "<CC.05>: connect timer");
 	dect_cc_timer_release(dh, call);
 }
 
@@ -975,9 +994,10 @@ int dect_mncc_connect_req(struct dect_handle *dh, struct dect_call *call,
 		if (dect_timer_running(call->completion_timer))
 			dect_timer_stop(dh, call->completion_timer);
 		call->state = DECT_CC_ACTIVE;
-	} else
+	} else {
+		dect_timer_start(dh, call->connect_timer, DECT_CC_CONNECT_TIMEOUT);
 		call->state = DECT_CC_CONNECT_PENDING;
-
+	}
 	return 0;
 
 err1:
@@ -1468,8 +1488,10 @@ static void dect_cc_rcv_connect_ack(struct dect_handle *dh, struct dect_call *ca
 	if (dect_parse_sfmt_msg(dh, &cc_connect_ack_msg_desc, &msg.common, mb) < 0)
 		return;
 
-	if (dh->mode == DECT_MODE_PP)
+	if (dh->mode == DECT_MODE_PP) {
+		dect_timer_stop(dh, call->connect_timer);
 		call->state = DECT_CC_ACTIVE;
+	}
 
 	dect_mncc_connect_cfm(dh, call, &msg);
 	dect_msg_free(dh, &cc_connect_ack_msg_desc, &msg.common);
