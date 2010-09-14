@@ -1,4 +1,6 @@
-DEBUG		= @CONFIG_DEBUG@
+CONFIG_DEBUG	= @CONFIG_DEBUG@
+CONFIG_BACKTRACE= @CONFIG_BACKTRACE@
+
 CC		= @CC@
 CPP		= @CPP@
 LEX		= @LEX@
@@ -38,7 +40,7 @@ CFLAGS		+= -Wformat-nonliteral -Wformat-security -Wmissing-format-attribute
 CFLAGS		+= -Wcast-align -Wundef -Wbad-function-cast # -Wshadow
 CFLAGS		+= -Waggregate-return -Wunused -Wwrite-strings
 
-ifeq ($(DEBUG),y)
+ifeq ($(CONFIG_DEBUG),y)
 CFLAGS		+= -g -DDEBUG
 endif
 

@@ -47,6 +47,16 @@ AC_CHECK_LIB([ev], [event_init],
 EVENT_LDFLAGS=$EVENTLIB
 AC_SUBST(EVENT_LDFLAGS)
 
+if test "$CONFIG_DEBUG" = "y";
+then
+	AC_CHECK_LIB([bfd], [bfd_init],
+		     [CONFIG_BACKTRACE="y"],
+		     [CONFIG_BACKTRACE="n";
+		      AC_MSG_NOTICE([libbfd not found, backtrace support disabled])])
+else
+	CONFIG_BACKTRACE="n"
+fi
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_ASSERT
@@ -65,6 +75,14 @@ AC_CHECK_HEADER([event.h],
 				 [AC_MSG_ERROR([event.h not found])])])
 EVENT_CFLAGS=$EVENTINC
 AC_SUBST(EVENT_CFLAGS)
+
+if test "$CONFIG_BACKTRACE" = "y";
+then
+	AC_CHECK_HEADER([bfd.h], ,
+			[CONFIG_BACKTRACE="";
+			 AC_MSG_NOTICE([bfd.h not found, backtrace support disabled])])
+fi
+AC_SUBST(CONFIG_BACKTRACE)
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL

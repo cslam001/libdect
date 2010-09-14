@@ -58,7 +58,7 @@ void dect_clms_rcv_fixed(struct dect_handle *dh, struct dect_msg_buf *mb)
 	unsigned int n, len, section, sections;
 
 	clms_debug("parse {CLMS-FIXED} message");
-	assert(mb->len % 5 == 0);
+	dect_assert(mb->len % 5 == 0);
 
 	as = (void *)mb->data;
 	if ((as->hdr & DECT_CLMS_SECTION_TYPE_MASK) != DECT_CLMS_SECTION_ADDR)

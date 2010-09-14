@@ -2505,7 +2505,7 @@ int dect_mm_identity_assign_res(struct dect_handle *dh,
 	if (accept) {
 		struct dect_mm_locate_param *lp = (struct dect_mm_locate_param *)mp->iec;
 
-		assert(lp->portable_identity->type == DECT_PORTABLE_ID_TYPE_TPUI);
+		dect_assert(lp->portable_identity->type == DECT_PORTABLE_ID_TYPE_TPUI);
 		dect_pp_set_tpui(dh, &lp->portable_identity->tpui);
 		err = dect_mm_send_temporary_identity_assign_ack(dh, mme, param);
 	} else

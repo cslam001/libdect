@@ -20,6 +20,17 @@ extern void __dect_hexdump(enum dect_debug_subsys subsys, const char *prefix,
 	({ if (0) __dect_hexdump(subsys, pfx, buf, size); })
 #endif
 
+extern void __dect_assert_fail(const char *assertion,
+			       const char *file,
+			       unsigned int line,
+			       const char *function) __noreturn;
+
+#define dect_assert(expr)						\
+	((expr) ?							\
+	 (void)0 :							\
+	 __dect_assert_fail(__STRING(expr), __FILE__, __LINE__,		\
+			    __ASSERT_FUNCTION))
+
 struct dect_trans_tbl {
 	uint64_t	val;
 	const char	*str;

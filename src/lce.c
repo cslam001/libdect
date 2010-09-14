@@ -260,7 +260,7 @@ static void dect_ddl_destroy(struct dect_handle *dh, struct dect_data_link *ddl)
 	struct dect_msg_buf *mb, *next;
 
 	ddl_debug(ddl, "destroy");
-	assert(list_empty(&ddl->transactions));
+	dect_assert(list_empty(&ddl->transactions));
 
 	list_del(&ddl->list);
 	list_for_each_entry_safe(mb, next, &ddl->msg_queue, list)
@@ -835,7 +835,7 @@ ssize_t dect_lce_broadcast(const struct dect_handle *dh,
 
 	dect_mbuf_dump(DECT_DEBUG_LCE, mb, "LCE: BCAST TX");
 	size = dect_mbuf_send(dh, dh->b_sap, &msg, mb);
-	assert(size == (ssize_t)mb->len);
+	dect_assert(size == (ssize_t)mb->len);
 	return 0;
 }
 
@@ -1402,7 +1402,7 @@ void dect_transaction_get_ulei(struct sockaddr_dect_lu *addr,
 
 static void dect_pp_set_default_pmid(struct dect_handle *dh)
 {
-	assert(!(dh->flags & DECT_PP_TPUI));
+	dect_assert(!(dh->flags & DECT_PP_TPUI));
 	dh->pmid = DECT_PMID_DEFAULT_ID +
 		   (rand() & DECT_PMID_DEFAULT_NUM_MASK);
 	lce_debug("set default pmid %05x\n", dh->pmid);
@@ -1419,7 +1419,7 @@ static void dect_pp_set_assigned_pmid(struct dect_handle *dh)
 {
 	struct dect_pmid pmid;
 
-	assert(dh->flags & DECT_PP_TPUI &&
+	dect_assert(dh->flags & DECT_PP_TPUI &&
 	       dh->tpui.type == DECT_TPUI_INDIVIDUAL_ASSIGNED);
 	dh->pmid = dect_build_pmid(dect_tpui_to_pmid(&pmid, &dh->tpui));
 	lce_debug("set assigned pmid %05x\n", dh->pmid);

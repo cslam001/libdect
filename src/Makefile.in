@@ -21,6 +21,10 @@ dect-obj	+= timer.o
 dect-obj	+= utils.o
 dect-obj	+= raw.o
 dect-obj	+= debug.o
+ifeq ($(CONFIG_BACKTRACE),y)
+dect-obj	+= backtrace.o
+dect-ldflags	+= -lbfd
+endif
 
 dect-obj	+= ccitt-adpcm/g711.o
 dect-obj	+= ccitt-adpcm/g72x.o

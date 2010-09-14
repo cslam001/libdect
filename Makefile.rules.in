@@ -77,7 +77,7 @@ $(eval $(call generic_template,$(1)))
 
 $(SUBDIR)lib$(1).so:	$$($(1)-extra-targets) $$($(1)-obj)
 			@/bin/echo -e "  LD\t\t$$@"
-			$$(CC) -shared -Wl,-soname,lib$(1).so.0 $$($(1)-obj) $$(LDFLAGS) -o $$@
+			$$(CC) -shared -Wl,-soname,lib$(1).so.0 $$($(1)-obj) $$($(1)-ldflags) $$(LDFLAGS) -o $$@
 			$(LN_S) -f lib$(1).so $$@.0
 all_targets		+= $(SUBDIR)lib$(1).so
 

@@ -69,7 +69,7 @@ struct dect_ie_common *__dect_ie_hold(struct dect_ie_common *ie)
 	if (ie == NULL)
 		return NULL;
 	refcnt_debug("IE %p: hold refcnt=%u\n", ie, ie->refcnt);
-	assert(ie->refcnt != 0);
+	dect_assert(ie->refcnt != 0);
 	ie->refcnt++;
 	return ie;
 }
@@ -80,7 +80,7 @@ void __dect_ie_put(const struct dect_handle *dh, struct dect_ie_common *ie)
 	if (ie == NULL)
 		return;
 	refcnt_debug("IE %p: release refcnt=%u\n", ie, ie->refcnt);
-	assert(ie->refcnt != 0);
+	dect_assert(ie->refcnt != 0);
 	if (--ie->refcnt == 0)
 		dect_ie_destroy(dh, ie);
 }
@@ -180,7 +180,7 @@ EXPORT_SYMBOL(dect_ie_collection_free);
 
 void __dect_ie_collection_put(const struct dect_handle *dh, struct dect_ie_collection *iec)
 {
-	assert(iec->refcnt != 0);
+	dect_assert(iec->refcnt != 0);
 	if (--iec->refcnt > 0)
 		return;
 	dect_ie_collection_free(dh, iec);
@@ -189,7 +189,7 @@ EXPORT_SYMBOL(__dect_ie_collection_put);
 
 struct dect_ie_collection *__dect_ie_collection_hold(struct dect_ie_collection *iec)
 {
-	assert(iec->refcnt != 0);
+	dect_assert(iec->refcnt != 0);
 	iec->refcnt++;
 	return iec;
 }

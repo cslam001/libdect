@@ -14,6 +14,8 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <execinfo.h>
+#include <bfd.h>
 
 #include <libdect.h>
 #include <utils.h>
@@ -121,6 +123,29 @@ const char *__dect_val2str(const struct dect_trans_tbl *tbl, unsigned int nelem,
 	snprintf(buf, size, "unknown (%" PRIx64 ")", val);
 	return buf;
 }
+
+static void dect_backtrace(void)
+{
+	void *buf[100];
+	char **strings;
+	unsigned int size, i;
+
+	size = backtrace(buf, array_size(buf));
+	strings = backtrace_symbols(buf, size);
+	for (i = 0; i < size; i++)
+		dect_debug(0, "#%-2u %s\n", i, strings[i]);
+	free(strings);
+}
+
+void __dect_assert_fail(const char *assertion, const char *file,
+			unsigned int line, const char *function)
+{
+	dect_debug(0, "%s:%d: %s: assertion `%s' failed.\n",
+		   file, line, function, assertion);
+	dect_backtrace();
+	abort();
+}
+
 #endif
 
 /** @} */

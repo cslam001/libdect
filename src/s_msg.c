@@ -2464,7 +2464,7 @@ static int dect_build_sfmt_ie_header(struct dect_sfmt_ie *dst, uint8_t id)
 		if (dst->len == 2)
 			dst->len = 0;
 		else {
-			assert(dst->len > 2);
+			dect_assert(dst->len > 2);
 			dst->data[1] = dst->len - 2;
 			dst->data[0] = id;
 		}
@@ -2693,7 +2693,7 @@ enum dect_sfmt_error dect_build_sfmt_msg(const struct dect_handle *dh,
 			}
 			desc++;
 
-			assert(desc->flags & DECT_SFMT_IE_REPEAT);
+			dect_assert(desc->flags & DECT_SFMT_IE_REPEAT);
 			dect_foreach_ie(rsrc, iel) {
 				err = __dect_build_sfmt_ie(dh, desc, mb, rsrc);
 				if (err != DECT_SFMT_OK)

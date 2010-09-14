@@ -98,7 +98,7 @@ static void dect_raw_event(struct dect_handle *dh, struct dect_fd *dfd,
 	struct iovec iov;
 	ssize_t len;
 
-	assert(!(events & ~DECT_FD_READ));
+	dect_assert(!(events & ~DECT_FD_READ));
 
 	msg.msg_name		= NULL;
 	msg.msg_namelen		= 0;
