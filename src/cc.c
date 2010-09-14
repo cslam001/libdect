@@ -503,6 +503,8 @@ static void dect_call_disconnect_uplane(const struct dect_handle *dh,
 	cc_debug(call, "U-Plane disconnected");
 }
 
+static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer);
+
 struct dect_call *dect_call_alloc(const struct dect_handle *dh)
 {
 	struct dect_call *call;
@@ -514,6 +516,7 @@ struct dect_call *dect_call_alloc(const struct dect_handle *dh)
 	call->setup_timer = dect_timer_alloc(dh);
 	if (call->setup_timer == NULL)
 		goto err2;
+	dect_timer_setup(call->setup_timer, dect_cc_setup_timer, call);
 
 	call->state = DECT_CC_NULL;
 	return call;
@@ -645,9 +648,12 @@ int dect_mncc_setup_req(struct dect_handle *dh, struct dect_call *call,
 	if (dect_cc_send_msg(dh, call, &cc_setup_msg_desc, &msg.common,
 			     DECT_CC_SETUP) < 0)
 		goto err2;
-	call->state = DECT_CC_CALL_PRESENT;
 
-	dect_timer_setup(call->setup_timer, dect_cc_setup_timer, call);
+	if (dh->mode == DECT_MODE_FP)
+		call->state = DECT_CC_CALL_PRESENT;
+	else
+		call->state = DECT_CC_CALL_INITIATED;
+
 	dect_timer_start(dh, call->setup_timer, DECT_CC_SETUP_TIMEOUT);
 	return 0;
 
@@ -1148,11 +1154,8 @@ static void dect_cc_rcv_alerting(struct dect_handle *dh, struct dect_call *call,
 	if (dect_parse_sfmt_msg(dh, &cc_alerting_msg_desc, &msg.common, mb) < 0)
 		return;
 
-	if (call->setup_timer != NULL) {
+	if (dect_timer_running(call->setup_timer))
 		dect_timer_stop(dh, call->setup_timer);
-		dect_timer_free(dh, call->setup_timer);
-		call->setup_timer = NULL;
-	}
 
 	dect_mncc_alert_ind(dh, call, &msg);
 	dect_msg_free(dh, &cc_alerting_msg_desc, &msg.common);
@@ -1194,11 +1197,8 @@ static void dect_cc_rcv_call_proc(struct dect_handle *dh, struct dect_call *call
 	if (dect_parse_sfmt_msg(dh, &cc_call_proc_msg_desc, &msg.common, mb) < 0)
 		return;
 
-	if (call->setup_timer != NULL) {
+	if (dect_timer_running(call->setup_timer))
 		dect_timer_stop(dh, call->setup_timer);
-		dect_timer_free(dh, call->setup_timer);
-		call->setup_timer = NULL;
-	}
 
 	dect_mncc_call_proc_ind(dh, call, &msg);
 	dect_msg_free(dh, &cc_call_proc_msg_desc, &msg.common);
@@ -1245,11 +1245,8 @@ static void dect_cc_rcv_connect(struct dect_handle *dh, struct dect_call *call,
 	if (dect_parse_sfmt_msg(dh, &cc_connect_msg_desc, &msg.common, mb) < 0)
 		return;
 
-	if (call->setup_timer != NULL) {
+	if (dect_timer_running(call->setup_timer))
 		dect_timer_stop(dh, call->setup_timer);
-		dect_timer_free(dh, call->setup_timer);
-		call->setup_timer = NULL;
-	}
 
 	dect_mncc_connect_ind(dh, call, &msg);
 	dect_msg_free(dh, &cc_connect_msg_desc, &msg.common);
@@ -1263,6 +1260,9 @@ static void dect_cc_rcv_setup_ack(struct dect_handle *dh, struct dect_call *call
 	cc_debug(call, "CC-SETUP_ACK");
 	if (dect_parse_sfmt_msg(dh, &cc_setup_ack_msg_desc, &msg.common, mb) < 0)
 		return;
+
+	if (dect_timer_running(call->setup_timer))
+		dect_timer_stop(dh, call->setup_timer);
 
 	dect_msg_free(dh, &cc_setup_ack_msg_desc, &msg.common);
 }
