@@ -1193,7 +1193,7 @@ static void dect_cc_rcv_call_proc(struct dect_handle *dh, struct dect_call *call
 {
 	struct dect_cc_call_proc_msg msg;
 
-	cc_debug(call, "CC-CALL_PROC");
+	cc_debug(call, "CC-CALL-PROC");
 	if (dect_parse_sfmt_msg(dh, &cc_call_proc_msg_desc, &msg.common, mb) < 0)
 		return;
 
@@ -1257,7 +1257,7 @@ static void dect_cc_rcv_setup_ack(struct dect_handle *dh, struct dect_call *call
 {
 	struct dect_cc_setup_ack_msg msg;
 
-	cc_debug(call, "CC-SETUP_ACK");
+	cc_debug(call, "CC-SETUP-ACK");
 	if (dect_parse_sfmt_msg(dh, &cc_setup_ack_msg_desc, &msg.common, mb) < 0)
 		return;
 
@@ -1272,7 +1272,7 @@ static void dect_cc_rcv_connect_ack(struct dect_handle *dh, struct dect_call *ca
 {
 	struct dect_cc_connect_ack_msg msg;
 
-	cc_debug(call, "CC-CONNECT_ACK");
+	cc_debug(call, "CC-CONNECT-ACK");
 	if (dect_parse_sfmt_msg(dh, &cc_connect_ack_msg_desc, &msg.common, mb) < 0)
 		return;
 
@@ -1284,7 +1284,7 @@ static void dect_cc_rcv_service_change(struct dect_handle *dh, struct dect_call 
 {
 	struct dect_cc_service_change_msg msg;
 
-	cc_debug(call, "CC-SERVICE_CHANGE");
+	cc_debug(call, "CC-SERVICE-CHANGE");
 	if (dect_parse_sfmt_msg(dh, &cc_service_change_msg_desc,
 				&msg.common, mb) < 0)
 		return;
@@ -1297,7 +1297,7 @@ static void dect_cc_rcv_service_accept(struct dect_handle *dh, struct dect_call 
 {
 	struct dect_cc_service_accept_msg msg;
 
-	cc_debug(call, "CC-SERVICE_ACCEPT");
+	cc_debug(call, "CC-SERVICE-ACCEPT");
 	if (dect_parse_sfmt_msg(dh, &cc_service_accept_msg_desc,
 				&msg.common, mb) < 0)
 		return;
@@ -1310,7 +1310,7 @@ static void dect_cc_rcv_service_reject(struct dect_handle *dh, struct dect_call 
 {
 	struct dect_cc_service_reject_msg msg;
 
-	cc_debug(call, "CC-SERVICE_REJECT");
+	cc_debug(call, "CC-SERVICE-REJECT");
 	if (dect_parse_sfmt_msg(dh, &cc_service_reject_msg_desc,
 				&msg.common, mb) < 0)
 		return;
@@ -1386,7 +1386,7 @@ static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *ca
 {
 	struct dect_cc_release_com_msg msg;
 
-	cc_debug(call, "CC-RELEASE_COM");
+	cc_debug(call, "CC-RELEASE-COM");
 	if (dect_parse_sfmt_msg(dh, &cc_release_com_msg_desc, &msg.common, mb) < 0)
 		return;
 
@@ -1437,7 +1437,7 @@ static void dect_cc_rcv_iwu_info(struct dect_handle *dh, struct dect_call *call,
 {
 	struct dect_cc_iwu_info_msg msg;
 
-	cc_debug(call, "CC-IWU_INFO");
+	cc_debug(call, "CC-IWU-INFO");
 	if (dect_parse_sfmt_msg(dh, &cc_iwu_info_msg_desc, &msg.common, mb) < 0)
 		return;
 
