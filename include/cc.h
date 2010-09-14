@@ -324,6 +324,7 @@ enum dect_cc_states {
  * @pt_id:			PT ID
  * @state:			call state
  * @overlap_sending_timer:	overlap sending timer (<CC.01>)
+ * @release_timer:		call release timer (<CC.02>)
  * @setup_timer:		call setup timer (<CC.03>)
  * @lu_sap:			U-Plane file descriptor
  * @qstats_timer:		LU1 queue statistics debugging timer
@@ -335,6 +336,7 @@ struct dect_call {
 	struct dect_ie_portable_identity	*pt_id;
 	enum dect_cc_states			state;
 	struct dect_timer			*overlap_sending_timer;
+	struct dect_timer			*release_timer;
 	struct dect_timer			*setup_timer;
 	struct dect_fd				*lu_sap;
 #ifdef DEBUG
@@ -344,6 +346,7 @@ struct dect_call {
 };
 
 #define DECT_CC_OVERLAP_SENDING_TIMEOUT	20	/* <CC.01>: 20 seconds */
+#define DECT_CC_RELEASE_TIMEOUT		36	/* <CC.02>: 36 seconds */
 #define DECT_CC_SETUP_TIMEOUT		20	/* <CC.03>: 20 seconds */
 #define DECT_CC_QUEUE_STATS_TIMER	1 	/* 1 second */
 
