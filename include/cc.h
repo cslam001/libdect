@@ -326,6 +326,7 @@ enum dect_cc_states {
  * @overlap_sending_timer:	overlap sending timer (<CC.01>)
  * @release_timer:		call release timer (<CC.02>)
  * @setup_timer:		call setup timer (<CC.03>)
+ * @completion_timer:		call setup completion timer (<CC.04>)
  * @lu_sap:			U-Plane file descriptor
  * @qstats_timer:		LU1 queue statistics debugging timer
  * @priv:			libdect user private storage
@@ -338,6 +339,7 @@ struct dect_call {
 	struct dect_timer			*overlap_sending_timer;
 	struct dect_timer			*release_timer;
 	struct dect_timer			*setup_timer;
+	struct dect_timer			*completion_timer;
 	struct dect_fd				*lu_sap;
 #ifdef DEBUG
 	struct dect_timer			*qstats_timer;
@@ -348,6 +350,7 @@ struct dect_call {
 #define DECT_CC_OVERLAP_SENDING_TIMEOUT	20	/* <CC.01>: 20 seconds */
 #define DECT_CC_RELEASE_TIMEOUT		36	/* <CC.02>: 36 seconds */
 #define DECT_CC_SETUP_TIMEOUT		20	/* <CC.03>: 20 seconds */
+#define DECT_CC_COMPLETION_TIMEOUT	100	/* <CC.04>: 100 seconds */
 #define DECT_CC_QUEUE_STATS_TIMER	1 	/* 1 second */
 
 extern const struct dect_nwk_protocol dect_cc_protocol;
