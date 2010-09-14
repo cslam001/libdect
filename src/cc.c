@@ -665,7 +665,7 @@ EXPORT_SYMBOL(dect_mncc_setup_req);
  * @param param		call setup ACK parameters
  *
  * Accept call setup by sending a {CC-SETUP-ACK} message and enter "OVERLAP
- * RECEIVING" state.
+ * SENDING" state.
  *
  * @sa ETSI EN 300 175-5 (Network Layer), sections 9.3.1.5 and 9.3.2.5.
  */
@@ -690,8 +690,12 @@ int dect_mncc_setup_ack_req(struct dect_handle *dh, struct dect_call *call,
 	};
 
 	cc_debug_entry(call, "MNCC_SETUP_ACK-req");
-	return dect_cc_send_msg(dh, call, &cc_setup_ack_msg_desc,
-				&msg.common, DECT_CC_SETUP_ACK);
+	if (dect_cc_send_msg(dh, call, &cc_setup_ack_msg_desc,
+			     &msg.common, DECT_CC_SETUP_ACK) < 0)
+		return -1;
+
+	call->state = DECT_CC_OVERLAP_SENDING;
+	return 0;
 }
 EXPORT_SYMBOL(dect_mncc_setup_ack_req);
 
@@ -763,6 +767,8 @@ int dect_mncc_call_proc_req(struct dect_handle *dh, struct dect_call *call,
 	};
 
 	cc_debug_entry(call, "MNCC_CALL_PROC-req");
+
+	call->state = DECT_CC_CALL_PROCEEDING;
 	return dect_cc_send_msg(dh, call, &cc_call_proc_msg_desc,
 				&msg.common, DECT_CC_CALL_PROC);
 }
@@ -799,8 +805,16 @@ int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 	};
 
 	cc_debug_entry(call, "MNCC_ALERT-req");
-	return dect_cc_send_msg(dh, call, &cc_alerting_msg_desc,
-				&msg.common, DECT_CC_ALERTING);
+	if (dect_cc_send_msg(dh, call, &cc_alerting_msg_desc,
+			     &msg.common, DECT_CC_ALERTING) < 0)
+		return -1;
+
+	if (dh->mode == DECT_MODE_FP)
+		call->state = DECT_CC_CALL_DELIVERED;
+	else
+		call->state = DECT_CC_CALL_RECEIVED;
+
+	return 0;
 }
 EXPORT_SYMBOL(dect_mncc_alert_req);
 
@@ -834,10 +848,22 @@ int dect_mncc_connect_req(struct dect_handle *dh, struct dect_call *call,
 	};
 
 	cc_debug_entry(call, "MNCC_CONNECT-req");
-	dect_cc_send_msg(dh, call, &cc_connect_msg_desc,
-			 &msg.common, DECT_CC_CONNECT);
 	dect_call_connect_uplane(dh, call);
+
+	if (dect_cc_send_msg(dh, call, &cc_connect_msg_desc,
+			      &msg.common, DECT_CC_CONNECT) < 0)
+		goto err1;
+
+	if (dh->mode == DECT_MODE_FP)
+		call->state = DECT_CC_ACTIVE;
+	else
+		call->state = DECT_CC_CONNECT_PENDING;
+
 	return 0;
+
+err1:
+	dect_call_disconnect_uplane(dh, call);
+	return -1;
 }
 EXPORT_SYMBOL(dect_mncc_connect_req);
 
@@ -866,6 +892,7 @@ int dect_mncc_connect_res(struct dect_handle *dh, struct dect_call *call,
 		goto err1;
 
 	call->state = DECT_CC_ACTIVE;
+
 	return 0;
 
 err1:
@@ -897,7 +924,9 @@ int dect_mncc_release_req(struct dect_handle *dh, struct dect_call *call,
 	cc_debug_entry(call, "MNCC_RELEASE-req");
 	dect_cc_send_msg(dh, call, &cc_release_msg_desc,
 			 &msg.common, DECT_CC_RELEASE);
+
 	call->state = DECT_CC_RELEASE_PENDING;
+
 	return 0;
 }
 EXPORT_SYMBOL(dect_mncc_release_req);
@@ -1153,7 +1182,11 @@ static void dect_cc_rcv_alerting(struct dect_handle *dh, struct dect_call *call,
 
 	dect_mncc_alert_ind(dh, call, &msg);
 	dect_msg_free(dh, &cc_alerting_msg_desc, &msg.common);
-	call->state = DECT_CC_CALL_RECEIVED;
+
+	if (dh->mode == DECT_MODE_FP)
+		call->state = DECT_CC_CALL_RECEIVED;
+	else
+		call->state = DECT_CC_CALL_DELIVERED;
 }
 
 static void dect_mncc_call_proc_ind(struct dect_handle *dh, struct dect_call *call,
@@ -1195,8 +1228,9 @@ static void dect_cc_rcv_call_proc(struct dect_handle *dh, struct dect_call *call
 		dect_timer_stop(dh, call->setup_timer);
 
 	dect_mncc_call_proc_ind(dh, call, &msg);
-	dect_msg_free(dh, &cc_call_proc_msg_desc, &msg.common);
 	call->state = DECT_CC_CALL_PROCEEDING;
+
+	dect_msg_free(dh, &cc_call_proc_msg_desc, &msg.common);
 }
 
 static void dect_mncc_connect_ind(struct dect_handle *dh, struct dect_call *call,
@@ -1242,6 +1276,9 @@ static void dect_cc_rcv_connect(struct dect_handle *dh, struct dect_call *call,
 	if (dect_timer_running(call->setup_timer))
 		dect_timer_stop(dh, call->setup_timer);
 
+	if (dh->mode == DECT_MODE_PP)
+		call->state = DECT_CC_ACTIVE;
+
 	dect_mncc_connect_ind(dh, call, &msg);
 	dect_msg_free(dh, &cc_connect_msg_desc, &msg.common);
 }
@@ -1249,6 +1286,7 @@ static void dect_cc_rcv_connect(struct dect_handle *dh, struct dect_call *call,
 static void dect_cc_rcv_setup_ack(struct dect_handle *dh, struct dect_call *call,
 				  struct dect_msg_buf *mb)
 {
+	struct dect_mncc_setup_ack_param *param;
 	struct dect_cc_setup_ack_msg msg;
 
 	cc_debug(call, "CC-SETUP-ACK");
@@ -1258,7 +1296,37 @@ static void dect_cc_rcv_setup_ack(struct dect_handle *dh, struct dect_call *call
 	if (dect_timer_running(call->setup_timer))
 		dect_timer_stop(dh, call->setup_timer);
 
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		goto err1;
+
+	cc_debug(call, "MNCC_SETUP_ACK-ind");
+	dh->ops->cc_ops->mncc_setup_ack_ind(dh, call, param);
+	dect_ie_collection_put(dh, param);
+
+	call->state = DECT_CC_OVERLAP_SENDING;
+err1:
 	dect_msg_free(dh, &cc_setup_ack_msg_desc, &msg.common);
+}
+
+static void dect_mncc_connect_cfm(struct dect_handle *dh, struct dect_call *call,
+				  struct dect_cc_connect_ack_msg *msg)
+{
+	struct dect_mncc_connect_param *param;
+
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		return;
+
+	param->display			= dect_ie_hold(msg->display);
+	param->feature_indicate		= dect_ie_hold(msg->feature_indicate);
+	//param->iwu_to_iwu		= *dect_ie_list_hold(&msg->iwu_to_iwu);
+	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
+	param->escape_to_proprietary	= dect_ie_hold(msg->escape_to_proprietary);
+
+	cc_debug(call, "MNCC_CONNECT-cfm");
+	dh->ops->cc_ops->mncc_connect_cfm(dh, call, param);
+	dect_ie_collection_put(dh, param);
 }
 
 static void dect_cc_rcv_connect_ack(struct dect_handle *dh, struct dect_call *call,
@@ -1270,6 +1338,10 @@ static void dect_cc_rcv_connect_ack(struct dect_handle *dh, struct dect_call *ca
 	if (dect_parse_sfmt_msg(dh, &cc_connect_ack_msg_desc, &msg.common, mb) < 0)
 		return;
 
+	if (dh->mode == DECT_MODE_PP)
+		call->state = DECT_CC_ACTIVE;
+
+	dect_mncc_connect_cfm(dh, call, &msg);
 	dect_msg_free(dh, &cc_connect_ack_msg_desc, &msg.common);
 }
 
@@ -1312,38 +1384,40 @@ static void dect_cc_rcv_service_reject(struct dect_handle *dh, struct dect_call 
 	dect_msg_free(dh, &cc_connect_ack_msg_desc, &msg.common);
 }
 
-static void dect_mncc_release_ind(struct dect_handle *dh, struct dect_call *call,
-				  struct dect_cc_release_msg *msg)
-{
-	struct dect_mncc_release_param *param;
-
-	param = dect_ie_collection_alloc(dh, sizeof(*param));
-	if (param == NULL)
-		return;
-
-	param->release_reason		= dect_ie_hold(msg->release_reason);
-	param->facility			= *dect_ie_list_hold(&msg->facility);
-	param->display			= dect_ie_hold(msg->display);
-	param->feature_indicate		= dect_ie_hold(msg->feature_indicate);
-	param->iwu_to_iwu		= dect_ie_hold(msg->iwu_to_iwu);
-	param->iwu_packet		= dect_ie_hold(msg->iwu_packet);
-	param->escape_to_proprietary	= dect_ie_hold(msg->escape_to_proprietary);
-
-	cc_debug(call, "MNCC_RELEASE-ind");
-	dh->ops->cc_ops->mncc_release_ind(dh, call, param);
-	dect_ie_collection_put(dh, param);
-}
-
 static void dect_cc_rcv_release(struct dect_handle *dh, struct dect_call *call,
 				struct dect_msg_buf *mb)
 {
+	struct dect_mncc_release_param *param;
 	struct dect_cc_release_msg msg;
 
 	cc_debug(call, "CC-RELEASE");
 	if (dect_parse_sfmt_msg(dh, &cc_release_msg_desc, &msg.common, mb) < 0)
 		return;
 
-	dect_mncc_release_ind(dh, call, &msg);
+	param = dect_ie_collection_alloc(dh, sizeof(*param));
+	if (param == NULL)
+		return;
+
+	param->release_reason		= dect_ie_hold(msg.release_reason);
+	param->facility			= *dect_ie_list_hold(&msg.facility);
+	param->display			= dect_ie_hold(msg.display);
+	param->feature_indicate		= dect_ie_hold(msg.feature_indicate);
+	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
+	param->iwu_packet		= dect_ie_hold(msg.iwu_packet);
+	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	if (call->state == DECT_CC_RELEASE_PENDING) {
+		/* Release collision */
+		cc_debug(call, "MNCC_RELEASE-cfm");
+		dh->ops->cc_ops->mncc_release_cfm(dh, call, DECT_CAUSE_PEER_MESSAGE, param);
+		dect_call_shutdown(dh, call);
+	} else {
+		/* Normal call release */
+		cc_debug(call, "MNCC_RELEASE-ind");
+		dh->ops->cc_ops->mncc_release_ind(dh, call, param);
+	}
+
+	dect_ie_collection_put(dh, param);
 	dect_msg_free(dh, &cc_release_msg_desc, &msg.common);
 }
 
@@ -1371,8 +1445,6 @@ static void dect_mncc_release_cfm(struct dect_handle *dh, struct dect_call *call
 	cc_debug(call, "MNCC_RELEASE-cfm");
 	dh->ops->cc_ops->mncc_release_cfm(dh, call, DECT_CAUSE_PEER_MESSAGE, param);
 	dect_ie_collection_put(dh, param);
-
-	dect_call_shutdown(dh, call);
 }
 
 static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *call,
@@ -1384,9 +1456,10 @@ static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *ca
 	if (dect_parse_sfmt_msg(dh, &cc_release_com_msg_desc, &msg.common, mb) < 0)
 		return;
 
-	if (call->state == DECT_CC_RELEASE_PENDING)
+	if (call->state == DECT_CC_RELEASE_PENDING) {
 		dect_mncc_release_cfm(dh, call, &msg);
-	else {
+		dect_call_shutdown(dh, call);
+	} else {
 		struct dect_mncc_release_param *param;
 
 		param = dect_ie_collection_alloc(dh, sizeof(*param));
@@ -1609,7 +1682,12 @@ static void dect_cc_rcv_setup(struct dect_handle *dh,
 		goto out;
 	call->ft_id = dect_ie_hold(msg.fixed_identity);
 	call->pt_id = dect_ie_hold(msg.portable_identity);
-	call->state = DECT_CC_CALL_INITIATED;
+
+	if (dh->mode == DECT_MODE_FP)
+		call->state = DECT_CC_CALL_INITIATED;
+	else
+		call->state = DECT_CC_CALL_PRESENT;
+
 	dect_transaction_confirm(dh, &call->transaction, req);
 	cc_debug(call, "new call");
 
