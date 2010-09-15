@@ -1651,8 +1651,13 @@ static void dect_cc_shutdown(struct dect_handle *dh,
 
 	cc_debug(call, "shutdown");
 
-	cc_debug(call, "MNCC_REJECT-ind");
-	dh->ops->cc_ops->mncc_reject_ind(dh, call, &param);
+	if (call->state == DECT_CC_RELEASE_PENDING) {
+		cc_debug(call, "MNCC_RELEASE-cfm");
+		dh->ops->cc_ops->mncc_release_cfm(dh, call, &param);
+	} else {
+		cc_debug(call, "MNCC_REJECT-ind");
+		dh->ops->cc_ops->mncc_reject_ind(dh, call, &param);
+	}
 
 	dect_call_shutdown(dh, call);
 }
