@@ -44,6 +44,7 @@ static void mncc_setup_ack_ind(struct dect_handle *dh, struct dect_call *call,
 }
 
 static void mncc_reject_ind(struct dect_handle *dh, struct dect_call *call,
+			    enum dect_causes cause,
 			    struct dect_mncc_release_param *param)
 {
 }
@@ -74,6 +75,7 @@ static void mncc_release_ind(struct dect_handle *dh, struct dect_call *call,
 }
 
 static void mncc_release_cfm(struct dect_handle *dh, struct dect_call *call,
+			     enum dect_causes cause,
 			     struct dect_mncc_release_param *param)
 {
 }
@@ -94,7 +96,7 @@ static void mncc_modify_ind(struct dect_handle *dh, struct dect_call *call,
 }
 
 static void mncc_modify_cfm(struct dect_handle *dh, struct dect_call *call,
-			    struct dect_mncc_modify_param *param)
+			    bool success, struct dect_mncc_modify_param *param)
 {
 }
 

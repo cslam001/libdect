@@ -569,20 +569,13 @@ static void dect_cc_send_release_com(struct dect_handle *dh,
 static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer)
 {
 	struct dect_call *call = timer->data;
-	struct dect_mncc_release_param *param;
 
 	cc_debug(call, "setup timer");
-	dect_cc_send_release_com(dh, &call->transaction,
-				 DECT_RELEASE_TIMER_EXPIRY);
-
-	param = dect_ie_collection_alloc(dh, sizeof(*param));
-	if (param == NULL)
-		goto out;
+	dect_cc_send_release_com(dh, &call->transaction, DECT_RELEASE_TIMER_EXPIRY);
 
 	cc_debug(call, "MNCC_REJECT-ind");
-	dh->ops->cc_ops->mncc_reject_ind(dh, call, param);
-	dect_ie_collection_put(dh, param);
-out:
+	dh->ops->cc_ops->mncc_reject_ind(dh, call, DECT_CAUSE_LOCAL_TIMER_EXPIRY, NULL);
+
 	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
 }
@@ -1015,12 +1008,13 @@ EXPORT_SYMBOL(dect_mncc_modify_req);
  *
  * @param dh		libdect DECT handle
  * @param call		Call Control Endpoint
+ * @param success	success/failure of service modification
  * @param param		call modification parameters
  */
 int dect_mncc_modify_res(struct dect_handle *dh, struct dect_call *call,
-			 const struct dect_mncc_modify_param *param)
+			 bool success, const struct dect_mncc_modify_param *param)
 {
-	cc_debug_entry(call, "MNCC_MODIFY-res");
+	cc_debug_entry(call, "MNCC_MODIFY-res: success: %u", success);
 	return 0;
 }
 EXPORT_SYMBOL(dect_mncc_modify_res);
@@ -1375,7 +1369,7 @@ static void dect_mncc_release_cfm(struct dect_handle *dh, struct dect_call *call
 	param->escape_to_proprietary	= dect_ie_hold(msg->escape_to_proprietary);
 
 	cc_debug(call, "MNCC_RELEASE-cfm");
-	dh->ops->cc_ops->mncc_release_cfm(dh, call, param);
+	dh->ops->cc_ops->mncc_release_cfm(dh, call, DECT_CAUSE_PEER_MESSAGE, param);
 	dect_ie_collection_put(dh, param);
 
 	dect_call_shutdown(dh, call);
@@ -1647,16 +1641,15 @@ static void dect_cc_shutdown(struct dect_handle *dh,
 			     struct dect_transaction *ta)
 {
 	struct dect_call *call = container_of(ta, struct dect_call, transaction);
-	struct dect_mncc_release_param param = {};
 
 	cc_debug(call, "shutdown");
 
 	if (call->state == DECT_CC_RELEASE_PENDING) {
 		cc_debug(call, "MNCC_RELEASE-cfm");
-		dh->ops->cc_ops->mncc_release_cfm(dh, call, &param);
+		dh->ops->cc_ops->mncc_release_cfm(dh, call, DECT_CAUSE_LOCAL_TIMER_EXPIRY, NULL);
 	} else {
 		cc_debug(call, "MNCC_REJECT-ind");
-		dh->ops->cc_ops->mncc_reject_ind(dh, call, &param);
+		dh->ops->cc_ops->mncc_reject_ind(dh, call, DECT_CAUSE_LOCAL_TIMER_EXPIRY, NULL);
 	}
 
 	dect_call_shutdown(dh, call);

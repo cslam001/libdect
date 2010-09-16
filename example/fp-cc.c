@@ -151,6 +151,7 @@ static void dect_mncc_alert_ind(struct dect_handle *dh, struct dect_call *call,
 }
 
 static void dect_mncc_reject_ind(struct dect_handle *dh, struct dect_call *call,
+				 enum dect_causes cause,
 				 struct dect_mncc_release_param *param)
 {
 	struct call *priv = dect_call_priv(call);

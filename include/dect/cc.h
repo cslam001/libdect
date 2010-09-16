@@ -195,6 +195,16 @@ struct dect_mncc_iwu_info_param {
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
+/**
+ * Call release/rejection causes used by the @ref dect_cc_ops::mncc_release_cfm
+ * "MNCC_RELEASE-cfm" and @ref dect_cc_ops::mncc_reject_ind "MNCC_REJECT-ind"
+ * primitives.
+ */
+enum dect_causes {
+	DECT_CAUSE_LOCAL_TIMER_EXPIRY,	/**< a local timer has expired */
+	DECT_CAUSE_PEER_MESSAGE,	/**< a valid peer message was received */
+};
+
 struct dect_handle;
 struct dect_call;
 struct dect_msg_buf;
@@ -220,6 +230,7 @@ struct dect_cc_ops {
 				      struct dect_mncc_setup_ack_param *param);
 	/**< MNCC_SETUP_ACK-ind primitive */
 	void	(*mncc_reject_ind)(struct dect_handle *dh, struct dect_call *call,
+				   enum dect_causes cause,
 				   struct dect_mncc_release_param *param);
 	/**< MNCC_REJECT-ind primitive */
 	void	(*mncc_call_proc_ind)(struct dect_handle *dh, struct dect_call *call,
@@ -238,6 +249,7 @@ struct dect_cc_ops {
 				    struct dect_mncc_release_param *param);
 	/**< MNCC_RELEASE-ind primitive */
 	void	(*mncc_release_cfm)(struct dect_handle *dh, struct dect_call *call,
+				    enum dect_causes cause,
 				    struct dect_mncc_release_param *param);
 	/**< MNCC_RELEASE-cfm primitive */
 	void	(*mncc_facility_ind)(struct dect_handle *dh, struct dect_call *call,
@@ -250,7 +262,7 @@ struct dect_cc_ops {
 				   struct dect_mncc_modify_param *param);
 	/**< MNCC_MODIFY-ind primtiive */
 	void	(*mncc_modify_cfm)(struct dect_handle *dh, struct dect_call *call,
-				   struct dect_mncc_modify_param *param);
+				   bool success, struct dect_mncc_modify_param *param);
 	/**< MNCC_MODIFY-cfm primitive */
 	void	(*mncc_hold_ind)(struct dect_handle *dh, struct dect_call *call,
 				 struct dect_mncc_hold_param *param);
@@ -299,7 +311,7 @@ extern int dect_mncc_info_req(struct dect_handle *dh, struct dect_call *call,
 extern int dect_mncc_modify_req(struct dect_handle *dh, struct dect_call *call,
 				const struct dect_mncc_modify_param *param);
 extern int dect_mncc_modify_res(struct dect_handle *dh, struct dect_call *call,
-				const struct dect_mncc_modify_param *param);
+				bool success, const struct dect_mncc_modify_param *param);
 extern int dect_mncc_hold_req(struct dect_handle *dh, struct dect_call *call,
 			      const struct dect_mncc_hold_param *param);
 extern int dect_mncc_hold_res(struct dect_handle *dh, struct dect_call *call,
