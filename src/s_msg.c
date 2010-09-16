@@ -2427,8 +2427,8 @@ static void dect_msg_ie_init(const struct dect_sfmt_ie_desc *desc,
 /**
  * Parse a S-Format encoded Information Element header
  *
- * @ie:		result pointer to the Information Element
- * @mb:		message buffer
+ * @param ie	result pointer to the Information Element
+ * @param mb	message buffer
  *
  * Parse a S-Format encoded Information Element header and return the parsed
  * information in the ie structure.
