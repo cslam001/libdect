@@ -505,6 +505,17 @@ static void dect_call_disconnect_uplane(const struct dect_handle *dh,
 
 static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer);
 
+/* All CC timers should be stopped upon starting the release timer, receiving
+ * or sending a {RELEASE-COM} message or a data link failure indication from
+ * the LCE.
+ */
+static void dect_cc_stop_timers(const struct dect_handle *dh,
+				struct dect_call *call)
+{
+	if (dect_timer_running(call->setup_timer))
+		dect_timer_stop(dh, call->setup_timer);
+}
+
 struct dect_call *dect_call_alloc(const struct dect_handle *dh)
 {
 	struct dect_call *call;
@@ -531,8 +542,7 @@ EXPORT_SYMBOL(dect_call_alloc);
 static void dect_call_destroy(const struct dect_handle *dh,
 			      struct dect_call *call)
 {
-	if (call->state == DECT_CC_CALL_PRESENT)
-		dect_timer_stop(dh, call->setup_timer);
+	dect_cc_stop_timers(dh, call);
 	dect_timer_free(dh, call->setup_timer);
 	dect_free(dh, call);
 }
@@ -572,6 +582,7 @@ static void dect_cc_setup_timer(struct dect_handle *dh, struct dect_timer *timer
 
 	cc_debug(call, "setup timer");
 	dect_cc_send_release_com(dh, &call->transaction, DECT_RELEASE_TIMER_EXPIRY);
+	dect_cc_stop_timers(dh, call);
 
 	cc_debug(call, "MNCC_REJECT-ind");
 	dh->ops->cc_ops->mncc_reject_ind(dh, call, DECT_CAUSE_LOCAL_TIMER_EXPIRY, NULL);
@@ -731,6 +742,7 @@ int dect_mncc_reject_req(struct dect_handle *dh, struct dect_call *call,
 	dect_cc_send_msg(dh, call, &cc_release_com_msg_desc,
 			 &msg.common, DECT_CC_RELEASE_COM);
 
+	dect_cc_stop_timers(dh, call);
 	dect_transaction_close(dh, &call->transaction, DECT_DDL_RELEASE_NORMAL);
 	dect_call_destroy(dh, call);
 	return 0;
@@ -959,6 +971,7 @@ int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
 	dect_cc_send_msg(dh, call, &cc_release_com_msg_desc,
 			 &msg.common, DECT_CC_RELEASE_COM);
 
+	dect_cc_stop_timers(dh, call);
 	dect_call_shutdown(dh, call);
 	return 0;
 }
@@ -1456,6 +1469,8 @@ static void dect_cc_rcv_release_com(struct dect_handle *dh, struct dect_call *ca
 	if (dect_parse_sfmt_msg(dh, &cc_release_com_msg_desc, &msg.common, mb) < 0)
 		return;
 
+	dect_cc_stop_timers(dh, call);
+
 	if (call->state == DECT_CC_RELEASE_PENDING) {
 		dect_mncc_release_cfm(dh, call, &msg);
 		dect_call_shutdown(dh, call);
@@ -1722,6 +1737,7 @@ static void dect_cc_shutdown(struct dect_handle *dh,
 
 	cc_debug(call, "shutdown");
 
+	dect_cc_stop_timers(dh, call);
 	if (call->state == DECT_CC_RELEASE_PENDING) {
 		cc_debug(call, "MNCC_RELEASE-cfm");
 		dh->ops->cc_ops->mncc_release_cfm(dh, call, DECT_CAUSE_LOCAL_TIMER_EXPIRY, NULL);
