@@ -846,7 +846,7 @@ ssize_t dect_lce_broadcast(const struct dect_handle *dh,
  * @param pattern	ring pattern
  */
 int dect_lce_group_ring_req(struct dect_handle *dh,
-			    enum dect_ring_patterns pattern)
+			    enum dect_alerting_patterns pattern)
 {
 	DECT_DEFINE_MSG_BUF_ONSTACK(_mb), *mb = &_mb;
 	struct dect_short_page_msg *msg;

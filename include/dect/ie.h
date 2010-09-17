@@ -401,7 +401,7 @@ struct dect_ie_keypad {
  * @}
  * @defgroup ie_signal Signal
  *
- * <SIGNAL>> IE specified in ETSI EN 300 175-6 section 7.6.8.
+ * <<SIGNAL>> IE specified in ETSI EN 300 175-6 section 7.6.8.
  *
  * The <<SIGNAL>> IE conveys signal information to the PT.
  *
@@ -409,21 +409,20 @@ struct dect_ie_keypad {
  * @{
  */
 
-// FIXME: rename to alerting
 /** Ring patterns */
-enum dect_ring_patterns {
-	DECT_RING_PATTERN_0				= 0x0, /**< Alerting on - pattern 0 */
-	DECT_RING_PATTERN_1				= 0x1, /**< Alerting on - pattern 1 */
-	DECT_RING_PATTERN_2				= 0x2, /**< Alerting on - pattern 2 */
-	DECT_RING_PATTERN_3				= 0x3, /**< Alerting on - pattern 3 */
-	DECT_RING_PATTERN_4				= 0x4, /**< Alerting on - pattern 4 */
-	DECT_RING_PATTERN_5				= 0x5, /**< Alerting on - pattern 5 */
-	DECT_RING_PATTERN_6				= 0x6, /**< Alerting on - pattern 6 */
-	DECT_RING_PATTERN_7				= 0x7, /**< Alerting on - pattern 7 */
-	DECT_RING_CONTINUOUS				= 0x8, /**< Alerting on - continous */
-	DECT_RING_INCOMING_CALL_RELEASED		= 0xa, /**< Incoming call has been released by the FP */
-	DECT_RING_INCOMING_CALL_ANSWERED		= 0xb, /**< Incoming call has been answered */
-	DECT_RING_OFF					= 0xf, /**< Alerting off */
+enum dect_alerting_patterns {
+	DECT_ALERTING_PATTERN_0				= 0x0, /**< Alerting on - pattern 0 */
+	DECT_ALERTING_PATTERN_1				= 0x1, /**< Alerting on - pattern 1 */
+	DECT_ALERTING_PATTERN_2				= 0x2, /**< Alerting on - pattern 2 */
+	DECT_ALERTING_PATTERN_3				= 0x3, /**< Alerting on - pattern 3 */
+	DECT_ALERTING_PATTERN_4				= 0x4, /**< Alerting on - pattern 4 */
+	DECT_ALERTING_PATTERN_5				= 0x5, /**< Alerting on - pattern 5 */
+	DECT_ALERTING_PATTERN_6				= 0x6, /**< Alerting on - pattern 6 */
+	DECT_ALERTING_PATTERN_7				= 0x7, /**< Alerting on - pattern 7 */
+	DECT_ALERTING_CONTINUOUS			= 0x8, /**< Alerting on - continous */
+	DECT_ALERTING_INCOMING_CALL_RELEASED		= 0xa, /**< Incoming call has been released by the FP */
+	DECT_ALERTING_INCOMING_CALL_ANSWERED		= 0xb, /**< Incoming call has been answered */
+	DECT_ALERTING_OFF				= 0xf, /**< Alerting off */
 };
 
 /** Signal codes */

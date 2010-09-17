@@ -116,7 +116,7 @@ static void dect_mncc_send_call_info(struct dect_call *call)
 		signal.code = DECT_SIGNAL_ALERTING_BASE | priv->ring_pattern;
 		priv->ring_pattern = (priv->ring_pattern + 1) % 8;
 	} else
-		signal.code = DECT_SIGNAL_ALERTING_BASE | DECT_RING_OFF;
+		signal.code = DECT_SIGNAL_ALERTING_BASE | DECT_ALERTING_OFF;
 
 	if (priv->state != SCROLLING)
 		priv->state++;

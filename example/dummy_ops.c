@@ -23,7 +23,7 @@ static bool lce_page_response(struct dect_handle *dh,
 }
 
 static void lce_group_ring_ind(struct dect_handle *dh,
-			       enum dect_ring_patterns pattern)
+			       enum dect_alerting_patterns pattern)
 {
 }
 
