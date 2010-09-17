@@ -1679,6 +1679,13 @@ static void dect_cc_rcv_notify(struct dect_handle *dh, struct dect_call *call,
 	if (dect_parse_sfmt_msg(dh, &cc_notify_msg_desc, &msg.common, mb) < 0)
 		return;
 
+	if (msg.timer_restart) {
+		if (dect_timer_running(call->setup_timer))
+			dect_timer_start(dh, call->setup_timer, DECT_CC_SETUP_TIMEOUT);
+		if (dect_timer_running(call->completion_timer))
+			dect_timer_start(dh, call->completion_timer, DECT_CC_COMPLETION_TIMEOUT);
+	}
+
 	dect_msg_free(dh, &cc_notify_msg_desc, &msg.common);
 }
 
