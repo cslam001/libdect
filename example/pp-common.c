@@ -72,6 +72,7 @@ void dect_pp_common_options(int argc, char **argv)
 
 		switch (c) {
 		case OPT_CLUSTER:
+			cluster = optarg;
 			break;
 		case OPT_IPUI:
 			if (dect_parse_ipui(&ipui, optarg))
