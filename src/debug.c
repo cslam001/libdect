@@ -15,7 +15,6 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <execinfo.h>
-#include <bfd.h>
 
 #include <libdect.h>
 #include <utils.h>
