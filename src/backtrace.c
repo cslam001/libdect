@@ -133,8 +133,9 @@ static char **translate_addresses_buf(const char *obj_file, const void *obj_base
 					      (PTR)NULL);
 
 			if (!found) {
-				total += snprintf(buf, len, "0x%016llx in \?\?() from %s at \?\?:0",
-						  (long long unsigned int)obj_base + addr[naddr - 1],
+				total += snprintf(buf, len, "0x%0*lx in \?\?() from %s at \?\?:0",
+						  2 * sizeof(void *),
+						  (long unsigned int)(obj_base + addr[naddr - 1]),
 						  obj_file) + 1;
 			} else {
 				const char *name;
@@ -149,8 +150,9 @@ static char **translate_addresses_buf(const char *obj_file, const void *obj_base
 					if (h != NULL)
 						filename = h + 1;
 				}
-				total += snprintf(buf, len, "0x%016llx in %s() from %s at %s:%u",
-						  (long long unsigned int)obj_base + addr[naddr - 1],
+				total += snprintf(buf, len, "0x%0*lx in %s() from %s at %s:%u",
+						  2 * sizeof(void *),
+						  (long unsigned int)(obj_base + addr[naddr - 1]),
 						  name, obj_file,
 						  filename ? filename : "??",
 						  line) + 1;
