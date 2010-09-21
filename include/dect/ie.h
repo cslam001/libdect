@@ -207,6 +207,7 @@ struct dect_ie_delimiter_request {
  * @{
  */
 
+/** <<USE-TPUI>> IE */
 struct dect_ie_use_tpui {
 	struct dect_ie_common		common;
 };
@@ -861,9 +862,17 @@ struct dect_ie_cipher_info {
  * @addtogroup ie_cc_related
  * @{
  * @defgroup ie_connection_attributes Connection attributes
+ *
+ * <<CONNECTION-ATTRIBUTES>> IE specified in ETSI EN 300 175-5 section 7.7.11.
+ *
+ * The <<CONNECTION-ATTRIBUTES>> IE describes the connections that are required
+ * for the requested service.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.11
  * @{
  */
 
+/** <<CONNECTION-ATTRIBUTES>> IE */
 struct dect_ie_connection_attributes {
 	struct dect_ie_common		common;
 };
@@ -871,9 +880,18 @@ struct dect_ie_connection_attributes {
 /**
  * @}@}
  * @defgroup ie_connection_identity Connection identity
+ *
+ * <<CONNECTION-IDENTITY>> IE specified in ETSI EN 300 175-5 section 7.7.12.
+ *
+ * The <<CONNECTION-IDENTITY>> IE associates one or more U-plane link with an
+ * advanced connection or allocates ECN for connections associated with a
+ * broadband data link.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.12
  * @{
  */
 
+/** <<CONNECTION-IDENTITY>> IE */
 struct dect_ie_connection_identity {
 	struct dect_ie_common		common;
 };
@@ -882,7 +900,7 @@ struct dect_ie_connection_identity {
  * @}
  * @defgroup ie_duration Duration
  *
- * Duration IE specified in ETSI EN 300 175-5 section 7.7.13.
+ * <<DURATION>> IE specified in ETSI EN 300 175-5 section 7.7.13.
  *
  * The <<DURATION>> IE indicates a time duration. The time is defined
  * in units of MAC layer multiframes and depends on the time limit:
@@ -923,9 +941,17 @@ struct dect_ie_duration {
  * @addtogroup ie_cc_related
  * @{
  * @defgroup ie_end_to_end_compatibility End-to-end compatibility
+ *
+ * <<END-TO-END-COMPATIBILITY>> IE specified in ETSI EN 300 175-5 section 7.7.13.
+ *
+ * The <<END-TO-END-COMPATIBILITY>> IE exchanges some aspects of the end-to-end
+ * data terminal capabilities during call establishment.
+ *
+ * @sa ETSI EN 300 175-5 section 7.7.13
  * @{
  */
 
+/** <<END-TO-END-COMPATIBILITY>> IE */
 struct dect_ie_end_to_end_compatibility {
 	struct dect_ie_common		common;
 };
@@ -949,6 +975,7 @@ enum dect_facility_discriminators {
 	DECT_FACILITY_SS			= 0x17, /**< Supplementary service application */
 };
 
+/** <<FACILITY>> IE */
 struct dect_ie_facility {
 	struct dect_ie_common			common;
 	enum dect_facility_discriminators	service;
@@ -964,9 +991,7 @@ struct dect_ie_facility {
  * @{
  */
 
-/**
- * Features specified in ETSI EN 300 175-5 section 7.7.16 and 7.7.17.
- */
+/** Features specified in ETSI EN 300 175-5 section 7.7.16 and 7.7.17. */
 enum dect_feature {
 	DECT_FEATURE_REGISTER_RECALL			= 0x1,  /**< Register recall */
 	DECT_FEATURE_EXTERNAL_HO_SWITCH			= 0xf,  /**< External handover switch */
@@ -1029,6 +1054,9 @@ struct dect_ie_feature_indicate {
 /**
  * @}@}
  * @defgroup ie_identity_related Identity related
+ *
+ * Equipment Identity related IEs.
+ *
  * @{
  * @defgroup ie_fixed_identity Fixed identity
  *
@@ -1126,9 +1154,7 @@ struct dect_ie_nwk_assigned_identity {
  * @{
  */
 
-/**
- * Identity groups specified in ETSI EN 300 175-5 section 7.7.19.
- */
+/** Identity groups specified in ETSI EN 300 175-5 section 7.7.19. */
 enum dect_identity_groups {
 	DECT_IDENTITY_PORTABLE_IDENTITY		= 0x0, /**< Portable identity */
 	DECT_IDENTITY_NETWORK_ASSIGNED_IDENTITY	= 0x1, /**< Network assigned identity */
@@ -1205,9 +1231,17 @@ struct dect_ie_info_type {
  * @addtogroup ie_cc_related
  * @{
  * @defgroup ie_iwu_attributes InterWorking Unit (IWU) attributes
+ *
+ * <<IWU-ATTRIBUTES>> IEs specified in ETSI EN 300 175-5 section 7.7.21.
+ *
+ * The <<IWU-ATTRIBUTES>> IE provides a means to transparently exchange service
+ * compatibility information.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.21
  * @{
  */
 
+/** <<IWU-ATTRIBUTES>> IE */
 struct dect_ie_iwu_attributes {
 	struct dect_ie_common		common;
 };
@@ -1296,7 +1330,7 @@ struct dect_ie_iwu_to_iwu {
  * @{
  */
 
-/** <<KEY>> */
+/** <<KEY>> IE */
 struct dect_ie_key {
 	struct dect_ie_common		common;
 };
@@ -1337,9 +1371,7 @@ struct dect_ie_location_area {
  * @{
  */
 
-/**
- * Network parameter discriminators
- */
+/** Network parameter discriminators */
 enum dect_network_parameter_discriminators {
 	DECT_NETWORK_PARAMETER_APPLICATION_ASSIGNED		= 0x08,	/**< Application assigned */
 	DECT_NETWORK_PARAMETER_DEVICE_NAME			= 0x10,	/**< Device name */
@@ -1453,9 +1485,17 @@ struct dect_ie_auth_res {
 /**
  * @}@}
  * @defgroup ie_rate_parameter Rate parameters
+ *
+ * <<RATE-PARAMETERS>> IE specified in ETSI EN 300 175-5 section 7.7.33.
+ *
+ * The <<RATE-PARAMETERS>> IE indicates the attributes for the Basic Rate
+ * Adaption Service (BRAT).
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.33
  * @{
  */
 
+/** <<RATE-PARAMETERS>> IE */
 struct dect_ie_rate_parameters {
 	struct dect_ie_common		common;
 };
@@ -1519,9 +1559,18 @@ struct dect_ie_reject_reason {
 /**
  * @}@}
  * @defgroup ie_segmented_info Segmented info
+ *
+ * <<SEGMENTED-INFO>> IE specified in ETSI EN 300 175-5 section 7.6.37.
+ *
+ * The <<SEGEMENTED-INFO>> IE indicates that a message contains only part of
+ * segmented information element. It is only used internally by libdect, the
+ * upper layers always receive reassembled and parsed information elements.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.6.37
  * @{
  */
 
+/** <<SEGMENTED-INFO>> IE */
 struct dect_ie_segmented_info {
 	struct dect_ie_common		common;
 };
@@ -1529,9 +1578,17 @@ struct dect_ie_segmented_info {
 /**
  * @}
  * @defgroup ie_service_change_info Service change info
+ *
+ * <<SERVICE-CHANGE-INFO>> IE specified in ETSI EN 300 175-5 section 7.6.38.
+ *
+ * The <<SERVICE-CHANGE-INFO>> IE indicates the attributes of the proposed
+ * service change.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.6.38
  * @{
  */
 
+/** <<SERVICE-CHANGE-INFO>> IE */
 struct dect_ie_service_change_info {
 	struct dect_ie_common		common;
 };
@@ -1539,9 +1596,17 @@ struct dect_ie_service_change_info {
 /**
  * @}
  * @defgroup ie_service_class Service class
+ *
+ * <<SERVICE-CLASS>> IE specified in ETSI EN 300 175-5 section 7.6.39.
+ *
+ * The <<SERVICE-CLASS>> IE identifies the services which the PT is allowed
+ * to use.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.6.39
  * @{
  */
 
+/** <<SERVICE-CLASS>> IE */
 struct dect_ie_service_class {
 	struct dect_ie_common		common;
 };
@@ -1664,53 +1729,53 @@ enum dect_scrolling_behaviours {
 
 /** Profile indicators */
 enum dect_profile_indicators {
-	DECT_PROFILE_DPRS_ASYMETRIC_BEARERS_SUPPORTED		= 0x4000000000000000ULL, /**<  */
-	DECT_PROFILE_DPRS_STREAM_SUPPORTED			= 0x2000000000000000ULL, /**<  */
-	DECT_PROFILE_LRMS_SUPPORTED				= 0x1000000000000000ULL, /**<  */
-	DECT_PROFILE_ISDN_END_SYSTEM_SUPPORTED			= 0x0800000000000000ULL, /**<  */
-	DECT_PROFILE_DECT_GSM_INTERWORKING_PROFILE_SUPPORTED	= 0x0400000000000000ULL, /**<  */
-	DECT_PROFILE_GAP_SUPPORTED				= 0x0200000000000000ULL, /**<  */
-	DECT_PROFILE_CAP_SUPPORTED				= 0x0100000000000000ULL, /**<  */
-	DECT_PROFILE_RAP_1_PROFILE_SUPPORTED			= 0x0040000000000000ULL, /**<  */
-	DECT_PROFILE_UMTS_GSM_FACSIMILE_SUPPORTED		= 0x0020000000000000ULL, /**<  */
-	DECT_PROFILE_UMTS_GSM_SMS_SERVICE_SUPPORTED		= 0x0010000000000000ULL, /**<  */
-	DECT_PROFILE_UMTS_GSM_BEARER_SERVICE			= 0x0008000000000000ULL, /**<  */
-	DECT_PROFILE_ISDN_IAP_SUPPORTED				= 0x0004000000000000ULL, /**<  */
-	DECT_PROFILE_DATA_SERVICES_PROFILE_D			= 0x0002000000000000ULL, /**<  */
-	DECT_PROFILE_DPRS_FREL_SUPPORTED			= 0x0001000000000000ULL, /**<  */
-	DECT_PROFILE_TOKEN_RING_SUPPORTED			= 0x0000400000000000ULL, /**<  */
-	DECT_PROFILE_ETHERNET_SUPPORTED				= 0x0000200000000000ULL, /**<  */
-	DECT_PROFILE_MULTIPORT_CTA				= 0x0000100000000000ULL, /**<  */
-	DECT_PROFILE_DMAP_SUPPORTED				= 0x0000080000000000ULL, /**<  */
-	DECT_PROFILE_SMS_OVER_LRMS_SUPPORTED			= 0x0000040000000000ULL, /**<  */
-	DECT_PROFILE_WRS_SUPPORTED				= 0x0000020000000000ULL, /**<  */
-	DECT_PROFILE_DECT_GSM_DUAL_MODE_TERMINAL		= 0x0000010000000000ULL, /**<  */
-	DECT_PROFILE_DPRS_SUPPORTED				= 0x0000004000000000ULL, /**<  */
-	DECT_PROFILE_RAP_2_PROFILE_SUPPORTED			= 0x0000002000000000ULL, /**<  */
-	DECT_PROFILE_I_PQ_SERVICES_SUPPORTED			= 0x0000001000000000ULL, /**<  */
-	DECT_PROFILE_C_F_CHANNEL_SUPPORTED			= 0x0000000800000000ULL, /**<  */
-	DECT_PROFILE_V_24_SUPPORTED				= 0x0000000400000000ULL, /**<  */
-	DECT_PROFILE_PPP_SUPPORTED				= 0x0000000200000000ULL, /**<  */
-	DECT_PROFILE_IP_SUPPORTED				= 0x0000000100000000ULL, /**<  */
-	DECT_PROFILE_8_LEVEL_A_FIELD_MODULATION			= 0x0000000040000000ULL, /**<  */
-	DECT_PROFILE_4_LEVEL_A_FIELD_MODULATION			= 0x0000000020000000ULL, /**<  */
-	DECT_PROFILE_2_LEVEL_A_FIELD_MODULATION			= 0x0000000010000000ULL, /**<  */
-	DECT_PROFILE_16_LEVEL_BZ_FIELD_MODULATION		= 0x0000000008000000ULL, /**<  */
-	DECT_PROFILE_8_LEVEL_BZ_FIELD_MODULATION		= 0x0000000004000000ULL, /**<  */
-	DECT_PROFILE_4_LEVEL_BZ_FIELD_MODULATION		= 0x0000000002000000ULL, /**<  */
-	DECT_PROFILE_2_LEVEL_BZ_FIELD_MODULATION		= 0x0000000001000000ULL, /**<  */
-	DECT_PROFILE_NO_EMISSION_MODE_SUPPORTED			= 0x0000000000400000ULL, /**<  */
-	DECT_PROFILE_PT_WITH_FAST_HOPPING_RADIO			= 0x0000000000200000ULL, /**<  */
-	DECT_PROFILE_G_F_CHANNEL_SUPPORTED			= 0x0000000000100000ULL, /**<  */
-	DECT_PROFILE_F_MMS_INTERWORKING_PROFILE_SUPPORTED	= 0x0000000000080000ULL, /**<  */
-	DECT_PROFILE_BASIC_ODAP_SUPPORTED			= 0x0000000000040000ULL, /**<  */
-	DECT_PROFILE_DECT_UMTS_INTERWORKING_GPRS_SUPPORTED	= 0x0000000000020000ULL, /**<  */
-	DECT_PROFILE_DECT_UMTS_INTERWORKING_PROFILE_SUPPORTED	= 0x0000000000010000ULL, /**<  */
-	DECT_PROFILE_REKEYING_EARLY_ENCRYPTION_SUPPORTED	= 0x0000000000001000ULL, /**<  */
-	DECT_PROFILE_HEADSET_MANAGEMENT_SUPPORTED		= 0x0000000000000800ULL, /**<  */
-	DECT_PROFILE_NG_DECT_PART_3				= 0x0000000000000400ULL, /**<  */
-	DECT_PROFILE_NG_DECT_PART_1				= 0x0000000000000200ULL, /**<  */
-	DECT_PROFILE_64_LEVEL_BZ_FIELD_MODULATION		= 0x0000000000000100ULL, /**<  */
+	DECT_PROFILE_DPRS_ASYMETRIC_BEARERS_SUPPORTED		= 0x4000000000000000ULL, /**< DPRS asymmetric bearers supported (EN 301 649) */
+	DECT_PROFILE_DPRS_STREAM_SUPPORTED			= 0x2000000000000000ULL, /**< DPRS Stream supported (EN 301 649) */
+	DECT_PROFILE_LRMS_SUPPORTED				= 0x1000000000000000ULL, /**< LRMS (EN 300 757) supported */
+	DECT_PROFILE_ISDN_END_SYSTEM_SUPPORTED			= 0x0800000000000000ULL, /**< ISDN End-system supported */
+	DECT_PROFILE_DECT_GSM_INTERWORKING_PROFILE_SUPPORTED	= 0x0400000000000000ULL, /**< DECT/GSM interworking profile supported */
+	DECT_PROFILE_GAP_SUPPORTED				= 0x0200000000000000ULL, /**< GAP supported (EN 300 444) */
+	DECT_PROFILE_CAP_SUPPORTED				= 0x0100000000000000ULL, /**< CAP supported */
+	DECT_PROFILE_RAP_1_PROFILE_SUPPORTED			= 0x0040000000000000ULL, /**< RAP 1 Profile (EN 300 765-1 [50]) supported */
+	DECT_PROFILE_UMTS_GSM_FACSIMILE_SUPPORTED		= 0x0020000000000000ULL, /**< DECT/UMTS-GSM interworking - UMTS-GSM Facsimile service supported */
+	DECT_PROFILE_UMTS_GSM_SMS_SERVICE_SUPPORTED		= 0x0010000000000000ULL, /**< DECT/UMTS-GSM interworking - UMTS-GSM SMS service supported */
+	DECT_PROFILE_UMTS_GSM_BEARER_SERVICE			= 0x0008000000000000ULL, /**< DECT/UMTS-GSM interworking - UMTS-GSM Bearer service supported */
+	DECT_PROFILE_ISDN_IAP_SUPPORTED				= 0x0004000000000000ULL, /**< ISDN Intermediate Access Profile supported */
+	DECT_PROFILE_DATA_SERVICES_PROFILE_D			= 0x0002000000000000ULL, /**< Data Services Profile D, Class 2 supported (EN 301 238) */
+	DECT_PROFILE_DPRS_FREL_SUPPORTED			= 0x0001000000000000ULL, /**< DPRS Class 2 management and B-field procedures (DPRS-M.5) supported (EN 301 649) */
+	DECT_PROFILE_TOKEN_RING_SUPPORTED			= 0x0000400000000000ULL, /**< Token Ring supported */
+	DECT_PROFILE_ETHERNET_SUPPORTED				= 0x0000200000000000ULL, /**< Ethernet supported */
+	DECT_PROFILE_MULTIPORT_CTA				= 0x0000100000000000ULL, /**< Multiport CTA (EN 300 765-1) */
+	DECT_PROFILE_DMAP_SUPPORTED				= 0x0000080000000000ULL, /**< DMAP supported */
+	DECT_PROFILE_SMS_OVER_LRMS_SUPPORTED			= 0x0000040000000000ULL, /**< SMS over LRMS(EN 300 757) supported */
+	DECT_PROFILE_WRS_SUPPORTED				= 0x0000020000000000ULL, /**< WRS supported */
+	DECT_PROFILE_DECT_GSM_DUAL_MODE_TERMINAL		= 0x0000010000000000ULL, /**< DECT/GSM dual mode terminal */
+	DECT_PROFILE_DPRS_SUPPORTED				= 0x0000004000000000ULL, /**< Generic Media Encapsulation transport (DPRS) supported (EN 301 649) */
+	DECT_PROFILE_RAP_2_PROFILE_SUPPORTED			= 0x0000002000000000ULL, /**< RAP 2 Profile supported (EN 300 765-2) */
+	DECT_PROFILE_I_PQ_SERVICES_SUPPORTED			= 0x0000001000000000ULL, /**< I_PQ services supported */
+	DECT_PROFILE_C_F_CHANNEL_SUPPORTED			= 0x0000000800000000ULL, /**< C_F supported */
+	DECT_PROFILE_V_24_SUPPORTED				= 0x0000000400000000ULL, /**< V.24 supported */
+	DECT_PROFILE_PPP_SUPPORTED				= 0x0000000200000000ULL, /**< PPP supported */
+	DECT_PROFILE_IP_SUPPORTED				= 0x0000000100000000ULL, /**< IP supported */
+	DECT_PROFILE_8_LEVEL_A_FIELD_MODULATION			= 0x0000000040000000ULL, /**< 8-level modulation scheme supported (A field) */
+	DECT_PROFILE_4_LEVEL_A_FIELD_MODULATION			= 0x0000000020000000ULL, /**< 4-level modulation scheme supported (A field) */
+	DECT_PROFILE_2_LEVEL_A_FIELD_MODULATION			= 0x0000000010000000ULL, /**< 2-level modulation scheme supported (A field) */
+	DECT_PROFILE_16_LEVEL_BZ_FIELD_MODULATION		= 0x0000000008000000ULL, /**< 16-level modulation scheme supported (B+Z field) */
+	DECT_PROFILE_8_LEVEL_BZ_FIELD_MODULATION		= 0x0000000004000000ULL, /**< 8-level modulation scheme supported (B+Z field) */
+	DECT_PROFILE_4_LEVEL_BZ_FIELD_MODULATION		= 0x0000000002000000ULL, /**< 4-level modulation scheme supported (B+Z field) */
+	DECT_PROFILE_2_LEVEL_BZ_FIELD_MODULATION		= 0x0000000001000000ULL, /**< 2-level modulation scheme supported (B+Z field) */
+	DECT_PROFILE_NO_EMISSION_MODE_SUPPORTED			= 0x0000000000400000ULL, /**< Capability to support "no emission" mode (EN 300 175-3) */
+	DECT_PROFILE_PT_WITH_FAST_HOPPING_RADIO			= 0x0000000000200000ULL, /**< PT with fast hopping radio */
+	DECT_PROFILE_G_F_CHANNEL_SUPPORTED			= 0x0000000000100000ULL, /**< Channel G_F supported */
+	DECT_PROFILE_F_MMS_INTERWORKING_PROFILE_SUPPORTED	= 0x0000000000080000ULL, /**< F-MMS Interworking profile supported (TS 102 379) */
+	DECT_PROFILE_BASIC_ODAP_SUPPORTED			= 0x0000000000040000ULL, /**< Basic ODAP supported (TS 102 342) */
+	DECT_PROFILE_DECT_UMTS_INTERWORKING_GPRS_SUPPORTED	= 0x0000000000020000ULL, /**< DECT/UMTS interworking - GPRS services supported (TS 101 863) */
+	DECT_PROFILE_DECT_UMTS_INTERWORKING_PROFILE_SUPPORTED	= 0x0000000000010000ULL, /**< DECT/UMTS interworking profile supported (TS 101 863) */
+	DECT_PROFILE_REKEYING_EARLY_ENCRYPTION_SUPPORTED	= 0x0000000000001000ULL, /**< Support of "Re-keying" and "default cipher key mechanism early encryption" */
+	DECT_PROFILE_HEADSET_MANAGEMENT_SUPPORTED		= 0x0000000000000800ULL, /**< Support of the "Headset management" feature */
+	DECT_PROFILE_NG_DECT_PART_3				= 0x0000000000000400ULL, /**< Support of NG-DECT Part 3 (TS 102 527-3) */
+	DECT_PROFILE_NG_DECT_PART_1				= 0x0000000000000200ULL, /**< NG-DECT Part 1: Wideband voice supported (TS 102 527-1) */
+	DECT_PROFILE_64_LEVEL_BZ_FIELD_MODULATION		= 0x0000000000000100ULL, /**< 64-level modulation scheme supported (B+Z field) */
 };
 
 /** Display control capabilities */
@@ -1753,10 +1818,18 @@ struct dect_ie_terminal_capability {
 
 /**
  * @}@}
- * @defgroup ie_transit_delay  Transit delay
+ * @defgroup ie_transit_delay Transit delay
+ *
+ * <<TRANSIT-DELAY>> IE specified in ETSI EN 300 175-5 section 7.7.42.
+ *
+ * The <<TRANSIT-DELAY>> IE indicates the allowable delay for data transmitted
+ * through the DECT subnetwork.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.42.
  * @{
  */
 
+/** <<TRANSIT-DELAY>> IE */
 struct dect_ie_transit_delay {
 	struct dect_ie_common		common;
 };
@@ -1764,9 +1837,17 @@ struct dect_ie_transit_delay {
 /**
  * @}
  * @defgroup ie_window_size Window size
+ *
+ * <<WINDOW-SIZE>> IE specified in ETSI EN 300 175-5 section 7.7.43.
+ *
+ * The <<WINDOW-SIZE>> IE indicates and optionally negotiates the window size
+ * to be used for frame transmission.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.43.
  * @{
  */
 
+/** <<WINDOW-SIZE>> IE */
 struct dect_ie_window_size {
 	struct dect_ie_common		common;
 };
@@ -1815,9 +1896,17 @@ struct dect_ie_escape_to_proprietary {
 /**
  * @}@}
  * @defgroup ie_model_identifier Model identifier
+ *
+ * <<MODEL-IDENTIFIER>> IE specified in ETSI EN 300 175-5 section 7.7.46.
+ *
+ * The <<MODEL-IDENTIFIER>> IE identifies the model version of the PT to the FT
+ * or vice versa.
+ *
+ * @sa ETSI EN 300 175-5 (Network (NWK) layer), section 7.7.46
  * @{
  */
 
+/** <<MODEL-IDENTIFIER>> IE */
 struct dect_ie_model_identifier {
 	struct dect_ie_common		common;
 };
@@ -1877,6 +1966,7 @@ enum dect_time_date_interpretation {
 	DECT_TIME_DATE_DURATION			= 0x1, /**< Time duration */
 };
 
+/** <<TIME-DATE>> IE */
 struct dect_ie_time_date {
 	struct dect_ie_common			common;
 	enum dect_time_date_coding		coding;
@@ -1915,6 +2005,7 @@ struct dect_ie_ext_ho_indicator {
  * @{
  */
 
+/** <<AUTHENTICATION-REJECT-PARAMETER>> IE */
 struct dect_ie_auth_reject_parameter {
 	struct dect_ie_common		common;
 };
@@ -1971,7 +2062,7 @@ enum dect_slot_size {
 	DECT_DOUBLE_SLOT			= 0x5, /**< Double slot */
 };
 
-/* C-Plane routing options */
+/** C-Plane routing options */
 enum dect_cplane_routing {
 	DECT_CPLANE_CS_ONLY			= 0x0, /**< CS only */
 	DECT_CPLANE_CS_PREFERRED		= 0x1, /**< CS preferred/CF accepted */
@@ -1995,6 +2086,12 @@ struct dect_ie_codec_list {
 /**
  * @}@}
  * @defgroup ie_events_notification Events notification
+ *
+ * <<EVENTS-NOTIFICATION>> IE specified in ETSI EN 300 175-5 section 7.7.55.
+ *
+ * The <<EVENTS-NOTIFICATION>> IE conveys events notifications to the user.
+ *
+ * @sa ETSI EN 300 175-5 section 7.7.55.
  * @{
  */
 
@@ -2022,18 +2119,33 @@ enum dect_event_web_content_subtypes {
 	DECT_EVENT_WEB_CONTENT_RSS		= 0x1, /**< RSS description */
 };
 
+/** <<EVENTS-NOTIFICATION>> IE */
 struct dect_ie_events_notification {
 	struct dect_ie_common		common;
 };
 
-/** @} */
-/* Call information IE */
+/**
+ * @}
+ * @addtogroup ie_cc_related
+ * @{
+ * @defgroup ie_call_information Call Information
+ *
+ * <<CALL-INFORMATION>> IE specified in ETSI EN 300 175-5 section 7.7.56.
+ *
+ * The <<CALL-INFORMATION>> IE is used to convey call and line identifiers.
+ *
+ * @sa ETSI EN 300 175-5 section 7.7.56.
+ * @{
+ */
 
+/** <<CALL-INFORMATION>> IE */
 struct dect_ie_call_information {
 	struct dect_ie_common		common;
 };
 
-/* @} */
+/** @} */
+/** @} */
+/** @} */
 
 #ifdef __cplusplus
 }

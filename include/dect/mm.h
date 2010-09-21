@@ -23,7 +23,7 @@ extern "C" {
  * @{
  */
 
-/** DECT_MM_ACCESS_RIGHTS primitive parameters. */
+/** MM_ACCESS_RIGHTS primitive parameters. */
 struct dect_mm_access_rights_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
@@ -49,7 +49,7 @@ struct dect_mm_access_rights_param {
  * @{
  */
 
-/** DECT_MM_ACCESS_RIGHTS_TERMINATE primitive parameters. */
+/** MM_ACCESS_RIGHTS_TERMINATE primitive parameters. */
 struct dect_mm_access_rights_terminate_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
@@ -66,7 +66,7 @@ struct dect_mm_access_rights_terminate_param {
  * @{
  */
 
-/** DECT_MM_KEY_ALLOCATE primitive parameters. */
+/** MM_KEY_ALLOCATE primitive parameters. */
 struct dect_mm_key_allocate_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_allocation_type		*allocation_type;
@@ -81,7 +81,7 @@ struct dect_mm_key_allocate_param {
  * @{
  */
 
-/** DECT_MM_AUTHENTICATE primitive parameters. */
+/** MM_AUTHENTICATE primitive parameters. */
 struct dect_mm_authenticate_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_auth_type		*auth_type;
@@ -103,7 +103,7 @@ struct dect_mm_authenticate_param {
  * @{
  */
 
-/** DECT_MM_CIPHER primitive parameters. */
+/** MM_CIPHER primitive parameters. */
 struct dect_mm_cipher_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_cipher_info		*cipher_info;
@@ -120,7 +120,7 @@ struct dect_mm_cipher_param {
  * @{
  */
 
-/** DECT_MM_LOCATE primitive parameters. */
+/** MM_LOCATE primitive parameters. */
 struct dect_mm_locate_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
@@ -144,7 +144,7 @@ struct dect_mm_locate_param {
  * @{
  */
 
-/** DECT_MM_DETACH primitive parameters. */
+/** MM_DETACH primitive parameters. */
 struct dect_mm_detach_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
@@ -178,7 +178,7 @@ struct dect_mm_identity_param {
  * @{
  */
 
-/** DECT_MM_IDENTITY_ASSIGN primitive parameters. */
+/** MM_IDENTITY_ASSIGN primitive parameters. */
 struct dect_mm_identity_assign_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_portable_identity	*portable_identity;
@@ -197,7 +197,7 @@ struct dect_mm_identity_assign_param {
  * @{
  */
 
-/** DECT_MM_INFO primitive parameters. */
+/** MM_INFO primitive parameters. */
 struct dect_mm_info_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_info_type		*info_type;
@@ -219,7 +219,7 @@ struct dect_mm_info_param {
  * @{
  */
 
-/** DECT_MM_IWU primitive parameters. */
+/** MM_IWU primitive parameters. */
 struct dect_mm_iwu_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_iwu_to_iwu		*iwu_to_iwu;

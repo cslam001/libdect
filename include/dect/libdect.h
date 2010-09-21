@@ -30,7 +30,7 @@ extern "C" {
 struct dect_handle;
 
 /**
- * struct dect_msg_buf - DECT message buffer
+ * DECT message buffer
  *
  * @arg list	Data link TX queue node
  * @arg refcnt	Reference count

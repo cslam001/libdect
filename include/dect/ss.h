@@ -18,7 +18,7 @@ extern "C" {
 
 #include <dect/ie.h>
 
-/** DECT_MNSS primitive parameters. */
+/** MNSS primitive parameters. */
 struct dect_mnss_param {
 	struct dect_ie_collection		common;
 	struct dect_ie_list			facility;
