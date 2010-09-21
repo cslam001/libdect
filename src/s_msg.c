@@ -42,7 +42,7 @@ static const struct dect_trans_tbl dect_repeat_indicators[] = {
 static void dect_sfmt_dump_repeat_indicator(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_list *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\trepeat indicator: %s\n",
 		   dect_val2str(dect_repeat_indicators, buf, ie->type));
@@ -116,7 +116,7 @@ static const struct dect_trans_tbl dect_basic_services[] = {
 static void dect_sfmt_dump_basic_service(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_basic_service *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tcall class: %s\n",
 		   dect_val2str(dect_call_classes, buf, ie->class));
@@ -247,7 +247,7 @@ static void dect_sfmt_dump_info_type(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_info_type *ie = dect_ie_container(ie, _ie);
 	unsigned int i;
-	char buf[64];
+	char buf[128];
 
 	for (i = 0; i < ie->num; i++)
 		sfmt_debug("\tparameter type[%u]: %s\n", i,
@@ -315,7 +315,7 @@ static const struct dect_trans_tbl dect_nwk_identity_types[] = {
 static void dect_sfmt_dump_identity_type(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_identity_type *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tidentity group: %s\n",
 		   dect_val2str(dect_identity_groups, buf, ie->group));
@@ -401,7 +401,7 @@ static const struct dect_trans_tbl dect_release_reasons[] = {
 static void dect_sfmt_dump_release_reason(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_release_reason *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\trelease reason: %s\n",
 		   dect_val2str(dect_release_reasons, buf, ie->reason));
@@ -453,7 +453,7 @@ static const struct dect_trans_tbl dect_signal_codes[] = {
 static void dect_sfmt_dump_signal(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_signal *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tsignal: %s\n", dect_val2str(dect_signal_codes, buf, ie->code));
 }
@@ -496,7 +496,7 @@ static int dect_sfmt_parse_timer_restart(const struct dect_handle *dh,
 static void dect_sfmt_dump_portable_identity(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_portable_identity *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\ttype: %s\n",
 		   dect_val2str(dect_portable_identity_types, buf, ie->type));
@@ -583,7 +583,7 @@ static int dect_sfmt_build_portable_identity(struct dect_sfmt_ie *dst,
 static void dect_sfmt_dump_fixed_identity(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_fixed_identity *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\ttype: %s\n",
 		   dect_val2str(dect_fixed_identity_types, buf, ie->type));
@@ -703,7 +703,7 @@ static const struct dect_trans_tbl dect_auth_key_types[] = {
 static void dect_sfmt_dump_allocation_type(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_allocation_type *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tauthentication algorithm: %s\n",
 		   dect_val2str(dect_auth_algs, buf, ie->auth_id));
@@ -738,7 +738,7 @@ static int dect_sfmt_build_allocation_type(struct dect_sfmt_ie *dst,
 static void dect_sfmt_dump_auth_type(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_auth_type *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tauthentication algorithm: %s\n",
 		   dect_val2str(dect_auth_algs, buf, ie->auth_id));
@@ -890,7 +890,7 @@ static const struct dect_trans_tbl dect_cipher_key_types[] = {
 static void dect_sfmt_dump_cipher_info(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_cipher_info *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tenable: %u\n", ie->enable);
 	sfmt_debug("\tcipher algorithm: %s\n",
@@ -953,7 +953,7 @@ static const struct dect_trans_tbl dect_progress_descriptions[] = {
 static void dect_sfmt_dump_progress_indicator(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_progress_indicator *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tLocation: %s\n",
 		   dect_val2str(dect_locations, buf, ie->location));
@@ -1117,7 +1117,7 @@ static const struct dect_trans_tbl dect_features[] = {
 static void dect_sfmt_dump_feature_activate(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_feature_activate *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tfeature: %s\n", dect_val2str(dect_features, buf, ie->feature));
 }
@@ -1146,7 +1146,7 @@ static int dect_sfmt_build_feature_activate(struct dect_sfmt_ie *dst,
 static void dect_sfmt_dump_feature_indicate(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_feature_indicate *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tfeature: %s\n", dect_val2str(dect_features, buf, ie->feature));
 	sfmt_debug("\tstatus: %x\n", ie->status);
@@ -1179,7 +1179,7 @@ static const struct dect_trans_tbl dect_network_parameter_discriminators[] = {
 static void dect_sfmt_dump_network_parameter(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_network_parameter *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tDiscriminator: %s\n",
 		   dect_val2str(dect_network_parameter_discriminators,
@@ -1249,7 +1249,7 @@ static const struct dect_trans_tbl dect_reject_reasons[] = {
 static void dect_sfmt_dump_reject_reason(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_reject_reason *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\treject reason: %s\n",
 		   dect_val2str(dect_reject_reasons, buf, ie->reason));
@@ -1402,7 +1402,7 @@ static const struct dect_trans_tbl dect_profile_indicators[] = {
 static void dect_sfmt_dump_terminal_capability(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_terminal_capability *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tdisplay capability: %s\n",
 		   dect_val2str(dect_display_capabilities, buf, ie->display));
@@ -1594,7 +1594,7 @@ static const struct dect_trans_tbl dect_screening_indicators[] = {
 static void dect_sfmt_dump_calling_party_number(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_calling_party_number *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tNumber type: %s\n", dect_val2str(dect_number_types, buf, ie->type));
 	sfmt_debug("\tNumbering Plan: %s\n", dect_val2str(dect_npis, buf, ie->npi));
@@ -1658,7 +1658,7 @@ group4:
 static void dect_sfmt_dump_calling_party_name(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_calling_party_name *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tPresentation indicator: %s\n",
 		   dect_val2str(dect_presentation_indicators, buf, ie->presentation));
@@ -1703,7 +1703,7 @@ static void dect_sfmt_dump_called_party_number(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_called_party_number *ie = dect_ie_container(ie, _ie);
 	char address[ie->len + 1];
-	char buf[64];
+	char buf[128];
 
 	memcpy(address, ie->address, ie->len);
 	address[ie->len] = '\0';
@@ -1759,7 +1759,7 @@ static const struct dect_trans_tbl dect_time_limits[] = {
 static void dect_sfmt_dump_duration(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_duration *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tlock: %s\n", dect_val2str(dect_lock_limits, buf, ie->lock));
 	sfmt_debug("\ttime: %s\n", dect_val2str(dect_time_limits, buf, ie->time));
@@ -1831,7 +1831,7 @@ static const struct dect_trans_tbl dect_iwu_to_iwu_pds[] = {
 static void dect_sfmt_dump_iwu_to_iwu(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_iwu_to_iwu *ie = dect_ie_container(ie, _ie);
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tSend/Reject (S/R) bit: %s\n",
 		   dect_val2str(dect_iwu_to_iwu_sr, buf, ie->sr));
@@ -1959,7 +1959,7 @@ static void dect_sfmt_dump_codec_list(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_codec_list *ie = dect_ie_container(ie, _ie);
 	unsigned int i;
-	char buf[64];
+	char buf[128];
 
 	sfmt_debug("\tNegotiation Indicator: %s\n",
 		   dect_val2str(dect_negotiation_indicators, buf, ie->negotiation));
