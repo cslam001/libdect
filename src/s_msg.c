@@ -928,6 +928,38 @@ static int dect_sfmt_build_cipher_info(struct dect_sfmt_ie *dst,
 	dst->len = 4;
 	return 0;
 }
+static const struct dect_trans_tbl dect_locations[] = {
+	TRANS_TBL(DECT_LOCATION_USER,					"user"),
+	TRANS_TBL(DECT_LOCATION_PRIVATE_NETWORK_SERVING_LOCAL_USER,	"private network serving the local user"),
+	TRANS_TBL(DECT_LOCATION_PUBLIC_NETWORK_SERVING_LOCAL_USER,	"public network serving the local user"),
+	TRANS_TBL(DECT_LOCATION_PUBLIC_NETWORK_SERVING_REMOTE_USER,	"public network serving the remote user"),
+	TRANS_TBL(DECT_LOCATION_PRIVATE_NETWORK_SERVING_REMOTE_USER,	"private network serving the remote user"),
+	TRANS_TBL(DECT_LOCATION_INTERNATIONAL_NETWORK,			"international network"),
+	TRANS_TBL(DECT_LOCATION_NETWORK_BEYONG_INTERWORKING_POINT,	"network beyond interworking point"),
+	TRANS_TBL(DECT_LOCATION_NOT_APPLICABLE,				"not applicable"),
+};
+
+static const struct dect_trans_tbl dect_progress_descriptions[] = {
+	TRANS_TBL(DECT_PROGRESS_NOT_END_TO_END_ISDN,			"Call is not end-to-end ISDN, further call progress info may be available in-band"),
+	TRANS_TBL(DECT_PROGRESS_DESTINATION_ADDRESS_NON_ISDN,		"Destination address is non-ISDN"),
+	TRANS_TBL(DECT_PROGRESS_ORIGINATION_ADDRESS_NON_ISDN,		"Origination address is non-ISDN"),
+	TRANS_TBL(DECT_PROGRESS_CALL_RETURNED_TO_ISDN,			"Call has returned to the ISDN"),
+	TRANS_TBL(DECT_PROGRESS_SERVICE_CHANGE,				"Service change has occurred"),
+	TRANS_TBL(DECT_PROGRESS_INBAND_INFORMATION_NOW_AVAILABLE,	"In-band information or appropriate pattern now available"),
+	TRANS_TBL(DECT_PROGRESS_INBAND_INFORMATION_NOT_AVAILABLE,	"In-band information not available"),
+	TRANS_TBL(DECT_PROGRESS_END_TO_END_ISDN,			"Call is end-to-end PLMN/ISDN"),
+};
+
+static void dect_sfmt_dump_progress_indicator(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_progress_indicator *ie = dect_ie_container(ie, _ie);
+	char buf[64];
+
+	sfmt_debug("\tLocation: %s\n",
+		   dect_val2str(dect_locations, buf, ie->location));
+	sfmt_debug("\tProgress description: %s\n",
+		   dect_val2str(dect_progress_descriptions, buf, ie->progress));
+}
 
 static int dect_sfmt_parse_progress_indicator(const struct dect_handle *dh,
 					      struct dect_ie_common **ie,
@@ -936,7 +968,7 @@ static int dect_sfmt_parse_progress_indicator(const struct dect_handle *dh,
 	struct dect_ie_progress_indicator *dst = dect_ie_container(dst, *ie);
 
 	dst->location = src->data[2] & DECT_SFMT_IE_PROGRESS_INDICATOR_LOCATION_MASK;
-	dst->progress = src->data[3];
+	dst->progress = src->data[3] & ~DECT_OCTET_GROUP_END;
 	return 0;
 }
 
@@ -2186,6 +2218,7 @@ static const struct dect_ie_handler {
 		.size	= sizeof(struct dect_ie_progress_indicator),
 		.parse	= dect_sfmt_parse_progress_indicator,
 		.build	= dect_sfmt_build_progress_indicator,
+		.dump	= dect_sfmt_dump_progress_indicator,
 	},
 	[DECT_IE_MMS_GENERIC_HEADER]		= {
 		.name	= "MMS-GENERIC-HEADER",

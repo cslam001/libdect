@@ -1381,8 +1381,8 @@ enum dect_location {
 	DECT_LOCATION_USER					= 0x0, /**< user */
 	DECT_LOCATION_PRIVATE_NETWORK_SERVING_LOCAL_USER	= 0x1, /**< private network serving the local user */
 	DECT_LOCATION_PUBLIC_NETWORK_SERVING_LOCAL_USER		= 0x2, /**< public network serving the local user */
-	DECT_LOCATION_PRIVATE_NETWORK_SERVING_REMOTE_USER	= 0x4, /**< public network serving the remote user */
-	DECT_LOCATION_PUBLIC_NETWORK_SERVING_REMOTE_USER	= 0x5, /**< private network serving the remote user */
+	DECT_LOCATION_PUBLIC_NETWORK_SERVING_REMOTE_USER	= 0x4, /**< public network serving the remote user */
+	DECT_LOCATION_PRIVATE_NETWORK_SERVING_REMOTE_USER	= 0x5, /**< private network serving the remote user */
 	DECT_LOCATION_INTERNATIONAL_NETWORK			= 0x7, /**< international network */
 	DECT_LOCATION_NETWORK_BEYONG_INTERWORKING_POINT		= 0xa, /**< network beyond interworking point */
 	DECT_LOCATION_NOT_APPLICABLE				= 0xf, /**< not applicable */
