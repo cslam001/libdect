@@ -38,7 +38,8 @@ static struct dect_ops ops;
 
 int main(int argc, char **argv)
 {
-	dect_common_init(&ops, argv[1]);
+	dect_fp_common_options(argc, argv);
+	dect_common_init(&ops, cluster);
 
 	dect_invoke_clms(dh);
 

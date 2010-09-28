@@ -26,6 +26,8 @@ extern int dect_write_uak(const struct dect_ipui *ipui,
 extern int dect_read_uak(const struct dect_ipui *ipui,
 			 uint8_t uak[DECT_AUTH_KEY_LEN]);
 
+extern void dect_fp_common_options(int argc, char **argv);
+
 extern void dect_pp_auth_init(struct dect_ops *ops,
 			      const struct dect_ipui *ipui);
 extern void dect_pp_common_init(struct dect_ops *ops, const char *cluster,

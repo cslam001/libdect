@@ -9,6 +9,7 @@ PROGRAMS	+= pp-wait-page
 destdir		:= usr/share/dect/examples
 
 common-obj	+= common.o event_ops.o keys.o dummy_ops.o debug.o
+fp-common-obj	+= $(common-obj) fp-common.o
 pp-common-obj	+= $(common-obj) pp-common.o pp-auth.o
 
 ss-destdir	:= $(destdir)
@@ -16,21 +17,21 @@ ss-obj		+= $(common-obj)
 ss-obj		+= ss.o
 
 fp-mm-destdir			:= $(destdir)
-fp-mm-obj			+= $(common-obj)
+fp-mm-obj			+= $(fp-common-obj)
 fp-mm-obj			+= fp-mm.o
 
 fp-cc-destdir			:= $(destdir)
-fp-cc-obj			+= $(common-obj)
+fp-cc-obj			+= $(fp-common-obj)
 fp-cc-obj			+= audio.o
 fp-cc-obj			+= fp-cc.o
 fp-cc-ldflags			+= -lSDL
 
 fp-clms-destdir			:= $(destdir)
-fp-clms-obj			+= $(common-obj)
+fp-clms-obj			+= $(fp-common-obj)
 fp-clms-obj			+= fp-clms.o
 
 fp-broadcast-page-destdir	:= $(destdir)
-fp-broadcast-page-obj		+= $(common-obj)
+fp-broadcast-page-obj		+= $(fp-common-obj)
 fp-broadcast-page-obj		+= fp-broadcast-page.o
 
 pp-access-rights-destdir	:= $(destdir)
