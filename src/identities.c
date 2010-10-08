@@ -128,6 +128,71 @@ static void dect_dump_ipei(const struct dect_ipei *ipei)
 	sfmt_debug("\tPSN: %.5x\n", ipei->psn);
 }
 
+/**
+ * Format an IPEI as printed text
+ *
+ * @param ipei	IPEI
+ * @param buf	destination buffer
+ *
+ * Format an IPEI as printed text according to ETSI EN 300 175-6 Annex C.
+ */
+char *dect_format_ipei_string(const struct dect_ipei *ipei, char *buf)
+{
+	unsigned int i, c, len;
+
+	len = sprintf(buf, "%05u%07u", ipei->emc, ipei->psn);
+
+	c = 0;
+	for (i = 0; i < len; i++)
+		c += (i + 1) * (buf[i] - '0');
+	c %= 11;
+
+	if (c < 10)
+		buf[len] = c + '0';
+	else
+		buf[len] = '*';
+	buf[len + 1] = '\0';
+
+	return buf;
+}
+EXPORT_SYMBOL(dect_format_ipei_string);
+
+/**
+ * Parse the textual representation of an IPEI
+ *
+ * @param ipei	IPEI
+ * @param str	IPEI string
+ *
+ * Parse the textual representation of an IPEI formatted according to
+ * ETSI EN 300 175-6 Annex C.
+ *
+ * @returns True if parsing was successful, false in case of an error.
+ */
+bool dect_parse_ipei_string(struct dect_ipei *ipei, const char *str)
+{
+	unsigned int i, c, len;
+
+	len = strlen(str);
+	if (len != DECT_IPEI_STRING_LEN)
+		return false;
+
+	c = 0;
+	for (i = 0; i < len - 1; i++)
+		c += (i + 1) * (str[i] - '0');
+	c %= 11;
+
+	if (c < 10) {
+		if (str[len - 1] != (int)c + '0')
+			return false;
+	} else {
+		if (str[len - 1] != '*')
+			return false;
+	}
+
+	return sscanf(str, "%05hu%07u", &ipei->emc, &ipei->psn) == 2;
+}
+EXPORT_SYMBOL(dect_parse_ipei_string);
+
 static bool dect_parse_ipei(struct dect_ipei *ipei, uint64_t i)
 {
 	ipei->emc = (i & DECT_IPEI_EMC_MASK) >> DECT_IPEI_EMC_SHIFT;

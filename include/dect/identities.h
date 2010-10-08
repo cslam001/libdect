@@ -97,6 +97,12 @@ struct dect_ipei {
 	uint32_t	psn;		/**< Portable equipment Serial Number */
 };
 
+/** Length of an IPEI formatted as printed text */
+#define DECT_IPEI_STRING_LEN		13
+
+extern char *dect_format_ipei_string(const struct dect_ipei *ipei, char *buf);
+extern bool dect_parse_ipei_string(struct dect_ipei *ipei, const char *str);
+
 /* IPUI */
 
 #define DECT_IPUI_PUT_MASK		0xf0
