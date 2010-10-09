@@ -595,7 +595,7 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 	if (dect_timer_running(ddl->sdu_timer))
 		dect_ddl_stop_sdu_timer(dh, ddl);
 
-	if (tv == DECT_TV_CONNECTIONLESS)
+	if (pd == DECT_PD_CLMS && tv == DECT_TV_CONNECTIONLESS)
 		return dect_clss_rcv(dh, mb);
 
 	ta = dect_ddl_transaction_lookup(ddl, pd, tv, !f);

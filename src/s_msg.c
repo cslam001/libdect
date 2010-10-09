@@ -503,9 +503,8 @@ static void dect_sfmt_dump_portable_identity(const struct dect_ie_common *_ie)
 
 	switch (ie->type) {
 	case DECT_PORTABLE_ID_TYPE_IPUI:
-		return dect_dump_ipui(&ie->ipui);
 	case DECT_PORTABLE_ID_TYPE_IPEI:
-		break;
+		return dect_dump_ipui(&ie->ipui);
 	case DECT_PORTABLE_ID_TYPE_TPUI:
 		return dect_dump_tpui(&ie->tpui);
 	}
@@ -535,10 +534,9 @@ static int dect_sfmt_parse_portable_identity(const struct dect_handle *dh,
 
 	switch (dst->type) {
 	case DECT_PORTABLE_ID_TYPE_IPUI:
+	case DECT_PORTABLE_ID_TYPE_IPEI:
 		if (!dect_parse_ipui(&dst->ipui, src->data + 4, len))
 			sfmt_debug("parsing failed\n");
-		return 0;
-	case DECT_PORTABLE_ID_TYPE_IPEI:
 		return 0;
 	case DECT_PORTABLE_ID_TYPE_TPUI:
 		return 0;
@@ -557,12 +555,11 @@ static int dect_sfmt_build_portable_identity(struct dect_sfmt_ie *dst,
 
 	switch (ie->type) {
 	case DECT_PORTABLE_ID_TYPE_IPUI:
+	case DECT_PORTABLE_ID_TYPE_IPEI:
 		len = dect_build_ipui(&dst->data[4], &ie->ipui);
 		if (len == 0)
 			return -1;
 		break;
-	case DECT_PORTABLE_ID_TYPE_IPEI:
-		return -1;
 	case DECT_PORTABLE_ID_TYPE_TPUI:
 		tpui = dect_build_tpui(&ie->tpui);
 		dst->data[6] = tpui;

@@ -31,6 +31,7 @@ struct dect_mnss_param {
 	struct dect_ie_time_date		*time_date;
 	struct dect_ie_events_notification	*events_notification;
 	struct dect_ie_call_information		*call_information;
+	struct dect_ie_release_reason		*release_reason;
 };
 
 struct dect_handle;
@@ -38,6 +39,7 @@ struct dect_ss_endpoint;
 
 extern void *dect_ss_priv(struct dect_ss_endpoint *sse);
 extern struct dect_ss_endpoint *dect_ss_endpoint_alloc(struct dect_handle *dh);
+extern void dect_ss_endpoint_destroy(struct dect_handle *dh, struct dect_ss_endpoint *sse);
 
 /**
  * Supplementary Services Ops.

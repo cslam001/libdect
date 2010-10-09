@@ -41,7 +41,7 @@ static DECT_SFMT_MSG_DESC(ciss_register,
 );
 
 static DECT_SFMT_MSG_DESC(ciss_release_com,
-	DECT_SFMT_IE(DECT_IE_PORTABLE_IDENTITY,		IE_OPTIONAL,  IE_MANDATORY, 0),
+	DECT_SFMT_IE(DECT_IE_RELEASE_REASON,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(DECT_IE_REPEAT_INDICATOR,		IE_OPTIONAL,  IE_OPTIONAL,  0),
 	DECT_SFMT_IE(DECT_IE_FACILITY,			IE_OPTIONAL,  IE_OPTIONAL,  DECT_SFMT_IE_REPEAT),
 	DECT_SFMT_IE(DECT_IE_SINGLE_DISPLAY,		IE_OPTIONAL,  IE_NONE,      0),
@@ -117,6 +117,12 @@ err1:
 	return NULL;
 }
 EXPORT_SYMBOL(dect_ss_endpoint_alloc);
+
+void dect_ss_endpoint_destroy(struct dect_handle *dh, struct dect_ss_endpoint *sse)
+{
+	dect_free(dh, sse);
+}
+EXPORT_SYMBOL(dect_ss_endpoint_destroy);
 
 static struct dect_ss_endpoint *dect_ss_endpoint(struct dect_transaction *ta)
 {
@@ -263,6 +269,7 @@ static void dect_ciss_rcv_release_com(struct dect_handle *dh,
 	if (param == NULL)
 		goto out;
 
+	param->release_reason		= dect_ie_hold(msg.release_reason);
 	param->facility			= *dect_ie_list_hold(&msg.facility);
 	param->display			= dect_ie_hold(msg.display);
 	param->keypad			= dect_ie_hold(msg.keypad);
@@ -270,9 +277,12 @@ static void dect_ciss_rcv_release_com(struct dect_handle *dh,
 	param->feature_indicate		= dect_ie_hold(msg.feature_indicate);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	ss_debug(sse, "MNSS_FACILITY-ind");
-	dh->ops->ss_ops->mnss_facility_ind(dh, sse, param);
+	ss_debug(sse, "MNSS_RELEASE-ind");
+	dh->ops->ss_ops->mnss_release_ind(dh, sse, param);
 	dect_ie_collection_put(dh, param);
+
+	dect_transaction_close(dh, &sse->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_ss_endpoint_destroy(dh, sse);
 out:
 	dect_msg_free(dh, &ciss_release_com_msg_desc, &msg.common);
 }
@@ -300,11 +310,12 @@ static void dect_ciss_rcv_register(struct dect_handle *dh,
 	struct dect_mnss_param *param;
 	struct dect_ss_endpoint *sse;
 
-	dect_debug(DECT_DEBUG_SS, "CISS-REGISTER");
+	dect_debug(DECT_DEBUG_SS, "CISS-REGISTER\n");
 	if (dect_parse_sfmt_msg(dh, &ciss_register_msg_desc, &msg.common, mb) < 0)
 		return;
 
-	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI)
+	if (msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPUI &&
+	    msg.portable_identity->type != DECT_PORTABLE_ID_TYPE_IPEI)
 		goto out;
 	if (dect_ddl_set_ipui(dh, req->link, &msg.portable_identity->ipui) < 0)
 		goto out;
@@ -353,6 +364,7 @@ static void dect_ciss_shutdown(struct dect_handle *dh,
 
 	ss_debug(sse, "shutdown");
 	dect_transaction_close(dh, &sse->transaction, DECT_DDL_RELEASE_NORMAL);
+	dect_ss_endpoint_destroy(dh, sse);
 }
 
 const struct dect_nwk_protocol dect_ciss_protocol = {
