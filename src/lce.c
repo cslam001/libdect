@@ -334,6 +334,12 @@ static void dect_ddl_partial_release(struct dect_handle *dh,
 				     struct dect_data_link *ddl)
 {
 	ddl_debug(ddl, "partial release");
+	/* Timer may already be running if a transaction is aborted before the
+	 * first message has been sent.
+	 */
+	if (dect_timer_running(ddl->sdu_timer))
+		dect_timer_stop(dh, ddl->sdu_timer);
+
 	dect_timer_setup(ddl->sdu_timer, dect_ddl_partial_release_timer, ddl);
 	dect_timer_start(dh, ddl->sdu_timer, DECT_DDL_ESTABLISH_SDU_TIMEOUT);
 }
