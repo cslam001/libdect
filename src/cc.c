@@ -580,6 +580,9 @@ EXPORT_SYMBOL(dect_call_alloc);
 static void dect_call_destroy(const struct dect_handle *dh,
 			      struct dect_call *call)
 {
+	dect_ie_put(dh, call->ft_id);
+	dect_ie_put(dh, call->pt_id);
+
 	dect_cc_stop_timers(dh, call);
 	if (dect_timer_running(call->release_timer))
 		dect_timer_stop(dh, call->release_timer);
