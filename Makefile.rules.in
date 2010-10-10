@@ -95,6 +95,10 @@ $(1)-install:
 install_targets		+= $(1)-install
 endef
 
+archive:
+			git archive --format=tar HEAD | \
+				bzip2 >$(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.bz2
+
 ifneq ($(SUBDIR),)
 include $(SUBDIR)/Makefile
 $(foreach prog,$(PROGRAMS),$(eval $(call program_template,$(prog))))
