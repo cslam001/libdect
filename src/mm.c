@@ -522,6 +522,20 @@ dect_mm_endpoint_get_by_link(const struct dect_handle *dh,
 	return NULL;
 }
 
+struct dect_mm_endpoint *dect_mm_endpoint_get(struct dect_handle *dh,
+					      const struct dect_ipui *ipui)
+{
+	struct dect_mm_endpoint *mme;
+
+	list_for_each_entry(mme, &dh->mme_list, list) {
+		if (!dect_ipui_cmp(&mme->link->ipui, ipui))
+			return mme;
+	}
+
+	return dect_mm_endpoint_alloc(dh, ipui);
+}
+EXPORT_SYMBOL(dect_mm_endpoint_get);
+
 struct dect_mm_endpoint *dect_mm_endpoint_alloc(struct dect_handle *dh,
 						const struct dect_ipui *ipui)
 {
