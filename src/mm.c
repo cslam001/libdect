@@ -558,6 +558,7 @@ EXPORT_SYMBOL(dect_mm_endpoint_alloc);
 void dect_mm_endpoint_destroy(struct dect_handle *dh,
 			      struct dect_mm_endpoint *mme)
 {
+	list_del(&mme->list);
 	dect_timer_free(dh, mme->procedure[DECT_TRANSACTION_RESPONDER].timer);
 	dect_timer_free(dh, mme->procedure[DECT_TRANSACTION_INITIATOR].timer);
 	dect_free(dh, mme);
@@ -3300,6 +3301,22 @@ static void dect_mm_shutdown(struct dect_handle *dh,
 		proc->abort(dh, mme, mp);
 }
 
+static void dect_mm_link_rebind(struct dect_handle *dh,
+				struct dect_data_link *from,
+				struct dect_data_link *to)
+{
+	struct dect_mm_endpoint *mme;
+
+	mme = dect_mm_endpoint_get_by_link(dh, from);
+	if (mme == NULL)
+		return;
+
+	if (to != NULL)
+		mme->link = to;
+	else
+		dect_mm_endpoint_destroy(dh, mme);
+}
+
 const struct dect_nwk_protocol dect_mm_protocol = {
 	.name			= "Mobility Management",
 	.pd			= DECT_PD_MM,
@@ -3308,6 +3325,7 @@ const struct dect_nwk_protocol dect_mm_protocol = {
 	.shutdown		= dect_mm_shutdown,
 	.rcv			= dect_mm_rcv,
 	.encrypt_ind		= dect_mm_encrypt_ind,
+	.rebind			= dect_mm_link_rebind,
 };
 
 /** @} */

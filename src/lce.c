@@ -258,9 +258,15 @@ err1:
 static void dect_ddl_destroy(struct dect_handle *dh, struct dect_data_link *ddl)
 {
 	struct dect_msg_buf *mb, *next;
+	unsigned int i;
 
 	ddl_debug(ddl, "destroy");
 	dect_assert(list_empty(&ddl->transactions));
+
+	for (i = 0; i < array_size(protocols); i++) {
+		if (protocols[i] && protocols[i]->rebind != NULL)
+			protocols[i]->rebind(dh, ddl, NULL);
+	}
 
 	list_del(&ddl->list);
 	list_for_each_entry_safe(mb, next, &ddl->msg_queue, list)
@@ -638,6 +644,7 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 {
 	struct dect_transaction *ta, *ta_next;
 	struct dect_msg_buf *mb, *mb_next;
+	unsigned int i;
 
 	/* Stop page timer */
 	dect_timer_stop(dh, req->page_timer);
@@ -645,6 +652,11 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 
 	ddl_debug(ddl, "complete indirect link establishment req %p", req);
 	dect_ddl_set_ipui(dh, ddl, &req->ipui);
+
+	for (i = 0; i < array_size(protocols); i++) {
+		if (protocols[i] && protocols[i]->rebind != NULL)
+			protocols[i]->rebind(dh, req, ddl);
+	}
 
 	/* Transfer transactions to the new link */
 	list_for_each_entry_safe(ta, ta_next, &req->transactions, list) {

@@ -125,6 +125,9 @@ struct dect_nwk_protocol {
 	void			(*encrypt_ind)(struct dect_handle *dh,
 					       struct dect_transaction *ta,
 					       enum dect_cipher_states state);
+	void			(*rebind)(struct dect_handle *dh,
+					  struct dect_data_link *from,
+					  struct dect_data_link *to);
 };
 
 extern void dect_lce_register_protocol(const struct dect_nwk_protocol *protocol);
