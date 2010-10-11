@@ -45,7 +45,7 @@ extern void pexit(const char *str);
 
 struct dect_audio_handle {
 	struct g72x_state	codec;
-	struct list_head	queue;
+	struct dect_msg_buf	*queue;
 };
 
 extern struct dect_audio_handle *dect_audio_open(void);

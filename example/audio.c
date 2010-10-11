@@ -5,7 +5,7 @@
 void dect_audio_queue(struct dect_audio_handle *ah, struct dect_msg_buf *mb)
 {
 	SDL_LockAudio();
-	list_add_tail(&mb->list, &ah->queue);
+	ptrlist_add_tail(mb, &ah->queue);
 	SDL_UnlockAudio();
 }
 
@@ -31,9 +31,9 @@ static void dect_audio_dequeue(void *data, uint8_t *stream, int len)
 
 	len /= 4;
 	while (1) {
-		if (list_empty(&ah->queue))
+		if (ah->queue == NULL)
 			goto underrun;
-		mb = list_first_entry(&ah->queue, struct dect_msg_buf, list);
+		mb = ah->queue;
 		copy = mb->len;
 		if (copy > len)
 			copy = len;
@@ -41,7 +41,7 @@ static void dect_audio_dequeue(void *data, uint8_t *stream, int len)
 		dect_decode_g721(&ah->codec, (int16_t *)stream, mb->data, copy);
 		dect_mbuf_pull(mb, copy);
 		if (mb->len == 0) {
-			list_del(&mb->list);
+			ah->queue = mb->next;
 			free(mb);
 		}
 
@@ -70,7 +70,7 @@ struct dect_audio_handle *dect_audio_open(void)
 	ah = malloc(sizeof(*ah));
 	if (ah == NULL)
 		goto err1;
-	init_list_head(&ah->queue);
+	ptrlist_init(&ah->queue);
 	g72x_init_state(&ah->codec);
 
 	spec.userdata = ah;

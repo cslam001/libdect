@@ -66,4 +66,26 @@ static inline unsigned int fls(uint64_t v)
 	return len;
 }
 
+#define ptrlist_init(head)				\
+	do {						\
+		*(head) = NULL;				\
+	} while (0)
+
+#define ptrlist_add_tail(new, head)			\
+	do {						\
+		typeof(new) *pprev;			\
+		pprev = (head);				\
+		while (*pprev != NULL)			\
+			pprev = &(*pprev)->next;	\
+		*pprev = new;				\
+	} while (0)
+
+#define ptrlist_dequeue_head(head)			\
+	({						\
+		typeof(*head) elem = *(head);		\
+		if (elem != NULL)			\
+			*(head) = elem->next;		\
+		elem;					\
+	})
+
 #endif /* _LIBDECT_UTILS_H */

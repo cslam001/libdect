@@ -191,7 +191,7 @@ struct dect_data_link {
 	struct dect_timer		*page_timer;
 	uint8_t				page_count;
 	uint8_t				flags;
-	struct list_head		msg_queue;
+	struct dect_msg_buf		*msg_queue;
 	struct list_head		transactions;
 };
 

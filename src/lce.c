@@ -89,6 +89,7 @@ struct dect_msg_buf *dect_mbuf_alloc(const struct dect_handle *dh)
 	mb->len    = 0;
 	mb->type   = 0;
 	mb->refcnt = 1;
+	mb->next   = NULL;
 	return mb;
 }
 EXPORT_SYMBOL(dect_mbuf_alloc);
@@ -319,7 +320,7 @@ static struct dect_data_link *dect_ddl_alloc(const struct dect_handle *dh)
 	ddl->state = DECT_DATA_LINK_RELEASED;
 	init_list_head(&ddl->list);
 	init_list_head(&ddl->transactions);
-	init_list_head(&ddl->msg_queue);
+	ptrlist_init(&ddl->msg_queue);
 	ddl_debug(ddl, "alloc");
 	return ddl;
 
@@ -331,7 +332,7 @@ err1:
 
 static void dect_ddl_destroy(struct dect_handle *dh, struct dect_data_link *ddl)
 {
-	struct dect_msg_buf *mb, *next;
+	struct dect_msg_buf *mb;
 	unsigned int i;
 
 	ddl_debug(ddl, "destroy");
@@ -343,7 +344,8 @@ static void dect_ddl_destroy(struct dect_handle *dh, struct dect_data_link *ddl)
 	}
 
 	list_del(&ddl->list);
-	list_for_each_entry_safe(mb, next, &ddl->msg_queue, list)
+
+	while ((mb = ptrlist_dequeue_head(&ddl->msg_queue)))
 		dect_mbuf_free(dh, mb);
 
 	if (ddl->dfd != NULL) {
@@ -580,7 +582,7 @@ int dect_lce_send(const struct dect_handle *dh,
 	case DECT_DATA_LINK_ESTABLISHED:
 		return dect_ddl_send(dh, ddl, mb);
 	case DECT_DATA_LINK_ESTABLISH_PENDING:
-		list_add_tail(&mb->list, &ddl->msg_queue);
+		ptrlist_add_tail(mb, &ddl->msg_queue);
 		return 0;
 	default:
 		ddl_debug(ddl, "Invalid state: %u\n", ddl->state);
@@ -696,7 +698,7 @@ static void dect_ddl_rcv_msg(struct dect_handle *dh, struct dect_data_link *ddl)
 static void dect_ddl_complete_direct_establish(struct dect_handle *dh,
 					       struct dect_data_link *ddl)
 {
-	struct dect_msg_buf *mb, *mb_next;
+	struct dect_msg_buf *mb;
 
 	ddl->state = DECT_DATA_LINK_ESTABLISHED;
 	ddl_debug(ddl, "complete direct link establishment");
@@ -706,10 +708,8 @@ static void dect_ddl_complete_direct_establish(struct dect_handle *dh,
 		return dect_ddl_shutdown(dh, ddl);
 
 	/* Send queued messages */
-	list_for_each_entry_safe(mb, mb_next, &ddl->msg_queue, list) {
-		list_del(&mb->list);
+	while ((mb = ptrlist_dequeue_head(&ddl->msg_queue)))
 		dect_ddl_send(dh, ddl, mb);
-	}
 }
 
 static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
@@ -717,7 +717,7 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 						 struct dect_data_link *req)
 {
 	struct dect_transaction *ta, *ta_next;
-	struct dect_msg_buf *mb, *mb_next;
+	struct dect_msg_buf *mb;
 	unsigned int i;
 
 	/* Stop page timer */
@@ -740,10 +740,8 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 	}
 
 	/* Send queued messages */
-	list_for_each_entry_safe(mb, mb_next, &req->msg_queue, list) {
-		list_del(&mb->list);
+	while ((mb = ptrlist_dequeue_head(&req->msg_queue)))
 		dect_ddl_send(dh, ddl, mb);
-	}
 
 	/* Release pending link */
 	dect_ddl_destroy(dh, req);

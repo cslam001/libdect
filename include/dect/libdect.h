@@ -24,14 +24,13 @@ extern "C" {
 #include <dect/ss.h>
 #include <dect/clms.h>
 #include <dect/debug.h>
-#include <list.h>
 
 struct dect_handle;
 
 /**
  * DECT message buffer
  *
- * @arg list	Data link TX queue node
+ * @arg next	Data link TX queue node
  * @arg refcnt	Reference count
  * @arg type	Message type
  * @arg len	Data length
@@ -39,7 +38,7 @@ struct dect_handle;
  * @arg head	Storage area for on-stack buffers
  */
 struct dect_msg_buf {
-	struct list_head	list;
+	struct dect_msg_buf	*next;
 	uint8_t			refcnt;
 	uint8_t			type;
 	uint8_t			len;
