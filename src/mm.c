@@ -1015,7 +1015,7 @@ static void dect_mm_rcv_authentication_reject(struct dect_handle *dh,
 	struct dect_mm_authenticate_param *param;
 
 	mm_debug(mme, "AUTHENTICATION-REJECT");
-	if (mpr->type == DECT_MMP_KEY_ALLOCATION)
+	if (mp->type == DECT_MMP_KEY_ALLOCATION)
 		mp = mpr;
 	else if (mp->type != DECT_MMP_AUTHENTICATE)
 		return;
