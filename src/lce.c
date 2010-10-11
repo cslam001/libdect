@@ -69,6 +69,14 @@ void dect_lce_register_protocol(const struct dect_nwk_protocol *protocol)
 		  protocol->pd, protocol->name);
 }
 
+/**
+ * Allocate a libdect message buffer
+ *
+ * @param dh	libdect DECT handle
+ *
+ * Allocate a libdect message buffer. The buffer needs to be released again
+ * using dect_mbuf_free().
+ */
 struct dect_msg_buf *dect_mbuf_alloc(const struct dect_handle *dh)
 {
 	struct dect_msg_buf *mb;
@@ -85,6 +93,15 @@ struct dect_msg_buf *dect_mbuf_alloc(const struct dect_handle *dh)
 }
 EXPORT_SYMBOL(dect_mbuf_alloc);
 
+/**
+ * Release reference to a libdect message buffer
+ *
+ * @param dh	libdect DECT handle
+ * @param mb	libdect message buffer
+ *
+ * Release reference to a libdect message buffer. When the reference count
+ * drops to zero, the buffer will be freed.
+ */
 void dect_mbuf_free(const struct dect_handle *dh, struct dect_msg_buf *mb)
 {
 	if (--mb->refcnt > 0)
@@ -92,6 +109,61 @@ void dect_mbuf_free(const struct dect_handle *dh, struct dect_msg_buf *mb)
 	dect_free(dh, mb);
 }
 EXPORT_SYMBOL(dect_mbuf_free);
+
+/**
+ * Pull data from the head of a libdect message buffer
+ *
+ * @param mb	libdect message buffer
+ * @param len	amount of data to pull
+ */
+void dect_mbuf_pull(struct dect_msg_buf *mb, unsigned int len)
+{
+	dect_assert(len <= mb->len);
+	mb->data += len;
+	mb->len  -= len;
+}
+EXPORT_SYMBOL(dect_mbuf_pull);
+
+/**
+ * Push data to the head of a libdect message buffer
+ *
+ * @param mb	libdect message buffer
+ * @param len	amount of data to push
+ */
+void dect_mbuf_push(struct dect_msg_buf *mb, unsigned int len)
+{
+	mb->data -= len;
+	mb->len += len;
+	dect_assert(mb->data >= mb->head);
+}
+EXPORT_SYMBOL(dect_mbuf_push);
+
+/**
+ * Reserve space at the head of a libdect message buffer
+ *
+ * @param mb	libdect message buffer
+ * @param len	amount of space to reserve
+ */
+void dect_mbuf_reserve(struct dect_msg_buf *mb, unsigned int len)
+{
+	mb->data += len;
+	dect_assert(mb->data < mb->head + sizeof(mb->head));
+}
+EXPORT_SYMBOL(dect_mbuf_reserve);
+
+/**
+ * Put data at the tail of a libdect message buffer
+ *
+ * @param mb	libdect message buffer
+ * @param len	amount of data to put
+ */
+void *dect_mbuf_put(struct dect_msg_buf *mb, unsigned int len)
+{
+	void *ptr = mb->data + mb->len;
+	mb->len += len;
+	return ptr;
+}
+EXPORT_SYMBOL(dect_mbuf_put);
 
 static ssize_t dect_mbuf_rcv(const struct dect_fd *dfd, struct msghdr *msg,
 			     struct dect_msg_buf *mb)

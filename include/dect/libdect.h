@@ -11,7 +11,6 @@
 extern "C" {
 #endif
 
-#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdarg.h>
@@ -56,33 +55,10 @@ struct dect_msg_buf {
 
 extern struct dect_msg_buf *dect_mbuf_alloc(const struct dect_handle *dh);
 extern void dect_mbuf_free(const struct dect_handle *dh, struct dect_msg_buf *mb);
-
-static inline void dect_mbuf_pull(struct dect_msg_buf *mb, unsigned int len)
-{
-	assert(len <= mb->len);
-	mb->data += len;
-	mb->len -= len;
-}
-
-static inline void dect_mbuf_push(struct dect_msg_buf *mb, unsigned int len)
-{
-	mb->data -= len;
-	mb->len += len;
-	assert(mb->data >= mb->head);
-}
-
-static inline void dect_mbuf_reserve(struct dect_msg_buf *mb, unsigned int len)
-{
-	mb->data += len;
-	assert(mb->data < mb->head + sizeof(mb->head));
-}
-
-static inline void *dect_mbuf_put(struct dect_msg_buf *mb, unsigned int len)
-{
-	void *ptr = mb->data + mb->len;
-	mb->len += len;
-	return ptr;
-}
+extern void dect_mbuf_pull(struct dect_msg_buf *mb, unsigned int len);
+extern void dect_mbuf_push(struct dect_msg_buf *mb, unsigned int len);
+extern void dect_mbuf_reserve(struct dect_msg_buf *mb, unsigned int len);
+extern void *dect_mbuf_put(struct dect_msg_buf *mb, unsigned int len);
 
 /**
  * @addtogroup io
