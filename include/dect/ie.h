@@ -928,6 +928,12 @@ enum dect_time_limits {
 	DECT_TIME_LIMIT_INFINITE		= 0xf, /**< Infinite */
 };
 
+#define DECT_FRAMES_PER_SECOND			100
+#define DECT_FRAMES_PER_MULTIFRAME		16
+
+#define DECT_TIME_LIMIT_UNITS_1			(256   * DECT_FRAMES_PER_MULTIFRAME)
+#define DECT_TIME_LIMIT_UNITS_2			(65536 * DECT_FRAMES_PER_MULTIFRAME)
+
 /** <<DURATION>> IE */
 struct dect_ie_duration {
 	struct dect_ie_common		common;
