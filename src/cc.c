@@ -450,6 +450,9 @@ static int dect_call_connect_uplane(const struct dect_handle *dh,
 {
 	struct sockaddr_dect_lu addr;
 
+	if (call->lu_sap != NULL)
+		return 0;
+
 	call->lu_sap = dect_socket(dh, SOCK_STREAM, DECT_LU1_SAP);
 	if (call->lu_sap == NULL)
 		goto err1;
@@ -501,6 +504,26 @@ static void dect_call_disconnect_uplane(const struct dect_handle *dh,
 	call->lu_sap = NULL;
 
 	cc_debug(call, "U-Plane disconnected");
+}
+
+static void dect_call_update_progress(const struct dect_handle *dh,
+				      struct dect_call *call,
+				      const struct dect_ie_list *progress)
+{
+	struct dect_ie_progress_indicator *ie;
+
+	dect_foreach_ie(ie, progress) {
+		switch (ie->progress) {
+		case DECT_PROGRESS_INBAND_INFORMATION_NOW_AVAILABLE:
+			dect_call_connect_uplane(dh, call);
+			break;
+		case DECT_PROGRESS_INBAND_INFORMATION_NOT_AVAILABLE:
+			dect_call_disconnect_uplane(dh, call);
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 static void dect_cc_overlap_sending_timer(struct dect_handle *dh, struct dect_timer *timer);
@@ -891,9 +914,11 @@ int dect_mncc_call_proc_req(struct dect_handle *dh, struct dect_call *call,
 
 	cc_debug_entry(call, "MNCC_CALL_PROC-req");
 
-	if (dh->mode == DECT_MODE_FP &&
-	    call->state == DECT_CC_OVERLAP_SENDING)
-		dect_timer_stop(dh, call->overlap_sending_timer);
+	if (dh->mode == DECT_MODE_FP) {
+		if (call->state == DECT_CC_OVERLAP_SENDING)
+			dect_timer_stop(dh, call->overlap_sending_timer);
+		dect_call_update_progress(dh, call, &param->progress_indicator);
+	}
 
 	call->state = DECT_CC_CALL_PROCEEDING;
 	err = dect_cc_send_msg(dh, call, &cc_call_proc_msg_desc,
@@ -942,6 +967,8 @@ int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 		return -1;
 
 	if (dh->mode == DECT_MODE_FP) {
+		dect_call_update_progress(dh, call, &param->progress_indicator);
+
 		if (call->state == DECT_CC_OVERLAP_SENDING)
 			dect_timer_stop(dh, call->overlap_sending_timer);
 		call->state = DECT_CC_CALL_DELIVERED;
@@ -1159,6 +1186,10 @@ int dect_mncc_info_req(struct dect_handle *dh, struct dect_call *call,
 	};
 
 	cc_debug_entry(call, "MNCC_INFO-req");
+
+	if (dh->mode == DECT_MODE_FP)
+		dect_call_update_progress(dh, call, &param->progress_indicator);
+
 	dect_cc_send_msg(dh, call, &cc_info_msg_desc, &msg.common, DECT_CC_INFO);
 	return 0;
 }
@@ -1330,6 +1361,8 @@ static void dect_cc_rcv_alerting(struct dect_handle *dh, struct dect_call *call,
 	if (dh->mode == DECT_MODE_FP)
 		dect_timer_start(dh, call->completion_timer,
 				 DECT_CC_COMPLETION_TIMEOUT);
+	else
+		dect_call_update_progress(dh, call, &msg.progress_indicator);
 
 	dect_mncc_alert_ind(dh, call, &msg);
 	dect_msg_free(dh, &cc_alerting_msg_desc, &msg.common);
@@ -1378,6 +1411,9 @@ static void dect_cc_rcv_call_proc(struct dect_handle *dh, struct dect_call *call
 	if (dect_timer_running(call->setup_timer))
 		dect_timer_stop(dh, call->setup_timer);
 	dect_timer_start(dh, call->completion_timer, DECT_CC_COMPLETION_TIMEOUT);
+
+	if (dh->mode == DECT_MODE_PP)
+		dect_call_update_progress(dh, call, &msg.progress_indicator);
 
 	dect_mncc_call_proc_ind(dh, call, &msg);
 	call->state = DECT_CC_CALL_PROCEEDING;
@@ -1738,6 +1774,9 @@ static void dect_cc_rcv_info(struct dect_handle *dh, struct dect_call *call,
 
 	if (dect_parse_sfmt_msg(dh, &cc_info_msg_desc, &msg.common, mb) < 0)
 		return;
+
+	if (dh->mode == DECT_MODE_PP)
+		dect_call_update_progress(dh, call, &msg.progress_indicator);
 
 	dect_mncc_info_ind(dh, call, &msg);
 
