@@ -116,11 +116,12 @@ EXPORT_SYMBOL(dect_mbuf_free);
  * @param mb	libdect message buffer
  * @param len	amount of data to pull
  */
-void dect_mbuf_pull(struct dect_msg_buf *mb, unsigned int len)
+void *dect_mbuf_pull(struct dect_msg_buf *mb, unsigned int len)
 {
 	dect_assert(len <= mb->len);
 	mb->data += len;
 	mb->len  -= len;
+	return mb->data;
 }
 EXPORT_SYMBOL(dect_mbuf_pull);
 
@@ -130,11 +131,12 @@ EXPORT_SYMBOL(dect_mbuf_pull);
  * @param mb	libdect message buffer
  * @param len	amount of data to push
  */
-void dect_mbuf_push(struct dect_msg_buf *mb, unsigned int len)
+void *dect_mbuf_push(struct dect_msg_buf *mb, unsigned int len)
 {
 	mb->data -= len;
-	mb->len += len;
+	mb->len  += len;
 	dect_assert(mb->data >= mb->head);
+	return mb->data;
 }
 EXPORT_SYMBOL(dect_mbuf_push);
 

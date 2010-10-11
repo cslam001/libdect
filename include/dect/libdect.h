@@ -55,8 +55,8 @@ struct dect_msg_buf {
 
 extern struct dect_msg_buf *dect_mbuf_alloc(const struct dect_handle *dh);
 extern void dect_mbuf_free(const struct dect_handle *dh, struct dect_msg_buf *mb);
-extern void dect_mbuf_pull(struct dect_msg_buf *mb, unsigned int len);
-extern void dect_mbuf_push(struct dect_msg_buf *mb, unsigned int len);
+extern void *dect_mbuf_pull(struct dect_msg_buf *mb, unsigned int len);
+extern void *dect_mbuf_push(struct dect_msg_buf *mb, unsigned int len);
 extern void dect_mbuf_reserve(struct dect_msg_buf *mb, unsigned int len);
 extern void *dect_mbuf_put(struct dect_msg_buf *mb, unsigned int len);
 
