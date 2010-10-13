@@ -148,15 +148,8 @@ static int dect_sfmt_build_basic_service(struct dect_sfmt_ie *dst,
 static void dect_sfmt_dump_display(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_display *ie = dect_ie_container(ie, _ie);
-	char info[ie->len + 1];
-	unsigned int i;
 
-	for (i = 0; i < ie->len; i++)
-		info[i] = isascii(ie->info[i]) && isprint(ie->info[i]) ?
-				ie->info[i] : '.';
-	info[ie->len] = '\0';
-
-	sfmt_debug("\tinfo: '%s'\n", info);
+	dect_hexdump(DECT_DEBUG_SFMT, "\tInfo", ie->info, ie->len);
 }
 
 static int dect_sfmt_parse_single_display(const struct dect_handle *dh,
@@ -182,15 +175,8 @@ static int dect_sfmt_build_single_display(struct dect_sfmt_ie *dst,
 static void dect_sfmt_dump_keypad(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_keypad *ie = dect_ie_container(ie, _ie);
-	char info[ie->len + 1];
-	unsigned int i;
 
-	for (i = 0; i < ie->len; i++)
-		info[i] = isascii(ie->info[i]) && isprint(ie->info[i]) ?
-				ie->info[i] : '.';
-	info[ie->len] = '\0';
-
-	sfmt_debug("\tinfo: '%s'\n", info);
+	dect_hexdump(DECT_DEBUG_SFMT, "\tInfo", ie->info, ie->len);
 }
 
 static int dect_sfmt_parse_single_keypad(const struct dect_handle *dh,
@@ -1888,13 +1874,9 @@ static int dect_sfmt_build_iwu_to_iwu(struct dect_sfmt_ie *dst,
 static void dect_sfmt_dump_escape_to_proprietary(const struct dect_ie_common *_ie)
 {
 	struct dect_ie_escape_to_proprietary *ie = dect_ie_container(ie, _ie);
-	unsigned int i;
 
 	sfmt_debug("\tEMC: %x\n", ie->emc);
-	sfmt_debug("\tContent: ");
-	for (i = 0; i < ie->len; i++)
-		sfmt_debug("%.2x ", ie->content[i]);
-	sfmt_debug("\n");
+	dect_hexdump(DECT_DEBUG_SFMT, "\tContent", ie->content, ie->len);
 }
 
 static int dect_sfmt_build_escape_to_proprietary(struct dect_sfmt_ie *dst,
