@@ -58,8 +58,11 @@ void __fmtstring(2, 3) __dect_debug(enum dect_debug_subsys subsys,
 void __dect_hexdump(enum dect_debug_subsys subsys, const char *prefix,
 		    const uint8_t *buf, size_t size)
 {
-	unsigned int i, off;
+	unsigned int i, off, plen = 0;
 	char hbuf[3 * BLOCKSIZE + 1], abuf[BLOCKSIZE + 1];
+
+	for (i = 0; i < strlen(prefix); i++)
+		plen += prefix[i] == '\t' ? 8 : 1;
 
 	for (i = 0; i < size; i++) {
 		off = i % BLOCKSIZE;
@@ -69,8 +72,8 @@ void __dect_hexdump(enum dect_debug_subsys subsys, const char *prefix,
 
 		if (off == BLOCKSIZE - 1 || i == size - 1) {
 			abuf[off + 1] = '\0';
-			dect_debug(subsys, "%s: %-48s    |%s|\n",
-				   prefix, hbuf, abuf);
+			dect_debug(subsys, "%s: %-*s    |%s|\n",
+				   prefix, 64 - plen, hbuf, abuf);
 		}
 	}
 }
