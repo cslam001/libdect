@@ -980,9 +980,27 @@ static int dect_sfmt_build_progress_indicator(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static const struct dect_trans_tbl dect_time_date_codings[] = {
+	TRANS_TBL(DECT_TIME_DATE_TIME,		"Time"),
+	TRANS_TBL(DECT_TIME_DATE_DATE,		"Date"),
+	TRANS_TBL(DECT_TIME_DATE_TIME_AND_DATE,	"Time and Date"),
+};
+
+static const struct dect_trans_tbl dect_time_date_interpretations[] = {
+	TRANS_TBL(DECT_TIME_DATE_CURRENT,	"current time/date"),
+	TRANS_TBL(DECT_TIME_DATE_DURATION,	"duration"),
+};
+
 static void dect_sfmt_dump_time_date(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_time_date *ie = dect_ie_container(ie, _ie);
+	char buf[128];
+
+	sfmt_debug("\tCoding: %s\n",
+		   dect_val2str(dect_time_date_codings, buf, ie->coding));
+	sfmt_debug("\tInterpetation: %s\n",
+		   dect_val2str(dect_time_date_interpretations, buf,
+				ie->interpretation));
 
 	if (ie->coding & 0x2)
 		sfmt_debug("\tDate: %u%u.%u%u.20%u%u\n",
