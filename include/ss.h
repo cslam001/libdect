@@ -55,10 +55,12 @@ struct dect_ciss_register_msg {
 /**
  * struct dect_ss_endpoint - Supplementary Services Endpoint
  *
+ * @ipui:		PT's IPUI
  * @transaction:	LCE link transaction
  * @priv:		libdect user private storage
  */
 struct dect_ss_endpoint {
+	struct dect_ipui			ipui;
 	struct dect_transaction			transaction;
 	uint8_t					priv[] __aligned(__alignof__(uint64_t));
 };

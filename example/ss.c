@@ -34,13 +34,13 @@ static void dect_invoke_ss(struct dect_handle *dh, const struct dect_ipui *ipui)
 		.feature_activate	= &feature_activate,
 	};
 
-	sse = dect_ss_endpoint_alloc(dh);
+	sse = dect_ss_endpoint_alloc(dh, ipui);
 	if (sse == NULL)
 		return;
 
 	feature_activate.feature = DECT_FEATURE_INDICATION_OF_SUBSCRIBER_NUMBER;
 
-	dect_mnss_setup_req(dh, sse, ipui, &param);
+	dect_mnss_setup_req(dh, sse, &param);
 }
 
 static struct dect_ss_ops ss_ops = {

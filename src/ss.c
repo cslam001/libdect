@@ -103,13 +103,15 @@ void *dect_ss_priv(struct dect_ss_endpoint *sse)
 }
 EXPORT_SYMBOL(dect_ss_priv);
 
-struct dect_ss_endpoint *dect_ss_endpoint_alloc(struct dect_handle *dh)
+struct dect_ss_endpoint *dect_ss_endpoint_alloc(struct dect_handle *dh,
+						const struct dect_ipui *ipui)
 {
 	struct dect_ss_endpoint *sse;
 
 	sse = dect_zalloc(dh, sizeof(*sse) + dh->ops->ss_ops->priv_size);
 	if (sse == NULL)
 		goto err1;
+	sse->ipui = *ipui;
 
 	return sse;
 
@@ -138,7 +140,6 @@ static struct dect_ss_endpoint *dect_ss_endpoint(struct dect_transaction *ta)
  * @param param		Supplementary Services parameters
  */
 int dect_mnss_setup_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
-			const struct dect_ipui *ipui,
 			const struct dect_mnss_param *param)
 {
 	struct dect_ie_portable_identity portable_identity;
@@ -151,12 +152,13 @@ int dect_mnss_setup_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 	};
 
 	ss_debug_entry(sse, "MNSS_SETUP-req");
-	if (dect_transaction_open(dh, &sse->transaction, ipui, DECT_PD_CISS) < 0)
+	if (dect_transaction_open(dh, &sse->transaction, &sse->ipui,
+				  DECT_PD_CISS) < 0)
 		goto err1;
 
 	if (dh->mode == DECT_MODE_PP) {
 		portable_identity.type = DECT_PORTABLE_ID_TYPE_IPUI;
-		portable_identity.ipui = *ipui;
+		portable_identity.ipui = sse->ipui;
 		msg.portable_identity  = &portable_identity;
 	}
 
@@ -196,8 +198,14 @@ int dect_mnss_facility_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 	};
 
 	ss_debug_entry(sse, "MNSS_FACILITY-req");
-	return dect_lce_send(dh, &sse->transaction, &ciss_facility_msg_desc,
-			     &msg.common, DECT_CISS_FACILITY);
+
+	if (sse->transaction.link != NULL)
+		return dect_lce_send(dh, &sse->transaction, &ciss_facility_msg_desc,
+				     &msg.common, DECT_CISS_FACILITY);
+	else
+		return dect_lce_send_cl(dh, &sse->ipui, &ciss_facility_msg_desc,
+					&msg.common, DECT_PD_CISS,
+					DECT_CISS_FACILITY);
 }
 EXPORT_SYMBOL(dect_mnss_facility_req);
 
@@ -320,7 +328,7 @@ static void dect_ciss_rcv_register(struct dect_handle *dh,
 	if (dect_ddl_set_ipui(dh, req->link, &msg.portable_identity->ipui) < 0)
 		goto out;
 
-	sse = dect_ss_endpoint_alloc(dh);
+	sse = dect_ss_endpoint_alloc(dh, &msg.portable_identity->ipui);
 	if (sse == NULL)
 		goto out;
 

@@ -56,7 +56,6 @@ enum dect_release_modes {
  * @role:	Role (initiator/responder)
  * @tv:		Transaction value
  */
-enum dect_s_pd_values;
 struct dect_transaction {
 	struct list_head		list;
 	struct dect_data_link		*link;
@@ -95,6 +94,11 @@ extern int dect_lce_send(const struct dect_handle *dh,
 			 const struct dect_msg_common *msg, uint8_t type);
 extern int dect_lce_retransmit(const struct dect_handle *dh,
 			       struct dect_transaction *ta);
+
+extern int dect_lce_send_cl(struct dect_handle *dh, const struct dect_ipui *ipui,
+			    const struct dect_sfmt_msg_desc *desc,
+			    const struct dect_msg_common *msg,
+			    enum dect_pds pd, uint8_t type);
 
 extern ssize_t dect_lce_broadcast(const struct dect_handle *dh,
 				  const struct dect_msg_buf *mb,

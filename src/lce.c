@@ -542,6 +542,38 @@ static ssize_t dect_ddl_send(const struct dect_handle *dh,
 	return size;
 }
 
+static struct dect_msg_buf *
+dect_lce_build_msg(const struct dect_handle *dh,
+		   const struct dect_transaction *ta,
+		   const struct dect_sfmt_msg_desc *desc,
+		   const struct dect_msg_common *msg, uint8_t type)
+{
+	struct dect_msg_buf *mb;
+	int err;
+
+	mb = dect_mbuf_alloc(dh);
+	if (mb == NULL)
+		goto err1;
+
+	dect_mbuf_reserve(mb, DECT_S_HDR_SIZE);
+	err = dect_build_sfmt_msg(dh, desc, msg, mb);
+	if (err < 0)
+		goto err2;
+
+	dect_mbuf_push(mb, DECT_S_HDR_SIZE);
+	mb->data[1]  = type;
+	mb->data[0]  = ta->pd;
+	mb->data[0] |= ta->tv << DECT_S_TI_TV_SHIFT;
+	if (ta->role == DECT_TRANSACTION_RESPONDER)
+		mb->data[0] |= DECT_S_TI_F_FLAG;
+	return mb;
+
+err2:
+	dect_mbuf_free(dh, mb);
+err1:
+	return NULL;
+}
+
 /**
  * dect_lce_send - Queue a S-Format message for transmission to the LCE
  */
@@ -552,31 +584,50 @@ int dect_lce_send(const struct dect_handle *dh,
 {
 	struct dect_data_link *ddl = ta->link;
 	struct dect_msg_buf *mb;
-	int err;
 
-	mb = dect_mbuf_alloc(dh);
+	mb = dect_lce_build_msg(dh, ta, desc, msg, type);
 	if (mb == NULL)
 		return -1;
 
-	dect_mbuf_reserve(mb, DECT_S_HDR_SIZE);
-	err = dect_build_sfmt_msg(dh, desc, msg, mb);
-	if (err < 0)
-		return err;
-
 	if (ddl->sdu_timer && dect_timer_running(ddl->sdu_timer))
 		dect_ddl_stop_sdu_timer(dh, ddl);
-
-	dect_mbuf_push(mb, DECT_S_HDR_SIZE);
-	mb->data[1]  = type;
-	mb->data[0]  = ta->pd;
-	mb->data[0] |= ta->tv << DECT_S_TI_TV_SHIFT;
-	if (ta->role == DECT_TRANSACTION_RESPONDER)
-		mb->data[0] |= DECT_S_TI_F_FLAG;
 
 	if (ta->mb != NULL)
 		dect_mbuf_free(dh, ta->mb);
 	ta->mb = mb;
 	mb->refcnt++;
+
+	switch (ddl->state) {
+	case DECT_DATA_LINK_ESTABLISHED:
+		return dect_ddl_send(dh, ddl, mb);
+	case DECT_DATA_LINK_ESTABLISH_PENDING:
+		ptrlist_add_tail(mb, &ddl->msg_queue);
+		return 0;
+	default:
+		ddl_debug(ddl, "Invalid state: %u\n", ddl->state);
+		BUG();
+	}
+}
+
+int dect_lce_send_cl(struct dect_handle *dh, const struct dect_ipui *ipui,
+		     const struct dect_sfmt_msg_desc *desc,
+		     const struct dect_msg_common *msg,
+		     enum dect_pds pd, uint8_t type)
+{
+	struct dect_data_link *ddl;
+	struct dect_msg_buf *mb;
+	struct dect_transaction ta = {
+		.pd	= pd,
+		.tv	= DECT_TV_CONNECTIONLESS,
+	};
+
+	ddl = dect_ddl_connect(dh, ipui);
+	if (ddl == NULL)
+		return -1;
+
+	mb = dect_lce_build_msg(dh, &ta, desc, msg, type);
+	if (mb == NULL)
+		return -1;
 
 	switch (ddl->state) {
 	case DECT_DATA_LINK_ESTABLISHED:
@@ -745,6 +796,11 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 
 	/* Release pending link */
 	dect_ddl_destroy(dh, req);
+
+	/* If the link was established for a connectionless transmission,
+	 * no transaction exists. Perform a partial release. */
+	if (list_empty(&ddl->transactions))
+		return dect_ddl_partial_release(dh, ddl);
 }
 
 static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer);

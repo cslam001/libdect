@@ -38,7 +38,8 @@ struct dect_handle;
 struct dect_ss_endpoint;
 
 extern void *dect_ss_priv(struct dect_ss_endpoint *sse);
-extern struct dect_ss_endpoint *dect_ss_endpoint_alloc(struct dect_handle *dh);
+extern struct dect_ss_endpoint *dect_ss_endpoint_alloc(struct dect_handle *dh,
+						       const struct dect_ipui *ipui);
 extern void dect_ss_endpoint_destroy(struct dect_handle *dh, struct dect_ss_endpoint *sse);
 
 /**
@@ -62,7 +63,6 @@ struct dect_ss_ops {
 };
 
 extern int dect_mnss_setup_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
-			       const struct dect_ipui *ipui,
 			       const struct dect_mnss_param *param);
 extern int dect_mnss_facility_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 				  const struct dect_mnss_param *param);
