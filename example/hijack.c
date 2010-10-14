@@ -52,7 +52,7 @@ static struct dect_lce_ops lce_ops = {
 static void raw_sock_event(struct dect_handle *dh, struct dect_fd *dfd,
 			   uint32_t events)
 {
-	void *priv = dect_fd_priv(dfd);
+	void *priv = dfd->data;
 	uint8_t slot = (unsigned long)priv;
 	unsigned int i;
 
