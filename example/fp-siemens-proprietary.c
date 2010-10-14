@@ -81,6 +81,7 @@ static void dect_facility_req(struct dect_handle *dh,
 	escape_to_proprietary.len		+= 3;
 
 	dect_mnss_facility_req(dh, sse, &param);
+	dect_event_loop();
 }
 
 static void mnss_release_ind(struct dect_handle *dh, struct dect_ss_endpoint *sse,
@@ -110,22 +111,11 @@ int main(int argc, char **argv)
 		return -1;
 
 	dect_facility_req(dh, sse, time_date_req, sizeof(time_date_req));
-	dect_event_loop();
-
 	dect_facility_req(dh, sse, display_req, sizeof(display_req));
-	dect_event_loop();
-
 	dect_facility_req(dh, sse, display_test1, sizeof(display_test1));
-	dect_event_loop();
-
 	dect_facility_req(dh, sse, display_test2, sizeof(display_test2));
-	dect_event_loop();
-
 	dect_facility_req(dh, sse, events_req, sizeof(events_req));
-	dect_event_loop();
-
 	dect_facility_req(dh, sse, prefix_req, sizeof(prefix_req));
-	dect_event_loop();
 
 	return 0;
 }
