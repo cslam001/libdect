@@ -11,34 +11,6 @@
 
 static uint8_t seq;
 
-static void dect_facility_req(struct dect_handle *dh,
-			      struct dect_ss_endpoint *sse,
-			      const void *data, unsigned int len)
-{
-	struct dect_ie_escape_to_proprietary escape_to_proprietary;
-	struct dect_mnss_param param = {
-		.escape_to_proprietary	= &escape_to_proprietary,
-	};
-
-	escape_to_proprietary.emc		= DECT_EMC_SIEMENS;
-	escape_to_proprietary.len		= len;
-	memcpy(escape_to_proprietary.content, data, len);
-
-	escape_to_proprietary.content[len]	= DECT_IE_REQUEST_SEQ;
-	escape_to_proprietary.content[len + 1]	= 1;
-	escape_to_proprietary.content[len + 2]	= seq++;
-	escape_to_proprietary.len		+= 3;
-
-	dect_mnss_facility_req(dh, sse, &param);
-}
-
-static void mnss_release_ind(struct dect_handle *dh, struct dect_ss_endpoint *sse,
-		             struct dect_mnss_param *param)
-
-{
-	dect_event_loop_stop();
-}
-
 static uint8_t time_date_req[] = {
 	DECT_IE_SIEMENS_TIME_DATE, 9,
 	0x03,				/* Unknown */
@@ -89,6 +61,34 @@ static uint8_t prefix_req[] = {
 	0x0b, 0x3, '7', '6', '1',	/* Local area code subtype */
 	0x0c, 0x2, '4', '9',		/* Country code subtype */
 };
+
+static void dect_facility_req(struct dect_handle *dh,
+			      struct dect_ss_endpoint *sse,
+			      const void *data, unsigned int len)
+{
+	struct dect_ie_escape_to_proprietary escape_to_proprietary;
+	struct dect_mnss_param param = {
+		.escape_to_proprietary	= &escape_to_proprietary,
+	};
+
+	escape_to_proprietary.emc		= DECT_EMC_SIEMENS;
+	escape_to_proprietary.len		= len;
+	memcpy(escape_to_proprietary.content, data, len);
+
+	escape_to_proprietary.content[len]	= DECT_IE_REQUEST_SEQ;
+	escape_to_proprietary.content[len + 1]	= 1;
+	escape_to_proprietary.content[len + 2]	= seq++;
+	escape_to_proprietary.len		+= 3;
+
+	dect_mnss_facility_req(dh, sse, &param);
+}
+
+static void mnss_release_ind(struct dect_handle *dh, struct dect_ss_endpoint *sse,
+		             struct dect_mnss_param *param)
+
+{
+	dect_event_loop_stop();
+}
 
 static struct dect_ss_ops ss_ops = {
 	.mnss_release_ind	= mnss_release_ind,
