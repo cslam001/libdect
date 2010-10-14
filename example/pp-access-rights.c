@@ -56,7 +56,7 @@ static void mm_authenticate_cfm(struct dect_handle *dh,
 {
 	struct mm_priv *priv = dect_mm_priv(mme);
 	uint8_t k[DECT_AUTH_KEY_LEN], ks[DECT_AUTH_KEY_LEN];
-	uint8_t ac[4];
+	uint8_t ac[DECT_AUTH_CODE_LEN];
 	uint32_t res2;
 
 	if (!accept)
@@ -95,7 +95,7 @@ static void mm_key_allocate_ind(struct dect_handle *dh,
 	};
 	uint8_t k[DECT_AUTH_KEY_LEN], ks[DECT_AUTH_KEY_LEN];
 	uint8_t dck[DECT_CIPHER_KEY_LEN];
-	uint8_t ac[4];
+	uint8_t ac[DECT_AUTH_CODE_LEN];
 
 	auth_type.auth_id		= DECT_AUTH_DSAA;
 	auth_type.auth_key_type		= DECT_KEY_AUTHENTICATION_CODE;

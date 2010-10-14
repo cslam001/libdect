@@ -16,6 +16,8 @@ extern "C" {
  * @{
  */
 
+#define DECT_AUTH_CODE_LEN	4	/**< Length of authentication code */
+#define DECT_UPI_LEN		4	/**< Length of User Personal Identification */
 #define DECT_AUTH_KEY_LEN	16	/**< Length of a DECT authentication key */
 #define DECT_CIPHER_KEY_LEN	8	/**< Length of a DECT cipher key */
 
