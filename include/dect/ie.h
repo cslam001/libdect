@@ -2128,12 +2128,6 @@ enum dect_event_web_content_subtypes {
 /** <<EVENTS-NOTIFICATION>> IE */
 struct dect_ie_events_notification {
 	struct dect_ie_common		common;
-	unsigned int			num;
-	struct {
-		enum dect_event_types	type;
-		uint8_t			subtype;
-		uint8_t			multiplicity;
-	} events[8];
 };
 
 /**

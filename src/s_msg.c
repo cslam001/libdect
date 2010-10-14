@@ -2024,44 +2024,6 @@ static int dect_sfmt_build_codec_list(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
-static const struct dect_trans_tbl dect_event_types[] = {
-	TRANS_TBL(DECT_EVENT_MESSAGE_WAITING,		"Message waiting"),
-	TRANS_TBL(DECT_EVENT_MISSED_CALL,		"Missed call"),
-	TRANS_TBL(DECT_EVENT_WEB_CONTENT,		"Web content"),
-	TRANS_TBL(DECT_EVENT_LIST_CHANGE_INDICATION,	"List change indication"),
-};
-
-static void dect_sfmt_dump_events_notification(const struct dect_ie_common *_ie)
-{
-	struct dect_ie_events_notification *ie = dect_ie_container(ie, _ie);
-	unsigned int i;
-	char buf[128];
-
-	for (i = 0; i < ie->num; i++) {
-		sfmt_debug("\tEvent %u:\n", i + 1);
-		sfmt_debug("\t Event type: %s\n",
-			   dect_val2str(dect_event_types, buf, ie->events[i].type));
-		sfmt_debug("\t Event subtype: %u\n", ie->events[i].subtype);
-		sfmt_debug("\t Event multiplicity: %u\n", ie->events[i].multiplicity);
-	}
-}
-
-static int dect_sfmt_build_events_notification(struct dect_sfmt_ie *dst,
-					       const struct dect_ie_common *ie)
-{
-	struct dect_ie_events_notification *src = dect_ie_container(src, ie);
-	unsigned int n = 2, i;
-
-	for (i = 0; i < src->num; i++) {
-		dst->data[n++] = src->events[i].type;
-		dst->data[n++] = src->events[i].subtype | DECT_OCTET_GROUP_END;
-		dst->data[n++] = src->events[i].multiplicity | DECT_OCTET_GROUP_END;
-	}
-
-	dst->len = n;
-	return 0;
-}
-
 static const struct dect_ie_handler {
 	const char	*name;
 	size_t		size;
@@ -2432,8 +2394,6 @@ static const struct dect_ie_handler {
 	[DECT_IE_EVENTS_NOTIFICATION]		= {
 		.name	= "EVENTS-NOTIFICATION",
 		.size	= sizeof(struct dect_ie_events_notification),
-		.build	= dect_sfmt_build_events_notification,
-		.dump	= dect_sfmt_dump_events_notification,
 	},
 	[DECT_IE_CALL_INFORMATION]		= {
 		.name	= "CALL-INFORMATION",

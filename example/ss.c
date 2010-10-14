@@ -29,25 +29,18 @@ static void mnss_release_ind(struct dect_handle *dh, struct dect_ss_endpoint *ss
 static void dect_invoke_ss(struct dect_handle *dh, const struct dect_ipui *ipui)
 {
 	struct dect_ss_endpoint *sse;
-	struct dect_ie_events_notification events_notification;
+	struct dect_ie_feature_activate feature_activate;
 	struct dect_mnss_param param = {
-		.events_notification	= &events_notification,
+		.feature_activate	= &feature_activate,
 	};
 
 	sse = dect_ss_endpoint_alloc(dh, ipui);
 	if (sse == NULL)
 		return;
 
-	events_notification.num = 2;
-	events_notification.events[0].type    = DECT_EVENT_MISSED_CALL;
-	events_notification.events[0].subtype = DECT_EVENT_MISSED_CALL_VOICE;
-	events_notification.events[0].multiplicity = 10;
+	feature_activate.feature = DECT_FEATURE_INDICATION_OF_SUBSCRIBER_NUMBER;
 
-	events_notification.events[1].type    = DECT_EVENT_MESSAGE_WAITING;
-	events_notification.events[1].subtype = DECT_EVENT_MESSAGE_WAITING_VOICE;
-	events_notification.events[1].multiplicity = 10;
-
-	dect_mnss_facility_req(dh, sse, &param);
+	dect_mnss_setup_req(dh, sse, &param);
 }
 
 static struct dect_ss_ops ss_ops = {

@@ -157,7 +157,7 @@ int dect_mnss_setup_req(struct dect_handle *dh, struct dect_ss_endpoint *sse,
 		goto err1;
 
 	if (dh->mode == DECT_MODE_PP) {
-		portable_identity.type = DECT_PORTABLE_ID_TYPE_IPEI;
+		portable_identity.type = DECT_PORTABLE_ID_TYPE_IPUI;
 		portable_identity.ipui = sse->ipui;
 		msg.portable_identity  = &portable_identity;
 	}
