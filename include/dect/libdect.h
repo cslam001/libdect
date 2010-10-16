@@ -39,6 +39,9 @@ struct dect_handle;
  */
 struct dect_msg_buf {
 	struct dect_msg_buf	*next;
+	uint32_t		mfn;
+	uint8_t			frame;
+	uint8_t			slot;
 	uint8_t			refcnt;
 	uint8_t			type;
 	uint8_t			len;
