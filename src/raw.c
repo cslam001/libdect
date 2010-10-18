@@ -137,7 +137,7 @@ static void dect_raw_event(struct dect_handle *dh, struct dect_fd *dfd,
 
 	mb->mfn   = aux->mfn;
 	mb->frame = aux->frame;
-	mb->slot  = slot;
+	mb->slot  = aux->slot;
 
 	dh->ops->raw_ops->raw_rcv(dh, dfd, mb);
 }
