@@ -123,6 +123,35 @@ static void dect_netlink_parse_ari(struct dect_ari *ari, const struct nl_dect_ar
 	}
 }
 
+static void dect_netlink_build_ari(struct nl_dect_ari *nlari, const struct dect_ari *ari)
+{
+	nl_dect_ari_set_class(nlari, ari->arc);
+	switch (ari->arc) {
+	case DECT_ARC_A:
+		nl_dect_ari_set_emc(nlari, ari->emc);
+		nl_dect_ari_set_fpn(nlari, ari->fpn);
+		break;
+	case DECT_ARC_B:
+		nl_dect_ari_set_eic(nlari, ari->eic);
+		nl_dect_ari_set_fpn(nlari, ari->fpn);
+		nl_dect_ari_set_fps(nlari, ari->fps);
+		break;
+	case DECT_ARC_C:
+		nl_dect_ari_set_poc(nlari, ari->poc);
+		nl_dect_ari_set_fpn(nlari, ari->fpn);
+		nl_dect_ari_set_fps(nlari, ari->fps);
+		break;
+	case DECT_ARC_D:
+		nl_dect_ari_set_gop(nlari, ari->gop);
+		nl_dect_ari_set_fpn(nlari, ari->fpn);
+		break;
+	case DECT_ARC_E:
+		nl_dect_ari_set_fil(nlari, ari->fil);
+		nl_dect_ari_set_fpn(nlari, ari->fpn);
+		break;
+	}
+}
+
 static void dect_netlink_cluster_rcv(struct dect_handle *dh, bool request,
 				     struct nl_object *obj)
 {
@@ -164,7 +193,8 @@ static int dect_netlink_get_cluster(struct dect_handle *dh, const char *name)
  */
 
 static struct nl_dect_llme_msg *dect_llme_msg_init(const struct dect_handle *dh,
-						   enum dect_llme_msg_types type)
+						   enum dect_llme_msg_types type,
+						   enum dect_llme_ops op)
 {
 	struct nl_dect_llme_msg *lmsg;
 
@@ -172,7 +202,7 @@ static struct nl_dect_llme_msg *dect_llme_msg_init(const struct dect_handle *dh,
 	if (lmsg == NULL)
 		return NULL;
 	nl_dect_llme_msg_set_type(lmsg, type);
-	nl_dect_llme_msg_set_op(lmsg, DECT_LLME_REQUEST);
+	nl_dect_llme_msg_set_op(lmsg, op);
 	nl_dect_llme_msg_set_index(lmsg, dh->index);
 	return lmsg;
 }
@@ -213,6 +243,12 @@ static void dect_netlink_llme_mac_info_rcv(struct dect_handle *dh, bool request,
 					   struct nl_dect_llme_msg *lmsg)
 {
 	struct dect_fp_capabilities *fpc = &dh->fpc;
+	struct dect_ari *pari = NULL, _pari;
+
+	if (nl_dect_llme_mac_info_test_pari(lmsg)) {
+		dect_netlink_parse_ari(&_pari, nl_dect_llme_mac_info_get_pari(lmsg));
+		pari = &_pari;
+	}
 
 	fpc->fpc   = nl_dect_llme_mac_info_get_fpc(lmsg);
 	fpc->hlc   = nl_dect_llme_mac_info_get_hlc(lmsg);
@@ -223,7 +259,7 @@ static void dect_netlink_llme_mac_info_rcv(struct dect_handle *dh, bool request,
 
 	dect_fp_capabilities_dump(fpc);
 	if (!request)
-		dh->ops->llme_ops->mac_me_info_ind(dh, fpc);
+		dh->ops->llme_ops->mac_me_info_ind(dh, pari, fpc);
 }
 
 static void dect_netlink_llme_rcv(struct dect_handle *dh, bool request,
@@ -271,7 +307,7 @@ int dect_llme_rfp_preload_req(struct dect_handle *dh,
 	nl_debug_entry("MAC_ME_RFP_PRELOAD-req\n");
 	dect_fp_capabilities_dump(fpc);
 
-	lmsg = dect_llme_msg_init(dh, DECT_LLME_MAC_RFP_PRELOAD);
+	lmsg = dect_llme_msg_init(dh, DECT_LLME_MAC_RFP_PRELOAD, DECT_LLME_REQUEST);
 	if (lmsg == NULL)
 		return -1;
 
@@ -287,7 +323,39 @@ int dect_llme_rfp_preload_req(struct dect_handle *dh,
 }
 EXPORT_SYMBOL(dect_llme_rfp_preload_req);
 
-static int dect_netlink_mac_info_req(struct dect_handle *dh)
+/**
+ * MAC_ME_INFO-res primitive
+ *
+ * @param dh		libdect DECT handle
+ * @param pari		Primary Access Rights Identity of FP to lock to
+ *
+ * Issue a MAC_ME_INFO-res primitive to the kernel. The kernel will attempt
+ * to lock to the FP identified by the given PARI.
+ *
+ * @sa ETSI EN 300 175-3, section 8.3.2.3.
+ */
+int dect_llme_mac_me_info_res(struct dect_handle *dh, const struct dect_ari *pari)
+{
+	struct nl_dect_llme_msg *lmsg;
+	struct nl_dect_ari *nlari;
+	int err;
+
+	nl_debug_entry("MAC_ME_INFO-res\n");
+	lmsg = dect_llme_msg_init(dh, DECT_LLME_MAC_INFO, DECT_LLME_RESPONSE);
+	if (lmsg == NULL)
+		return -1;
+
+	nlari = (void *)nl_dect_llme_mac_info_get_pari(lmsg);
+	dect_netlink_build_ari(nlari, pari);
+	nl_dect_llme_mac_info_set_pari(lmsg, nlari);
+
+	err = nl_dect_llme_respond(dh->nlsock, lmsg);
+	nl_dect_llme_msg_put(lmsg);
+	return err;
+}
+EXPORT_SYMBOL(dect_llme_mac_me_info_res);
+
+static int dect_netlink_mac_me_info_req(struct dect_handle *dh)
 {
 	struct dect_netlink_handler handler = {
 		.dh		= dh,
@@ -297,7 +365,8 @@ static int dect_netlink_mac_info_req(struct dect_handle *dh)
 	struct nl_dect_llme_msg *lmsg;
 	int err;
 
-	lmsg = dect_llme_msg_init(dh, DECT_LLME_MAC_INFO);
+	nl_debug_entry("MAC_ME_INFO-req\n");
+	lmsg = dect_llme_msg_init(dh, DECT_LLME_MAC_INFO, DECT_LLME_REQUEST);
 	if (lmsg == NULL)
 		return -1;
 
@@ -307,6 +376,22 @@ static int dect_netlink_mac_info_req(struct dect_handle *dh)
 	nl_dect_llme_msg_put(lmsg);
 	return err;
 }
+
+int dect_llme_scan_req(struct dect_handle *dh)
+{
+	struct nl_dect_llme_msg *lmsg;
+	int err;
+
+	nl_debug_entry("SCAN-req\n");
+	lmsg = dect_llme_msg_init(dh, DECT_LLME_SCAN, DECT_LLME_REQUEST);
+	if (lmsg == NULL)
+		return -1;
+
+	err = nl_dect_llme_request(dh->nlsock, lmsg);
+	nl_dect_llme_msg_put(lmsg);
+	return err;
+}
+EXPORT_SYMBOL(dect_llme_scan_req);
 
 static int dect_netlink_event_rcv(struct nl_msg *msg, void *arg)
 {
@@ -365,7 +450,7 @@ int dect_netlink_init(struct dect_handle *dh, const char *cluster)
 		goto err4;
 
 	if (dh->mode == DECT_MODE_PP) {
-		err = dect_netlink_mac_info_req(dh);
+		err = dect_netlink_mac_me_info_req(dh);
 		if (err < 0)
 			goto err4;
 	}

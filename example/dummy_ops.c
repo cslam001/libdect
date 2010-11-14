@@ -6,6 +6,7 @@
  */
 
 static void llme_mac_me_info_ind(struct dect_handle *dh,
+				 const struct dect_ari *pari,
 				 const struct dect_fp_capabilities *fpc)
 {
 }
