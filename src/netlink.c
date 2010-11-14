@@ -42,6 +42,8 @@ struct dect_netlink_handler {
 	bool			request;
 };
 
+static int dect_netlink_event_rcv(struct nl_msg *msg, void *arg);
+
 static void __maybe_unused dect_netlink_obj_dump(struct nl_object *obj)
 {
 #ifdef DEBUG
@@ -152,7 +154,7 @@ static int dect_netlink_get_cluster(struct dect_handle *dh, const char *name)
 
 	dect_netlink_set_callback(dh, dect_netlink_msg_rcv, &handler);
 	err = nl_dect_cluster_query(dh->nlsock, cl, 0);
-	dect_netlink_set_callback(dh, NULL, NULL);
+	dect_netlink_set_callback(dh, dect_netlink_event_rcv, dh);
 	nl_dect_cluster_put(cl);
 	return err;
 }
@@ -279,7 +281,7 @@ int dect_llme_rfp_preload_req(struct dect_handle *dh,
 
 	dect_netlink_set_callback(dh, dect_netlink_msg_rcv, &handler);
 	err = nl_dect_llme_request(dh->nlsock, lmsg);
-	dect_netlink_set_callback(dh, NULL, NULL);
+	dect_netlink_set_callback(dh, dect_netlink_event_rcv, dh);
 	nl_dect_llme_msg_put(lmsg);
 	return err;
 }
@@ -301,7 +303,7 @@ static int dect_netlink_mac_info_req(struct dect_handle *dh)
 
 	dect_netlink_set_callback(dh, dect_netlink_msg_rcv, &handler);
 	err = nl_dect_llme_request(dh->nlsock, lmsg);
-	dect_netlink_set_callback(dh, NULL, NULL);
+	dect_netlink_set_callback(dh, dect_netlink_event_rcv, dh);
 	nl_dect_llme_msg_put(lmsg);
 	return err;
 }
