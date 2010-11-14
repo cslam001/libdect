@@ -127,6 +127,8 @@ struct dect_event_ops {
  * The DECT ops contain references to the individual ops of the libdect subsystems.
  */
 struct dect_ops {
+	size_t				priv_size;
+
 	void				*(*malloc)(size_t size);
 	void				(*free)(void *ptr);
 
@@ -143,6 +145,8 @@ struct dect_ops {
 extern struct dect_handle *dect_open_handle(struct dect_ops *ops,
 					    const char *cluster);
 extern void dect_close_handle(struct dect_handle *dh);
+
+extern void *dect_handle_priv(struct dect_handle *dh);
 
 extern void dect_pp_set_ipui(struct dect_handle *dh,
 			     const struct dect_ipui *ipui);

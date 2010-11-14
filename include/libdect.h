@@ -53,6 +53,8 @@ struct dect_handle {
 	struct list_head		links;
 
 	struct list_head		mme_list;
+
+	uint8_t				priv[] __aligned(__alignof__(uint64_t));
 };
 
 #endif /* _LIBDECT_H */

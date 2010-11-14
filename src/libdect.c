@@ -31,7 +31,7 @@ static struct dect_handle *dect_alloc_handle(struct dect_ops *ops)
 	if (ops->free == NULL)
 		ops->free = free;
 
-	dh = ops->malloc(sizeof(*dh));
+	dh = ops->malloc(sizeof(*dh) + ops->priv_size);
 	if (dh == NULL)
 		return NULL;
 	memset(dh, 0, sizeof(*dh));
@@ -91,5 +91,11 @@ void dect_close_handle(struct dect_handle *dh)
 	dect_free(dh, dh);
 }
 EXPORT_SYMBOL(dect_close_handle);
+
+void *dect_handle_priv(struct dect_handle *dh)
+{
+	return dh->priv;
+}
+EXPORT_SYMBOL(dect_handle_priv);
 
 /** @} */
