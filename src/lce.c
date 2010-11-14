@@ -1550,7 +1550,7 @@ static void dect_pp_set_default_pmid(struct dect_handle *dh)
 {
 	dect_assert(!(dh->flags & DECT_PP_TPUI));
 	dh->pmid = DECT_PMID_DEFAULT_ID +
-		   (rand() & DECT_PMID_DEFAULT_NUM_MASK);
+		   (random() & DECT_PMID_DEFAULT_NUM_MASK);
 	lce_debug("set default pmid %05x\n", dh->pmid);
 }
 

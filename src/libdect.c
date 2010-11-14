@@ -57,8 +57,6 @@ struct dect_handle *dect_open_handle(struct dect_ops *ops, const char *cluster)
 	if (cluster == NULL)
 		cluster = "cluster0";
 
-	srand(time(NULL));
-
 	dh = dect_alloc_handle(ops);
 	if (dh == NULL)
 		goto err1;
@@ -97,5 +95,10 @@ void *dect_handle_priv(struct dect_handle *dh)
 	return dh->priv;
 }
 EXPORT_SYMBOL(dect_handle_priv);
+
+static void __init libdect_init(void)
+{
+	srandom(time(NULL));
+}
 
 /** @} */
