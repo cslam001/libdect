@@ -122,6 +122,12 @@ uint64_t dect_build_ari(const struct dect_ari *ari)
 	return a;
 }
 
+bool dect_ari_cmp(const struct dect_ari *ari1, const struct dect_ari *ari2)
+{
+	return memcmp(ari1, ari2, sizeof(*ari1));
+}
+EXPORT_SYMBOL(dect_ari_cmp);
+
 static void dect_dump_ipei(const struct dect_ipei *ipei)
 {
 	sfmt_debug("\tEMC: %.4x\n", ipei->emc);

@@ -145,7 +145,6 @@ struct dect_ops {
 extern struct dect_handle *dect_open_handle(struct dect_ops *ops,
 					    const char *cluster);
 extern void dect_close_handle(struct dect_handle *dh);
-
 extern void *dect_handle_priv(struct dect_handle *dh);
 
 extern void dect_pp_set_ipui(struct dect_handle *dh,
