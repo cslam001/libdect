@@ -50,12 +50,22 @@ static DECT_SFMT_MSG_DESC(clms_variable,
 #define clms_debug_entry(fmt, args...) \
 	__clms_debug("\n", fmt, ##args)
 
+static const struct dect_trans_tbl clms_header_codings[] = {
+	TRANS_TBL(DECT_CLMS_HDR_STANDARD_ONE_SECTION,		"One section/Standard"),
+	TRANS_TBL(DECT_CLMS_HDR_STANDARD_MULTI_SECTION,		"Multi-section/Standard"),
+	TRANS_TBL(DECT_CLMS_HDR_BITSTREAM_ONE_SECTION,		"One section/Bit stream"),
+	TRANS_TBL(DECT_CLMS_HDR_BITSTREAM_MULTI_SECTION,	"Multi-section/Bit stream"),
+	TRANS_TBL(DECT_CLMS_HDR_ALPHANUMERIC_ONE_SECTION,	"One section/Alphanumeric"),
+	TRANS_TBL(DECT_CLMS_HDR_ALPHANUMERIC_MULTI_SECTION,	"Multi-section/Alphanumeric"),
+};
+
 void dect_clms_rcv_fixed(struct dect_handle *dh, struct dect_msg_buf *mb)
 {
 	DECT_DEFINE_MSG_BUF_ONSTACK(_mb), *mbr = &_mb;
 	struct dect_clms_fixed_addr_section *as;
 	struct dect_clms_fixed_data_section *ds;
 	unsigned int n, len, section, sections;
+	char buf[128];
 
 	clms_debug("parse {CLMS-FIXED} message");
 	dect_assert(mb->len % 5 == 0);
@@ -65,11 +75,13 @@ void dect_clms_rcv_fixed(struct dect_handle *dh, struct dect_msg_buf *mb)
 		return;
 
 	dect_debug(DECT_DEBUG_CLMS, "  address section:\n");
+	dect_debug(DECT_DEBUG_CLMS, "\tHeader: %s\n",
+		   dect_val2str(clms_header_codings, buf, as->hdr & DECT_CLMS_HDR_MASK));
 	dect_debug(DECT_DEBUG_CLMS, "\tAddress: %04x\n", __be16_to_cpu(as->addr));
 	dect_debug(DECT_DEBUG_CLMS, "\tProtocol Discriminator: %02x\n", as->pd);
 	dect_debug(DECT_DEBUG_CLMS, "\tLength Indicator: %02x\n", as->li);
 
-	if (as->pd != DECT_CLMS_PD_DECT_IE_CODING)
+	if (as->pd != DECT_CLMS_PD_DECT_IE_CODING && as->pd != 0x6)
 		return;
 
 	switch (as->hdr & DECT_CLMS_HDR_MASK) {
@@ -100,8 +112,7 @@ void dect_clms_rcv_fixed(struct dect_handle *dh, struct dect_msg_buf *mb)
 
 		section = ds->hdr & DECT_CLMS_SECTION_NUM_MASK;
 		dect_debug(DECT_DEBUG_CLMS, "  data section %u:\n", section);
-		dect_debug(DECT_DEBUG_CLMS, "\tData: %02x%02x%02x%02x\n",
-			   ds->data[0], ds->data[1], ds->data[2], ds->data[3]);
+		dect_hexdump(DECT_DEBUG_CLMS, "\tData", ds->data, 4);
 
 		if (section >= 5)
 			return;
