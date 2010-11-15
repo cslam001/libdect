@@ -68,6 +68,12 @@ void *dect_timer_priv(struct dect_timer *timer)
 }
 EXPORT_SYMBOL(dect_timer_priv);
 
+void *dect_timer_data(const struct dect_timer *timer)
+{
+	return timer->data;
+}
+EXPORT_SYMBOL(dect_timer_data);
+
 void dect_timer_setup(struct dect_timer *timer,
 		      void (*cb)(struct dect_handle *, struct dect_timer *),
 		      void *data)
