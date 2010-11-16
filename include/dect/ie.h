@@ -978,7 +978,7 @@ struct dect_ie_end_to_end_compatibility {
  */
 
 enum dect_facility_discriminators {
-	DECT_FACILITY_SS			= 0x17, /**< Supplementary service application */
+	DECT_FACILITY_SS			= 0x11, /**< Supplementary service application */
 };
 
 /** <<FACILITY>> IE */
