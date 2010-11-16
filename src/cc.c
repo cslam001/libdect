@@ -1463,7 +1463,8 @@ static void dect_cc_rcv_connect(struct dect_handle *dh, struct dect_call *call,
 
 	if (dect_timer_running(call->setup_timer))
 		dect_timer_stop(dh, call->setup_timer);
-	dect_timer_stop(dh, call->completion_timer);
+	if (dect_timer_running(call->completion_timer))
+		dect_timer_stop(dh, call->completion_timer);
 
 	if (dh->mode == DECT_MODE_PP)
 		call->state = DECT_CC_ACTIVE;
