@@ -985,6 +985,8 @@ enum dect_facility_discriminators {
 struct dect_ie_facility {
 	struct dect_ie_common			common;
 	enum dect_facility_discriminators	service;
+	uint8_t					len;
+	uint8_t					components[64];
 };
 
 /**

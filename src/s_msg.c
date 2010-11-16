@@ -911,6 +911,35 @@ static int dect_sfmt_build_cipher_info(struct dect_sfmt_ie *dst,
 	dst->len = 4;
 	return 0;
 }
+
+static const struct dect_trans_tbl dect_facility_services[] = {
+	TRANS_TBL(DECT_FACILITY_SS,			"supplementary services"),
+};
+
+static void dect_sfmt_dump_facility(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_facility *ie = dect_ie_container(ie, _ie);
+	char buf[128];
+
+	sfmt_debug("\tservice discriminator: %s\n",
+		   dect_val2str(dect_facility_services, buf, ie->service));
+	dect_hexdump(DECT_DEBUG_SFMT, "\tComponents", ie->components, ie->len);
+}
+
+static int dect_sfmt_parse_facility(const struct dect_handle *dh,
+				    struct dect_ie_common **ie,
+				    const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_facility *dst = dect_ie_container(dst, *ie);
+
+	dst->service = src->data[2] & 0x1f;
+	dst->len = src->len - 3;
+	if (dst->len > array_size(dst->components))
+		return -1;
+	memcpy(dst->components, src->data + 3, dst->len);
+	return 0;
+}
+
 static const struct dect_trans_tbl dect_locations[] = {
 	TRANS_TBL(DECT_LOCATION_USER,					"user"),
 	TRANS_TBL(DECT_LOCATION_PRIVATE_NETWORK_SERVING_LOCAL_USER,	"private network serving the local user"),
@@ -2247,6 +2276,8 @@ static const struct dect_ie_handler {
 	[DECT_IE_FACILITY]			= {
 		.name	= "FACILITY",
 		.size	= sizeof(struct dect_ie_facility),
+		.parse	= dect_sfmt_parse_facility,
+		.dump	= dect_sfmt_dump_facility,
 	},
 	[DECT_IE_PROGRESS_INDICATOR]		= {
 		.name	= "PROGRESS-INDICATOR",
