@@ -246,6 +246,7 @@ static void dect_netlink_llme_mac_info_rcv(struct dect_handle *dh, bool request,
 	struct dect_ari *pari = NULL, _pari;
 
 	if (nl_dect_llme_mac_info_test_pari(lmsg)) {
+		memset(&_pari, 0, sizeof(_pari));
 		dect_netlink_parse_ari(&_pari, nl_dect_llme_mac_info_get_pari(lmsg));
 		pari = &_pari;
 	}
