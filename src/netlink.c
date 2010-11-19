@@ -352,6 +352,8 @@ int dect_llme_mac_me_info_res(struct dect_handle *dh, const struct dect_ari *par
 
 	err = nl_dect_llme_respond(dh->nlsock, lmsg);
 	nl_dect_llme_msg_put(lmsg);
+	if (err == 0)
+		dh->pari = *pari;
 	return err;
 }
 EXPORT_SYMBOL(dect_llme_mac_me_info_res);
@@ -390,6 +392,8 @@ int dect_llme_scan_req(struct dect_handle *dh)
 
 	err = nl_dect_llme_request(dh->nlsock, lmsg);
 	nl_dect_llme_msg_put(lmsg);
+	if (err == 0)
+		memset(&dh->pari, 0, sizeof(dh->pari));
 	return err;
 }
 EXPORT_SYMBOL(dect_llme_scan_req);
