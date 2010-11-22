@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 
 	dect_common_init(&ops, argv[1]);
 
-	dfd = dect_raw_socket(dh);
+	dfd = dect_raw_open(dh);
 	if (dfd == NULL)
 		pexit("dect_raw_socket");
 

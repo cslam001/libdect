@@ -147,7 +147,7 @@ static void dect_raw_event(struct dect_handle *dh, struct dect_fd *dfd,
  *
  * @param dh	libdect handle
  */
-struct dect_fd *dect_raw_socket(struct dect_handle *dh)
+struct dect_fd *dect_raw_open(struct dect_handle *dh)
 {
 	struct sockaddr_dect da;
 	struct dect_fd *dfd;
@@ -177,6 +177,19 @@ err2:
 err1:
 	return NULL;
 }
-EXPORT_SYMBOL(dect_raw_socket);
+EXPORT_SYMBOL(dect_raw_open);
+
+/**
+ * Close a DECT raw socket
+ *
+ * @param dh	libdect handle
+ * qparam dfd	raw socket descriptor
+ */
+void dect_raw_close(struct dect_handle *dh, struct dect_fd *dfd)
+{
+	dect_fd_unregister(dh, dfd);
+	dect_close(dh, dfd);
+}
+EXPORT_SYMBOL(dect_raw_close);
 
 /** @} */
