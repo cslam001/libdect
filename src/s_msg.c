@@ -852,6 +852,44 @@ static int dect_sfmt_build_auth_res(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static const struct dect_trans_tbl dect_service_change_modes[] = {
+	TRANS_TBL(DECT_SERVICE_CHANGE_NONE,				"None"),
+	TRANS_TBL(DECT_SERVICE_CHANGE_CONNECTION_REVERSAL,		"Connection Reversal"),
+	TRANS_TBL(DECT_SERVICE_CHANGE_BANDWIDTH,			"Bandwidth change"),
+	TRANS_TBL(DECT_SERVICE_CHANGE_MODULATION,			"Modulation scheme change"),
+	TRANS_TBL(DECT_SERVICE_CHANGE_REROUTING,			"Rerouting of U-plane links"),
+	TRANS_TBL(DECT_SERVICE_CHANGE_BANDWIDTH_PLUS_MODULATION,	"Bandwidth plus modulation scheme change"),
+	TRANS_TBL(DECT_SERVICE_CHANGE_REROUTING_PLUS_BANDWIDTH,		"Rerouting plus bandwidth change"),
+	TRANS_TBL(DECT_SERVICE_CHANGE_BANDWIDTH_OR_MODULATION,		"Bandwidth or modulation scheme change"),
+	TRANS_TBL(DECT_SERVICE_CHANGE_SUSPEND,				"Suspend"),
+	TRANS_TBL(DECT_SERVICE_CHANGE_RESUME,				"Resume"),
+	TRANS_TBL(DECT_SERVICE_CHANGE_VOICE_DATA_TO_DATA,		"Voice/data change to data"),
+	TRANS_TBL(DECT_SERVICE_CHANGE_VOICE_DATA_TO_VOICE,		"Voice/data change to voice"),
+	TRANS_TBL(DECT_SERVICE_CHANGE_IWU_ATTRIBUTES,			"IWU attribute change"),
+	TRANS_TBL(DECT_SERVICE_CHANGE_AUDIO_CODEC,			"Audio Codec change"),
+	TRANS_TBL(DECT_SERVICE_CHANGE_BASIC_SERVICE_AND_IWU_ATTRIBUTES,	"Profile/Basic service and IWU attributes change"),
+};
+
+static void dect_sfmt_dump_service_change_info(const struct dect_ie_common *_ie)
+{
+	const struct dect_ie_service_change_info *ie = dect_ie_container(ie, _ie);
+	char buf[128];
+
+	sfmt_debug("\tmaster: %d\n", ie->master);
+	sfmt_debug("\tmode: %s\n", dect_val2str(dect_service_change_modes, buf, ie->mode));
+}
+
+static int dect_sfmt_parse_service_change_info(const struct dect_handle *dh,
+					       struct dect_ie_common **ie,
+					       const struct dect_sfmt_ie *src)
+{
+	struct dect_ie_service_change_info *dst = dect_ie_container(dst, *ie);
+
+	dst->master = src->data[2] & 0x40;
+	dst->mode   = src->data[2] & 0x0f;
+	return 0;
+}
+
 static const struct dect_trans_tbl dect_cipher_algs[] = {
 	TRANS_TBL(DECT_CIPHER_STANDARD_1,		"DECT Standard Cipher 1"),
 	TRANS_TBL(DECT_CIPHER_GPRS_NO_CIPHERING,	"GPRS ciphering not used"),
@@ -2253,6 +2291,8 @@ static const struct dect_ie_handler {
 	[DECT_IE_SERVICE_CHANGE_INFO]		= {
 		.name	= "SERVICE-CHANGE-INFO",
 		.size	= sizeof(struct dect_ie_service_change_info),
+		.parse	= dect_sfmt_parse_service_change_info,
+		.dump	= dect_sfmt_dump_service_change_info,
 	},
 	[DECT_IE_CONNECTION_ATTRIBUTES]		= {
 		.name	= "CONNECTION-ATTRIBUTES",
