@@ -204,7 +204,7 @@ static ssize_t dect_mbuf_send(const struct dect_handle *dh,
 	msg->msg_namelen	= 0;
 	msg->msg_iov		= &iov;
 	msg->msg_iovlen		= 1;
-	msg->msg_flags		= MSG_NOSIGNAL;
+	msg->msg_flags		|= MSG_NOSIGNAL;
 
 	iov.iov_base		= mb->data;
 	iov.iov_len		= mb->len;
@@ -216,24 +216,31 @@ static ssize_t dect_mbuf_send(const struct dect_handle *dh,
 	return len;
 }
 
-#if 0
 /*
  * Location Table
  */
+
+#define dect_ie_update(pos, ie)			\
+	do {					\
+		if (ie == NULL)			\
+			break;			\
+		dect_ie_put(dh, pos);		\
+		pos = dect_ie_hold(ie);		\
+	} while (0)
 
 static struct dect_lte *dect_lte_get_by_ipui(const struct dect_handle *dh,
 					     const struct dect_ipui *ipui)
 {
 	struct dect_lte *lte;
 
-	list_for_each_entry(lte, &dh->ldb.entries, list) {
+	list_for_each_entry(lte, &dh->ldb, list) {
 		if (!dect_ipui_cmp(&lte->ipui, ipui))
 			return lte;
 	}
 	return NULL;
 }
 
-static struct dect_lte *dect_lte_alloc(const struct dect_handle *dh,
+static struct dect_lte *dect_lte_alloc(struct dect_handle *dh,
 				       const struct dect_ipui *ipui)
 {
 	struct dect_lte *lte;
@@ -241,10 +248,74 @@ static struct dect_lte *dect_lte_alloc(const struct dect_handle *dh,
 	lte = dect_malloc(dh, sizeof(*lte));
 	if (lte == NULL)
 		return NULL;
-	memcpy(&lte->ipui, ipui, sizeof(lte->ipui));
+	lte->ipui = *ipui;
+
+	list_add_tail(&lte->list, &dh->ldb);
 	return lte;
 }
-#endif
+
+static void dect_lte_release(struct dect_handle *dh, struct dect_lte *lte)
+{
+	dect_ie_put(dh, lte->setup_capability);
+	dect_ie_put(dh, lte->terminal_capability);
+	list_del(&lte->list);
+	dect_free(dh, lte);
+}
+
+void dect_lte_update(struct dect_handle *dh, const struct dect_ipui *ipui,
+		     struct dect_ie_setup_capability *setup_capability,
+		     struct dect_ie_terminal_capability *terminal_capability)
+{
+	struct dect_lte *lte;
+
+	lte = dect_lte_get_by_ipui(dh, ipui);
+	if (lte == NULL) {
+		lte = dect_lte_alloc(dh, ipui);
+		if (lte == NULL)
+			return;
+	}
+
+	dect_ie_update(lte->setup_capability, setup_capability);
+	dect_ie_update(lte->terminal_capability, terminal_capability);
+}
+
+static enum dect_setup_capabilities
+dect_setup_capability(const struct dect_handle *dh,
+		      const struct dect_ipui *ipui)
+{
+	const struct dect_lte *lte;
+
+	lte = dect_lte_get_by_ipui(dh, ipui);
+	if (lte == NULL ||
+	    lte->setup_capability == NULL)
+		return DECT_SETUP_NO_FAST_SETUP;
+	return lte->setup_capability->setup_capability;
+}
+
+static enum dect_page_capabilities
+dect_page_capability(const struct dect_handle *dh,
+		     const struct dect_ipui *ipui)
+{
+	const struct dect_lte *lte;
+
+	lte = dect_lte_get_by_ipui(dh, ipui);
+	if (lte == NULL ||
+	    lte->setup_capability == NULL)
+		return DECT_PAGE_CAPABILITY_NORMAL_PAGING;
+	return lte->setup_capability->page_capability;
+}
+
+static uint64_t dect_profile_indicator(const struct dect_handle *dh,
+				       const struct dect_ipui *ipui)
+{
+	const struct dect_lte *lte;
+
+	lte = dect_lte_get_by_ipui(dh, ipui);
+	if (lte == NULL ||
+	    lte->terminal_capability == NULL)
+		return 0;
+	return lte->terminal_capability->profile_indicator;
+}
 
 /*
  * Data links
@@ -822,7 +893,8 @@ static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
 	ddl->state = DECT_DATA_LINK_ESTABLISH_PENDING;
 	dect_ddl_set_ipui(dh, ddl, ipui);
 
-	if (dh->mode == DECT_MODE_FP) {
+	if (dh->mode == DECT_MODE_FP ||
+	    dect_setup_capability(dh, ipui) != DECT_SETUP_NO_FAST_SETUP) {
 		ddl->page_timer = dect_timer_alloc(dh);
 		if (ddl->page_timer == NULL)
 			goto err2;
@@ -951,7 +1023,7 @@ err1:
 
 ssize_t dect_lce_broadcast(const struct dect_handle *dh,
 			   const struct dect_msg_buf *mb,
-			   bool long_page)
+			   bool long_page, bool fast_page)
 {
 	struct msghdr msg;
 	struct dect_bsap_auxdata aux;
@@ -966,6 +1038,7 @@ ssize_t dect_lce_broadcast(const struct dect_handle *dh,
 		memset(cmsg_buf.buf, 0, sizeof(cmsg_buf.buf));
 		msg.msg_control		= &cmsg_buf;
 		msg.msg_controllen	= sizeof(cmsg_buf);
+		msg.msg_flags		= 0;
 
 		cmsg			= CMSG_FIRSTHDR(&msg);
 		cmsg->cmsg_len		= CMSG_LEN(sizeof(aux));
@@ -977,6 +1050,8 @@ ssize_t dect_lce_broadcast(const struct dect_handle *dh,
 	} else {
 		msg.msg_control		= NULL;
 		msg.msg_controllen	= 0;
+		if (fast_page)
+			msg.msg_flags	= MSG_OOB;
 	}
 
 	dect_mbuf_dump(DECT_DEBUG_LCE, mb, "LCE: BCAST TX");
@@ -1009,7 +1084,7 @@ int dect_lce_group_ring_req(struct dect_handle *dh,
 	page |= DECT_TPUI_CBI & DECT_LCE_SHORT_PAGE_TPUI_MASK;
 	msg->information = __cpu_to_be16(page);
 
-	return dect_lce_broadcast(dh, mb, false);
+	return dect_lce_broadcast(dh, mb, false, false);
 }
 EXPORT_SYMBOL(dect_lce_group_ring_req);
 
@@ -1019,6 +1094,7 @@ static int dect_lce_send_short_page(const struct dect_handle *dh,
 	DECT_DEFINE_MSG_BUF_ONSTACK(_mb), *mb = &_mb;
 	struct dect_short_page_msg *msg;
 	struct dect_tpui tpui;
+	bool fast_page = false;
 	uint16_t page;
 
 	msg = dect_mbuf_put(mb, sizeof(*msg));
@@ -1028,7 +1104,11 @@ static int dect_lce_send_short_page(const struct dect_handle *dh,
 	       DECT_LCE_SHORT_PAGE_TPUI_MASK;
 	msg->information = __cpu_to_be16(page);
 
-	return dect_lce_broadcast(dh, mb, false);
+	if (dect_page_capability(dh, ipui) ==
+	    DECT_PAGE_CAPABILITY_FAST_AND_NORMAL_PAGING)
+		fast_page = true;
+
+	return dect_lce_broadcast(dh, mb, false, fast_page);
 }
 
 static int dect_lce_send_full_page(const struct dect_handle *dh,
@@ -1038,6 +1118,7 @@ static int dect_lce_send_full_page(const struct dect_handle *dh,
 	struct dect_full_page_msg *msg;
 	struct dect_tpui tpui;
 	uint8_t ipui_buf[8];
+	bool fast_page = false;
 	uint32_t page;
 
 	msg = dect_mbuf_put(mb, sizeof(*msg));
@@ -1062,16 +1143,20 @@ static int dect_lce_send_full_page(const struct dect_handle *dh,
 	}
 	msg->information = __cpu_to_be32(page);
 
-	return dect_lce_broadcast(dh, mb, false);
+	if (dect_page_capability(dh, ipui) ==
+	    DECT_PAGE_CAPABILITY_FAST_AND_NORMAL_PAGING)
+		fast_page = true;
+
+	return dect_lce_broadcast(dh, mb, false, fast_page);
 }
 
 static int dect_lce_page(const struct dect_handle *dh,
 			 const struct dect_ipui *ipui)
 {
-	if (1)
-		return dect_lce_send_short_page(dh, ipui);
-	else
+	if (dect_profile_indicator(dh, ipui) & DECT_PROFILE_NG_DECT_PART_1)
 		return dect_lce_send_full_page(dh, ipui);
+	else
+		return dect_lce_send_short_page(dh, ipui);
 }
 
 static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer)
@@ -1666,10 +1751,14 @@ err1:
 
 void dect_lce_exit(struct dect_handle *dh)
 {
-	struct dect_data_link *ddl, *next;
+	struct dect_data_link *ddl, *ddl_next;
+	struct dect_lte *lte, *lte_next;
 
-	list_for_each_entry_safe(ddl, next, &dh->links, list)
+	list_for_each_entry_safe(ddl, ddl_next, &dh->links, list)
 		dect_ddl_shutdown(dh, ddl);
+
+	list_for_each_entry_safe(lte, lte_next, &dh->ldb, list)
+		dect_lte_release(dh, lte);
 
 	if (dh->mode == DECT_MODE_FP) {
 		dect_fd_unregister(dh, dh->s_sap);

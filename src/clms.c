@@ -173,7 +173,7 @@ static void dect_clms_send_fixed(struct dect_handle *dh,
 		section++;
 	}
 deliver:
-	dect_lce_broadcast(dh, mb, true);
+	dect_lce_broadcast(dh, mb, true, false);
 }
 
 /**

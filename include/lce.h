@@ -102,7 +102,7 @@ extern int dect_lce_send_cl(struct dect_handle *dh, const struct dect_ipui *ipui
 
 extern ssize_t dect_lce_broadcast(const struct dect_handle *dh,
 				  const struct dect_msg_buf *mb,
-				  bool long_page);
+				  bool long_page, bool fast_page);
 
 /**
  * struct dect_nwk_protocol - NWK layer protocol
@@ -144,14 +144,16 @@ extern void dect_lce_register_protocol(const struct dect_nwk_protocol *protocol)
  * @tpui:	Temporary Portable User ID
  */
 struct dect_lte {
-	struct list_head		list;
-	struct dect_ipui		ipui;
-	struct dect_tpui		tpui;
+	struct list_head			list;
+	struct dect_ipui			ipui;
+	struct dect_tpui			tpui;
+	struct dect_ie_setup_capability		*setup_capability;
+	struct dect_ie_terminal_capability	*terminal_capability;
 };
 
-struct dect_location_table {
-	struct list_head		entries;
-};
+extern void dect_lte_update(struct dect_handle *dh, const struct dect_ipui *ipui,
+			    struct dect_ie_setup_capability *setup_capability,
+			    struct dect_ie_terminal_capability *terminal_capability);
 
 enum dect_data_link_states {
 	DECT_DATA_LINK_RELEASED,

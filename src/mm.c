@@ -1448,15 +1448,21 @@ int dect_mm_access_rights_res(struct dect_handle *dh,
 			      const struct dect_mm_access_rights_param *param)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_access_rights_param *req;
 	int err;
 
 	mm_debug_entry(mme, "MM_ACCESS_RIGHTS-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_ACCESS_RIGHTS)
 		return -1;
 
-	if (accept)
+	if (accept) {
+		req = (struct dect_mm_access_rights_param *)mp->iec;
+		dect_lte_update(dh, &req->portable_identity->ipui,
+				req->setup_capability,
+				req->terminal_capability);
+
 		err = dect_mm_send_access_rights_accept(dh, mme, param);
-	else
+	} else
 		err = dect_mm_send_access_rights_reject(dh, mme, param);
 
 	if (err < 0)
@@ -1473,11 +1479,13 @@ static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
 {
 	struct dect_mm_access_rights_request_msg msg;
 	struct dect_mm_access_rights_param *param;
+	struct dect_mm_procedure *mp;
 	enum dect_sfmt_error err;
 
 	mm_debug(mme, "ACCESS-RIGHTS-REQUEST");
 	if (dect_mm_procedure_respond(dh, mme, DECT_MMP_ACCESS_RIGHTS) < 0)
 		return;
+	mp = mme->current;
 
 	err = dect_parse_sfmt_msg(dh, &mm_access_rights_request_msg_desc,
 				  &msg.common, mb);
@@ -1502,6 +1510,8 @@ static void dect_mm_rcv_access_rights_request(struct dect_handle *dh,
 	param->terminal_capability	= dect_ie_hold(msg.terminal_capability);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 	param->codec_list		= dect_ie_hold(msg.codec_list);
+
+	mp->iec = dect_ie_collection_hold(param);
 
 	mm_debug(mme, "MM_ACCESS_RIGHTS-ind");
 	dh->ops->mm_ops->mm_access_rights_ind(dh, mme, param);
@@ -1981,15 +1991,21 @@ int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		       bool accept, const struct dect_mm_locate_param *param)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_locate_param *req;
 	int err;
 
 	mm_debug_entry(mme, "MM_LOCATE-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_LOCATION_REGISTRATION)
 		return -1;
 
-	if (accept)
+	if (accept) {
+		req = (struct dect_mm_locate_param *)mp->iec;
+		dect_lte_update(dh, &req->portable_identity->ipui,
+				req->setup_capability,
+				req->terminal_capability);
+
 		err = dect_mm_send_locate_accept(dh, mme, param);
-	else
+	} else
 		err = dect_mm_send_locate_reject(dh, mme, param);
 
 	if (err < 0)
@@ -2017,11 +2033,13 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 {
 	struct dect_mm_locate_request_msg msg;
 	struct dect_mm_locate_param *param;
+	struct dect_mm_procedure *mp;
 	enum dect_sfmt_error err;
 
 	mm_debug(mme, "LOCATE-REQUEST");
 	if (dect_mm_procedure_respond(dh, mme, DECT_MMP_LOCATION_REGISTRATION) < 0)
 		return;
+	mp = mme->current;
 
 	err = dect_parse_sfmt_msg(dh, &mm_locate_request_msg_desc,
 				  &msg.common, mb);
@@ -2050,6 +2068,8 @@ static void dect_mm_rcv_locate_request(struct dect_handle *dh,
 	param->model_identifier		= dect_ie_hold(msg.model_identifier);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 	param->codec_list		= dect_ie_hold(msg.codec_list);
+
+	mp->iec = dect_ie_collection_hold(param);
 
 	mm_debug(mme, "MM_LOCATE-ind");
 	dh->ops->mm_ops->mm_locate_ind(dh, mme, param);

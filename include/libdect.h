@@ -26,6 +26,7 @@ enum dect_pp_identities {
  * @tpui:	PP's TPUI
  * @pmid:	PP's PMID
  * @flags:	PP identity validity flags
+ * @ldb:	LCE location table data base
  * @b_sap:	B-SAP socket
  * @s_sap:	S-SAP listener socket
  * @links:	list of data links
@@ -47,6 +48,8 @@ struct dect_handle {
 	struct dect_tpui		tpui;
 	uint32_t			pmid;
 	uint32_t			flags;
+
+	struct list_head		ldb;
 
 	struct dect_fd			*b_sap;
 	struct dect_fd			*s_sap;
