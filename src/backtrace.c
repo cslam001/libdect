@@ -205,8 +205,6 @@ static char **process_file(const char *file_name, const void *base,
 	return ret_buf;
 }
 
-#define MAX_DEPTH 16
-
 struct file_match {
 	const char *file;
 	void *address;
