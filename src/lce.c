@@ -272,7 +272,7 @@ int dect_ddl_set_ipui(struct dect_handle *dh, struct dect_data_link *ddl,
 		if (dect_ipui_cmp(&ddl->ipui, ipui))
 			return -1;
 	} else {
-		ddl_debug(ddl, "set IPUI N EMC: %04x PSN: %05x",
+		ddl_debug(ddl, "set IPUI: N EMC: %04x PSN: %05x",
 			  ipui->pun.n.ipei.emc, ipui->pun.n.ipei.psn);
 
 		ddl->ipui   = *ipui;
@@ -1551,14 +1551,14 @@ static void dect_pp_set_default_pmid(struct dect_handle *dh)
 	dect_assert(!(dh->flags & DECT_PP_TPUI));
 	dh->pmid = DECT_PMID_DEFAULT_ID +
 		   (random() & DECT_PMID_DEFAULT_NUM_MASK);
-	lce_debug("set default pmid %05x\n", dh->pmid);
+	lce_debug("set default PMID: %05x\n", dh->pmid);
 }
 
 void dect_pp_change_pmid(struct dect_handle *dh)
 {
 	dh->pmid = DECT_PMID_DEFAULT_ID +
 		   ((dh->pmid + 1) & DECT_PMID_DEFAULT_NUM_MASK);
-	lce_debug("change pmid %05x\n", dh->pmid);
+	lce_debug("change PMID: %05x\n", dh->pmid);
 }
 
 static void dect_pp_set_assigned_pmid(struct dect_handle *dh)
@@ -1568,7 +1568,7 @@ static void dect_pp_set_assigned_pmid(struct dect_handle *dh)
 	dect_assert(dh->flags & DECT_PP_TPUI &&
 	       dh->tpui.type == DECT_TPUI_INDIVIDUAL_ASSIGNED);
 	dh->pmid = dect_build_pmid(dect_tpui_to_pmid(&pmid, &dh->tpui));
-	lce_debug("set assigned pmid %05x\n", dh->pmid);
+	lce_debug("set assigned PMID: %05x\n", dh->pmid);
 }
 
 /**
