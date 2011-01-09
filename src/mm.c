@@ -1448,7 +1448,7 @@ int dect_mm_access_rights_res(struct dect_handle *dh,
 			      const struct dect_mm_access_rights_param *param)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
-	struct dect_mm_access_rights_param *req;
+	const struct dect_mm_access_rights_param *req;
 	int err;
 
 	mm_debug_entry(mme, "MM_ACCESS_RIGHTS-res: accept: %u", accept);
@@ -1456,7 +1456,7 @@ int dect_mm_access_rights_res(struct dect_handle *dh,
 		return -1;
 
 	if (accept) {
-		req = (struct dect_mm_access_rights_param *)mp->iec;
+		req = (const struct dect_mm_access_rights_param *)mp->iec;
 		dect_lte_update(dh, &req->portable_identity->ipui,
 				req->setup_capability,
 				req->terminal_capability);
@@ -1991,7 +1991,7 @@ int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		       bool accept, const struct dect_mm_locate_param *param)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
-	struct dect_mm_locate_param *req;
+	const struct dect_mm_locate_param *req;
 	int err;
 
 	mm_debug_entry(mme, "MM_LOCATE-res: accept: %u", accept);
@@ -1999,7 +1999,7 @@ int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		return -1;
 
 	if (accept) {
-		req = (struct dect_mm_locate_param *)mp->iec;
+		req = (const struct dect_mm_locate_param *)mp->iec;
 		dect_lte_update(dh, &req->portable_identity->ipui,
 				req->setup_capability,
 				req->terminal_capability);
@@ -2018,6 +2018,7 @@ int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	if (accept && param->portable_identity &&
 	    (param->portable_identity->type == DECT_PORTABLE_ID_TYPE_TPUI ||
 	     param->nwk_assigned_identity)) {
+		mp->tpui = param->portable_identity->tpui;
 		mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;
 		return 0;
 	}
@@ -2624,6 +2625,7 @@ static void dect_mm_rcv_temporary_identity_assign_ack(struct dect_handle *dh,
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_temporary_identity_assign_ack_msg msg;
 	struct dect_mm_identity_assign_param *param;
+	const struct dect_mm_locate_param *req;
 
 	mm_debug(mme, "TEMPORARY-IDENTITY-ASSIGN-ACK");
 	if (mp->type != DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT)
@@ -2639,6 +2641,9 @@ static void dect_mm_rcv_temporary_identity_assign_ack(struct dect_handle *dh,
 
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
+
+	req = (const struct dect_mm_locate_param *)mp->iec;
+	dect_lte_update_tpui(dh, &req->portable_identity->ipui, &mp->tpui);
 
 	dect_mm_procedure_complete(dh, mme);
 

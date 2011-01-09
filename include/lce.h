@@ -139,14 +139,18 @@ extern void dect_lce_register_protocol(const struct dect_nwk_protocol *protocol)
 /**
  * struct dect_lte - Location Table Entry
  *
- * @list:	Location table list node
- * @ipui:	International Portable User ID
- * @tpui:	Temporary Portable User ID
+ * @list:			Location table list node
+ * @ipui:			International Portable User ID
+ * @tpui:			Assigned Temporary Portable User ID
+ * @tpui_valid:			TPUI is valid
+ * @setup_capability:		PT's setup capabilities
+ * @terminal_capability:	PT's terminal capabilities
  */
 struct dect_lte {
 	struct list_head			list;
 	struct dect_ipui			ipui;
 	struct dect_tpui			tpui;
+	bool					tpui_valid;
 	struct dect_ie_setup_capability		*setup_capability;
 	struct dect_ie_terminal_capability	*terminal_capability;
 };
@@ -154,6 +158,10 @@ struct dect_lte {
 extern void dect_lte_update(struct dect_handle *dh, const struct dect_ipui *ipui,
 			    struct dect_ie_setup_capability *setup_capability,
 			    struct dect_ie_terminal_capability *terminal_capability);
+
+extern void dect_lte_update_tpui(const struct dect_handle *dh,
+				 const struct dect_ipui *ipui,
+				 const struct dect_tpui *tpui);
 
 enum dect_data_link_states {
 	DECT_DATA_LINK_RELEASED,

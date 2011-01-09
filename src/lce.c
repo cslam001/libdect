@@ -248,6 +248,7 @@ static struct dect_lte *dect_lte_alloc(struct dect_handle *dh,
 	lte = dect_malloc(dh, sizeof(*lte));
 	if (lte == NULL)
 		return NULL;
+	memset(lte, 0, sizeof(*lte));
 	lte->ipui = *ipui;
 
 	list_add_tail(&lte->list, &dh->ldb);
@@ -277,6 +278,30 @@ void dect_lte_update(struct dect_handle *dh, const struct dect_ipui *ipui,
 
 	dect_ie_update(lte->setup_capability, setup_capability);
 	dect_ie_update(lte->terminal_capability, terminal_capability);
+}
+
+void dect_lte_update_tpui(const struct dect_handle *dh,
+			  const struct dect_ipui *ipui,
+			  const struct dect_tpui *tpui)
+{
+	struct dect_lte *lte;
+
+	lte = dect_lte_get_by_ipui(dh, ipui);
+	if (lte == NULL)
+		return;
+	lte->tpui	= *tpui;
+	lte->tpui_valid = true;
+}
+
+static const struct dect_tpui *dect_tpui(const struct dect_handle *dh,
+					 const struct dect_ipui *ipui)
+{
+	const struct dect_lte *lte;
+
+	lte = dect_lte_get_by_ipui(dh, ipui);
+	if (lte == NULL || !lte->tpui_valid)
+		return NULL;
+	return &lte->tpui;
 }
 
 static enum dect_setup_capabilities
@@ -1093,15 +1118,21 @@ static int dect_lce_send_short_page(const struct dect_handle *dh,
 {
 	DECT_DEFINE_MSG_BUF_ONSTACK(_mb), *mb = &_mb;
 	struct dect_short_page_msg *msg;
-	struct dect_tpui tpui;
+	const struct dect_tpui *tpui;
+	struct dect_tpui _tpui;
 	bool fast_page = false;
 	uint16_t page;
 
 	msg = dect_mbuf_put(mb, sizeof(*msg));
 	msg->hdr = DECT_LCE_PAGE_GENERAL_VOICE;
 
-	page = dect_build_tpui(dect_ipui_to_tpui(&tpui, ipui)) &
-	       DECT_LCE_SHORT_PAGE_TPUI_MASK;
+	tpui = dect_tpui(dh, ipui);
+	if (tpui == NULL)
+		tpui = dect_ipui_to_tpui(&_tpui, ipui);
+	else
+		msg->hdr |= DECT_LCE_PAGE_W_FLAG;
+
+	page = dect_build_tpui(tpui) & DECT_LCE_SHORT_PAGE_TPUI_MASK;
 	msg->information = __cpu_to_be16(page);
 
 	if (dect_page_capability(dh, ipui) ==
@@ -1116,7 +1147,8 @@ static int dect_lce_send_full_page(const struct dect_handle *dh,
 {
 	DECT_DEFINE_MSG_BUF_ONSTACK(_mb), *mb = &_mb;
 	struct dect_full_page_msg *msg;
-	struct dect_tpui tpui;
+	const struct dect_tpui *tpui;
+	struct dect_tpui _tpui;
 	uint8_t ipui_buf[8];
 	bool fast_page = false;
 	uint32_t page;
@@ -1127,8 +1159,11 @@ static int dect_lce_send_full_page(const struct dect_handle *dh,
 	if (1) {
 		msg->hdr |= DECT_LCE_PAGE_W_FLAG;
 
-		page  = dect_build_tpui(dect_ipui_to_tpui(&tpui, ipui)) <<
-			DECT_LCE_FULL_PAGE_TPUI_SHIFT;
+		tpui = dect_tpui(dh, ipui);
+		if (tpui == NULL)
+			tpui = dect_ipui_to_tpui(&_tpui, ipui);
+
+		page  = dect_build_tpui(tpui) << DECT_LCE_FULL_PAGE_TPUI_SHIFT;
 		page |= DECT_LCE_PAGE_FULL_SLOT <<
 			DECT_LCE_FULL_PAGE_SLOT_TYPE_SHIFT;
 		page |= DECT_LCE_PAGE_BASIC_CONN_ATTR_OPTIONAL <<
