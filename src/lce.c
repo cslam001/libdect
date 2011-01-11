@@ -911,14 +911,13 @@ static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
 {
 	struct dect_data_link *ddl;
 
-	//lte = dect_lte_get_by_ipui(dh, lte);
 	ddl = dect_ddl_alloc(dh);
 	if (ddl == NULL)
 		goto err1;
 	ddl->state = DECT_DATA_LINK_ESTABLISH_PENDING;
 	dect_ddl_set_ipui(dh, ddl, ipui);
 
-	if (dh->mode == DECT_MODE_FP ||
+	if (dh->mode == DECT_MODE_FP &&
 	    dect_setup_capability(dh, ipui) != DECT_SETUP_NO_FAST_SETUP) {
 		ddl->page_timer = dect_timer_alloc(dh);
 		if (ddl->page_timer == NULL)
