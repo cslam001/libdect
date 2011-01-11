@@ -23,7 +23,7 @@
 #include <libdect.h>
 
 #if 0
-#define refcnt_debug(fmt, ...)	dect_debug(fmt, ## __VA_ARGS__)
+#define refcnt_debug(fmt, ...)	dect_debug(DECT_DEBUG_UNKNOWN, fmt, ## __VA_ARGS__)
 #else
 #define refcnt_debug(fmt, ...)
 #endif
