@@ -6,10 +6,10 @@
 #include <stdint.h>
 
 #ifndef AF_DECT
-#define AF_DECT 38
+#define AF_DECT 39
 #endif
 #ifndef SOL_DECT
-#define SOL_DECT 279
+#define SOL_DECT 280
 #endif
 #ifndef NETLINK_DECT
 #define NETLINK_DECT 20
