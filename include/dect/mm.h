@@ -337,51 +337,51 @@ struct dect_mm_ops {
 
 extern int dect_mm_access_rights_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 				     const struct dect_mm_access_rights_param *param);
-extern int dect_mm_access_rights_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
-				     bool accept, const struct dect_mm_access_rights_param *param);
+extern void dect_mm_access_rights_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+				      bool accept, const struct dect_mm_access_rights_param *param);
 
 extern int dect_mm_access_rights_terminate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 					       const struct dect_mm_access_rights_terminate_param *param);
-extern int dect_mm_access_rights_terminate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
-					       bool accept, const struct dect_mm_access_rights_terminate_param *param);
+extern void dect_mm_access_rights_terminate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+						bool accept, const struct dect_mm_access_rights_terminate_param *param);
 
 extern int dect_mm_key_allocate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 				    const struct dect_mm_key_allocate_param *param);
 
 extern int dect_mm_authenticate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 				    const struct dect_mm_authenticate_param *param);
-extern int dect_mm_authenticate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
-				    bool accept, const struct dect_mm_authenticate_param *param);
+extern void dect_mm_authenticate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+				     bool accept, const struct dect_mm_authenticate_param *param);
 
 extern int dect_mm_cipher_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			      const struct dect_mm_cipher_param *param,
 			      const uint8_t ck[]);
-extern int dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
-			      bool accept, const struct dect_mm_cipher_param *param,
-			      const uint8_t ck[]);
+extern void dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+			       bool accept, const struct dect_mm_cipher_param *param,
+			       const uint8_t ck[]);
 
 extern int dect_mm_locate_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			      const struct dect_mm_locate_param *param);
-extern int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
-			      bool accept, const struct dect_mm_locate_param *param);
+extern void dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+			       bool accept, const struct dect_mm_locate_param *param);
 
 extern int dect_mm_detach_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			      struct dect_mm_detach_param *param);
 
 extern int dect_mm_identity_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 				const struct dect_mm_identity_param *param);
-extern int dect_mm_identity_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
-				const struct dect_mm_identity_param *param);
+extern void dect_mm_identity_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+				 const struct dect_mm_identity_param *param);
 
 extern int dect_mm_identity_assign_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 				       const struct dect_mm_identity_assign_param *param);
-extern int dect_mm_identity_assign_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
-				       bool accept, const struct dect_mm_identity_assign_param *param);
+extern void dect_mm_identity_assign_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+				        bool accept, const struct dect_mm_identity_assign_param *param);
 
 extern int dect_mm_info_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			    struct dect_mm_info_param *param);
-extern int dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
-			    bool accept, struct dect_mm_info_param *param);
+extern void dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+			     bool accept, struct dect_mm_info_param *param);
 
 extern int dect_mm_iwu_req(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			   const struct dect_mm_iwu_param *param);

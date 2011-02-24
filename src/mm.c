@@ -886,28 +886,23 @@ static int dect_mm_send_authenticate_reject(const struct dect_handle *dh,
  *
  * Respond to an authentication request and complete the authentication procedure.
  */
-int dect_mm_authenticate_res(struct dect_handle *dh,
-			     struct dect_mm_endpoint *mme, bool accept,
-			     const struct dect_mm_authenticate_param *param)
+void dect_mm_authenticate_res(struct dect_handle *dh,
+			      struct dect_mm_endpoint *mme, bool accept,
+			      const struct dect_mm_authenticate_param *param)
 {
 	struct dect_mm_procedure *mp = mme->current;
-	int err;
 
 	mm_debug_entry(mme, "MM_AUTHENTICATE-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_AUTHENTICATE &&
 	    mp->type != DECT_MMP_KEY_ALLOCATION)
-		return -1;
+		return;
 
 	if (accept)
-		err = dect_mm_send_authenticate_reply(dh, mme, param);
+		dect_mm_send_authenticate_reply(dh, mme, param);
 	else
-		err = dect_mm_send_authenticate_reject(dh, mme, param);
-
-	if (err < 0)
-		return err;
+		dect_mm_send_authenticate_reject(dh, mme, param);
 
 	dect_mm_procedure_complete(dh, mme);
-	return 0;
 }
 EXPORT_SYMBOL(dect_mm_authenticate_res);
 
@@ -1145,33 +1140,25 @@ static int dect_mm_send_cipher_reject(const struct dect_handle *dh,
  * @param param		cipher respond parameters
  * @param ck		cipher key
  */
-int dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
-		       bool accept, const struct dect_mm_cipher_param *param,
-		       const uint8_t ck[])
+void dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+		        bool accept, const struct dect_mm_cipher_param *param,
+		        const uint8_t ck[])
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
-	int err;
 
 	mm_debug_entry(mme, "MM_CIPHER-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_CIPHER)
-		return -1;
+		return;
 
 	if (accept) {
-		err = dect_ddl_set_cipher_key(mme->link, ck);
-		if (err < 0)
-			goto err1;
-
-		err = dect_ddl_encrypt_req(mme->link, DECT_CIPHER_ENABLED);
-		if (err < 0)
-			goto err1;
+		if (dect_ddl_set_cipher_key(mme->link, ck) < 0)
+			goto out;
+		dect_ddl_encrypt_req(mme->link, DECT_CIPHER_ENABLED);
 	} else
-		err = dect_mm_send_cipher_reject(dh, mme, param);
+		dect_mm_send_cipher_reject(dh, mme, param);
 
+out:
 	dect_mm_procedure_complete(dh, mme);
-	return 0;
-
-err1:
-	return err;
 }
 EXPORT_SYMBOL(dect_mm_cipher_res);
 
@@ -1443,17 +1430,16 @@ static int dect_mm_send_access_rights_reject(const struct dect_handle *dh,
  *
  * Respond to an access rights request and complete the access rights procedure.
  */
-int dect_mm_access_rights_res(struct dect_handle *dh,
-			      struct dect_mm_endpoint *mme, bool accept,
-			      const struct dect_mm_access_rights_param *param)
+void dect_mm_access_rights_res(struct dect_handle *dh,
+			       struct dect_mm_endpoint *mme, bool accept,
+			       const struct dect_mm_access_rights_param *param)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	const struct dect_mm_access_rights_param *req;
-	int err;
 
 	mm_debug_entry(mme, "MM_ACCESS_RIGHTS-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_ACCESS_RIGHTS)
-		return -1;
+		return;
 
 	if (accept) {
 		req = (const struct dect_mm_access_rights_param *)mp->iec;
@@ -1461,15 +1447,11 @@ int dect_mm_access_rights_res(struct dect_handle *dh,
 				req->setup_capability,
 				req->terminal_capability);
 
-		err = dect_mm_send_access_rights_accept(dh, mme, param);
+		dect_mm_send_access_rights_accept(dh, mme, param);
 	} else
-		err = dect_mm_send_access_rights_reject(dh, mme, param);
-
-	if (err < 0)
-		return err;
+		dect_mm_send_access_rights_reject(dh, mme, param);
 
 	dect_mm_procedure_complete(dh, mme);
-	return 0;
 }
 EXPORT_SYMBOL(dect_mm_access_rights_res);
 
@@ -1713,27 +1695,22 @@ static int dect_mm_send_access_rights_terminate_reject(const struct dect_handle 
  * Respond to an access rights termination request and complete the access
  * rights termination procedure.
  */
-int dect_mm_access_rights_terminate_res(struct dect_handle *dh,
-					struct dect_mm_endpoint *mme, bool accept,
-					const struct dect_mm_access_rights_terminate_param *param)
+void dect_mm_access_rights_terminate_res(struct dect_handle *dh,
+					 struct dect_mm_endpoint *mme, bool accept,
+					 const struct dect_mm_access_rights_terminate_param *param)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
-	int err;
 
 	mm_debug_entry(mme, "MM_ACCESS_RIGHTS_TERMINATE-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_ACCESS_RIGHTS_TERMINATE)
-		return -1;
+		return;
 
 	if (accept)
-		err = dect_mm_send_access_rights_terminate_accept(dh, mme, param);
+		dect_mm_send_access_rights_terminate_accept(dh, mme, param);
 	else
-		err = dect_mm_send_access_rights_terminate_reject(dh, mme, param);
-
-	if (err < 0)
-		return err;
+		dect_mm_send_access_rights_terminate_reject(dh, mme, param);
 
 	dect_mm_procedure_complete(dh, mme);
-	return 0;
 }
 EXPORT_SYMBOL(dect_mm_access_rights_terminate_res);
 
@@ -1987,16 +1964,15 @@ static int dect_mm_send_locate_reject(const struct dect_handle *dh,
  * @param accept	accept/reject location registration/update
  * @param param		ccess rights response parameters
  */
-int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
-		       bool accept, const struct dect_mm_locate_param *param)
+void dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+			bool accept, const struct dect_mm_locate_param *param)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	const struct dect_mm_locate_param *req;
-	int err;
 
 	mm_debug_entry(mme, "MM_LOCATE-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_LOCATION_REGISTRATION)
-		return -1;
+		return;
 
 	if (accept) {
 		req = (const struct dect_mm_locate_param *)mp->iec;
@@ -2004,12 +1980,10 @@ int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 				req->setup_capability,
 				req->terminal_capability);
 
-		err = dect_mm_send_locate_accept(dh, mme, param);
+		if (dect_mm_send_locate_accept(dh, mme, param) < 0)
+			goto out;
 	} else
-		err = dect_mm_send_locate_reject(dh, mme, param);
-
-	if (err < 0)
-		return err;
+		dect_mm_send_locate_reject(dh, mme, param);
 
 	/*
 	 * TPUI or NWK identity assignment begins an identity assignment
@@ -2020,11 +1994,10 @@ int dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	     param->nwk_assigned_identity)) {
 		mp->tpui = param->portable_identity->tpui;
 		mp->type = DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT;
-		return 0;
+		return;
 	}
-
+out:
 	dect_mm_procedure_complete(dh, mme);
-	return 0;
 }
 EXPORT_SYMBOL(dect_mm_locate_res);
 
@@ -2328,17 +2301,16 @@ EXPORT_SYMBOL(dect_mm_identity_req);
  * @param mme		Mobility Management Endpoint
  * @param param		identity response parameters
  */
-int dect_mm_identity_res(struct dect_handle *dh,
-			 struct dect_mm_endpoint *mme,
-			 const struct dect_mm_identity_param *param)
+void dect_mm_identity_res(struct dect_handle *dh,
+			  struct dect_mm_endpoint *mme,
+			  const struct dect_mm_identity_param *param)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_identity_reply_msg msg;
-	int err;
 
 	mm_debug_entry(mme, "MM_IDENTITY-res");
 	if (mp->type != DECT_MMP_IDENTIFICATION)
-		return -1;
+		return;
 
 	memset(&msg, 0, sizeof(msg));
 	msg.portable_identity		= param->portable_identity;
@@ -2348,13 +2320,10 @@ int dect_mm_identity_res(struct dect_handle *dh,
 	msg.model_identifier		= param->model_identifier;
 	msg.escape_to_proprietary	= param->escape_to_proprietary;
 
-	err = dect_mm_send_msg(dh, mme, &mm_identity_reply_msg_desc,
-			       &msg.common, DECT_MM_IDENTITY_REPLY);
-	if (err < 0)
-		return err;
+	dect_mm_send_msg(dh, mme, &mm_identity_reply_msg_desc,
+			 &msg.common, DECT_MM_IDENTITY_REPLY);
 
 	dect_mm_procedure_complete(dh, mme);
-	return 0;
 }
 EXPORT_SYMBOL(dect_mm_identity_res);
 
@@ -2527,31 +2496,26 @@ static int dect_mm_send_temporary_identity_assign_rej(const struct dect_handle *
  * @param accept	accept/reject identity assignment
  * @param param		identity assigment response parameters
  */
-int dect_mm_identity_assign_res(struct dect_handle *dh,
-				struct dect_mm_endpoint *mme, bool accept,
-				const struct dect_mm_identity_assign_param *param)
+void dect_mm_identity_assign_res(struct dect_handle *dh,
+				 struct dect_mm_endpoint *mme, bool accept,
+				 const struct dect_mm_identity_assign_param *param)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
-	int err;
 
 	mm_debug_entry(mme, "MM_IDENTITY_ASSIGN-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT)
-		return -1;
+		return;
 
 	if (accept) {
 		struct dect_mm_locate_param *lp = (struct dect_mm_locate_param *)mp->iec;
 
 		dect_assert(lp->portable_identity->type == DECT_PORTABLE_ID_TYPE_TPUI);
 		dect_pp_set_tpui(dh, &lp->portable_identity->tpui);
-		err = dect_mm_send_temporary_identity_assign_ack(dh, mme, param);
+		dect_mm_send_temporary_identity_assign_ack(dh, mme, param);
 	} else
-		err = dect_mm_send_temporary_identity_assign_rej(dh, mme, param);
-
-	if (err < 0)
-		return err;
+		dect_mm_send_temporary_identity_assign_rej(dh, mme, param);
 
 	dect_mm_procedure_complete(dh, mme);
-	return 0;
 }
 EXPORT_SYMBOL(dect_mm_identity_assign_res);
 
@@ -2807,26 +2771,21 @@ static int dect_mm_send_info_reject(const struct dect_handle *dh,
  * @param accept	accept/reject info request
  * @param param		info parameters
  */
-int dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
-		     bool accept, struct dect_mm_info_param *param)
+void dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
+		      bool accept, struct dect_mm_info_param *param)
 {
 	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
-	int err;
 
 	mm_debug_entry(mme, "MM_INFO-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_PARAMETER_RETRIEVAL)
-		return -1;
+		return;
 
 	if (accept)
-		err = dect_mm_send_info_accept(dh, mme, param);
+		dect_mm_send_info_accept(dh, mme, param);
 	else
-		err = dect_mm_send_info_reject(dh, mme, param);
-
-	if (err < 0)
-		return err;
+		dect_mm_send_info_reject(dh, mme, param);
 
 	dect_mm_procedure_complete(dh, mme);
-	return 0;
 }
 EXPORT_SYMBOL(dect_mm_info_res);
 
