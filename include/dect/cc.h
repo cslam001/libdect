@@ -298,28 +298,28 @@ extern int dect_mncc_alert_req(struct dect_handle *dh, struct dect_call *call,
 			       const struct dect_mncc_alert_param *param);
 extern int dect_mncc_connect_req(struct dect_handle *dh, struct dect_call *call,
 				 const struct dect_mncc_connect_param *param);
-extern int dect_mncc_connect_res(struct dect_handle *dh, struct dect_call *call,
-				 const struct dect_mncc_connect_param *param);
+extern void dect_mncc_connect_res(struct dect_handle *dh, struct dect_call *call,
+				  const struct dect_mncc_connect_param *param);
 extern int dect_mncc_release_req(struct dect_handle *dh, struct dect_call *call,
 				 const struct dect_mncc_release_param *param);
-extern int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
-				 const struct dect_mncc_release_param *param);
+extern void dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
+				  const struct dect_mncc_release_param *param);
 extern int dect_mncc_facility_req(struct dect_handle *dh, struct dect_call *call,
 				  const struct dect_mncc_facility_param *param);
 extern int dect_mncc_info_req(struct dect_handle *dh, struct dect_call *call,
 			      const struct dect_mncc_info_param *param);
 extern int dect_mncc_modify_req(struct dect_handle *dh, struct dect_call *call,
 				const struct dect_mncc_modify_param *param);
-extern int dect_mncc_modify_res(struct dect_handle *dh, struct dect_call *call,
-				bool success, const struct dect_mncc_modify_param *param);
+extern void dect_mncc_modify_res(struct dect_handle *dh, struct dect_call *call,
+				 bool success, const struct dect_mncc_modify_param *param);
 extern int dect_mncc_hold_req(struct dect_handle *dh, struct dect_call *call,
 			      const struct dect_mncc_hold_param *param);
-extern int dect_mncc_hold_res(struct dect_handle *dh, struct dect_call *call,
-			      const struct dect_mncc_hold_param *param);
+extern void dect_mncc_hold_res(struct dect_handle *dh, struct dect_call *call,
+			       const struct dect_mncc_hold_param *param);
 extern int dect_mncc_retrieve_req(struct dect_handle *dh, struct dect_call *call,
 				  const struct dect_mncc_hold_param *param);
-extern int dect_mncc_retrieve_res(struct dect_handle *dh, struct dect_call *call,
-				  const struct dect_mncc_hold_param *param);
+extern void dect_mncc_retrieve_res(struct dect_handle *dh, struct dect_call *call,
+				   const struct dect_mncc_hold_param *param);
 extern int dect_mncc_iwu_info_req(struct dect_handle *dh, struct dect_call *call,
 				  const struct dect_mncc_iwu_info_param *param);
 

@@ -1043,8 +1043,8 @@ EXPORT_SYMBOL(dect_mncc_connect_req);
  * @param call		Call Control Endpoint
  * @param param		call connection parameters
  */
-int dect_mncc_connect_res(struct dect_handle *dh, struct dect_call *call,
-			  const struct dect_mncc_connect_param *param)
+void dect_mncc_connect_res(struct dect_handle *dh, struct dect_call *call,
+			   const struct dect_mncc_connect_param *param)
 {
 	struct dect_cc_connect_ack_msg msg = {
 		.display		= param->display,
@@ -1061,12 +1061,10 @@ int dect_mncc_connect_res(struct dect_handle *dh, struct dect_call *call,
 		goto err1;
 
 	call->state = DECT_CC_ACTIVE;
-
-	return 0;
+	return;
 
 err1:
 	dect_call_disconnect_uplane(dh, call);
-	return -1;
 }
 EXPORT_SYMBOL(dect_mncc_connect_res);
 
@@ -1111,8 +1109,8 @@ EXPORT_SYMBOL(dect_mncc_release_req);
  * @param call		Call Control Endpoint
  * @param param		call release parameters
  */
-int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
-			  const struct dect_mncc_release_param *param)
+void dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
+			   const struct dect_mncc_release_param *param)
 {
 	struct dect_cc_release_com_msg msg = {
 		.release_reason			= param->release_reason,
@@ -1134,7 +1132,6 @@ int dect_mncc_release_res(struct dect_handle *dh, struct dect_call *call,
 
 	dect_cc_stop_timers(dh, call);
 	dect_call_shutdown(dh, call);
-	return 0;
 }
 EXPORT_SYMBOL(dect_mncc_release_res);
 
@@ -1218,11 +1215,10 @@ EXPORT_SYMBOL(dect_mncc_modify_req);
  * @param success	success/failure of service modification
  * @param param		call modification parameters
  */
-int dect_mncc_modify_res(struct dect_handle *dh, struct dect_call *call,
-			 bool success, const struct dect_mncc_modify_param *param)
+void dect_mncc_modify_res(struct dect_handle *dh, struct dect_call *call,
+			  bool success, const struct dect_mncc_modify_param *param)
 {
 	cc_debug_entry(call, "MNCC_MODIFY-res: success: %u", success);
-	return 0;
 }
 EXPORT_SYMBOL(dect_mncc_modify_res);
 
@@ -1254,11 +1250,10 @@ EXPORT_SYMBOL(dect_mncc_hold_req);
  * @param call		Call Control Endpoint
  * @param param		call hold parameters
  */
-int dect_mncc_hold_res(struct dect_handle *dh, struct dect_call *call,
-		       const struct dect_mncc_hold_param *param)
+void dect_mncc_hold_res(struct dect_handle *dh, struct dect_call *call,
+			const struct dect_mncc_hold_param *param)
 {
 	cc_debug_entry(call, "MNCC_HOLD-res");
-	return 0;
 }
 EXPORT_SYMBOL(dect_mncc_hold_res);
 
@@ -1284,11 +1279,10 @@ EXPORT_SYMBOL(dect_mncc_retrieve_req);
  * @param call		Call Control Endpoint
  * @param param		call retrieve parameters
  */
-int dect_mncc_retrieve_res(struct dect_handle *dh, struct dect_call *call,
-			   const struct dect_mncc_hold_param *param)
+void dect_mncc_retrieve_res(struct dect_handle *dh, struct dect_call *call,
+			    const struct dect_mncc_hold_param *param)
 {
 	cc_debug_entry(call, "MNCC_RETRIEVE-res");
-	return 0;
 }
 EXPORT_SYMBOL(dect_mncc_retrieve_res);
 
