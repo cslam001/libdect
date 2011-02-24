@@ -209,9 +209,10 @@ struct dect_data_link {
 	struct list_head		transactions;
 };
 
-#define DECT_DDL_RELEASE_TIMEOUT	5	/* seconds */
-#define DECT_DDL_ESTABLISH_SDU_TIMEOUT	5	/* seconds */
-#define DECT_DDL_PAGE_TIMEOUT		5	/* seconds */
+#define DECT_DDL_RELEASE_TIMEOUT	5	/* LCE.01: 5 seconds */
+#define DECT_DDL_LINK_MAINTAIN_TIMEOUT	5	/* LCE.02: 5 seconds */
+#define DECT_DDL_PAGE_TIMEOUT		5	/* LCE.03: 5 seconds */
+#define DECT_DDL_ESTABLISH_SDU_TIMEOUT	5	/* LCE.05: 5 seconds */
 #define DECT_DDL_PAGE_RETRANS_MAX	3	/* N.300 */
 
 extern int dect_ddl_set_cipher_key(const struct dect_data_link *ddl,

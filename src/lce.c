@@ -463,7 +463,7 @@ static void dect_ddl_release_timer(struct dect_handle *dh, struct dect_timer *ti
 {
 	struct dect_data_link *ddl = timer->data;
 
-	ddl_debug(ddl, "normal release timeout");
+	ddl_debug(ddl, "<LCE.01>: Link release timer: normal release timeout");
 	dect_ddl_destroy(dh, ddl);
 }
 
@@ -503,7 +503,7 @@ static void dect_ddl_partial_release_timer(struct dect_handle *dh, struct dect_t
 {
 	struct dect_data_link *ddl = timer->data;
 
-	ddl_debug(ddl, "partial release timeout");
+	ddl_debug(ddl, "<LCE.02>: link maintain timer: partial release timeout");
 	if (list_empty(&ddl->transactions))
 		dect_ddl_destroy(dh, ddl);
 }
@@ -519,7 +519,7 @@ static void dect_ddl_partial_release(struct dect_handle *dh,
 		dect_timer_stop(dh, ddl->sdu_timer);
 
 	dect_timer_setup(ddl->sdu_timer, dect_ddl_partial_release_timer, ddl);
-	dect_timer_start(dh, ddl->sdu_timer, DECT_DDL_ESTABLISH_SDU_TIMEOUT);
+	dect_timer_start(dh, ddl->sdu_timer, DECT_DDL_LINK_MAINTAIN_TIMEOUT);
 }
 
 static void dect_ddl_shutdown(struct dect_handle *dh,
@@ -604,7 +604,7 @@ static void dect_ddl_sdu_timer(struct dect_handle *dh, struct dect_timer *timer)
 {
 	struct dect_data_link *ddl = timer->data;
 
-	ddl_debug(ddl, "SDU timer");
+	ddl_debug(ddl, "<LCE.05>: SDU timeout");
 	dect_ddl_destroy(dh, ddl);
 }
 
@@ -613,14 +613,14 @@ static int dect_ddl_schedule_sdu_timer(const struct dect_handle *dh,
 {
 	dect_timer_setup(ddl->sdu_timer, dect_ddl_sdu_timer, ddl);
 	dect_timer_start(dh, ddl->sdu_timer, DECT_DDL_ESTABLISH_SDU_TIMEOUT);
-	ddl_debug(ddl, "start SDU timer");
+	ddl_debug(ddl, "start <LCE.05>: SDU timer");
 	return 0;
 }
 
 static void dect_ddl_stop_sdu_timer(const struct dect_handle *dh,
 				    struct dect_data_link *ddl)
 {
-	ddl_debug(ddl, "stop SDU timer");
+	ddl_debug(ddl, "stop <LCE.05>: SDU timer");
 	dect_timer_stop(dh, ddl->sdu_timer);
 }
 
@@ -1199,7 +1199,7 @@ static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer
 
 	if (ddl->page_count) {
 		dect_debug(DECT_DEBUG_LCE, "\n");
-		ddl_debug(ddl, "Page timer");
+		ddl_debug(ddl, "<LCE.03>: Page timer");
 	}
 
 	if (ddl->page_count++ == DECT_DDL_PAGE_RETRANS_MAX)
