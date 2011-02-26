@@ -1144,7 +1144,7 @@ void dect_mm_cipher_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		        bool accept, const struct dect_mm_cipher_param *param,
 		        const uint8_t ck[])
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_procedure *mp = mme->current;
 
 	mm_debug_entry(mme, "MM_CIPHER-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_CIPHER)
@@ -1434,7 +1434,7 @@ void dect_mm_access_rights_res(struct dect_handle *dh,
 			       struct dect_mm_endpoint *mme, bool accept,
 			       const struct dect_mm_access_rights_param *param)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_procedure *mp = mme->current;
 	const struct dect_mm_access_rights_param *req;
 
 	mm_debug_entry(mme, "MM_ACCESS_RIGHTS-res: accept: %u", accept);
@@ -1699,7 +1699,7 @@ void dect_mm_access_rights_terminate_res(struct dect_handle *dh,
 					 struct dect_mm_endpoint *mme, bool accept,
 					 const struct dect_mm_access_rights_terminate_param *param)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_procedure *mp = mme->current;
 
 	mm_debug_entry(mme, "MM_ACCESS_RIGHTS_TERMINATE-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_ACCESS_RIGHTS_TERMINATE)
@@ -1967,7 +1967,7 @@ static int dect_mm_send_locate_reject(const struct dect_handle *dh,
 void dect_mm_locate_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 			bool accept, const struct dect_mm_locate_param *param)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_procedure *mp = mme->current;
 	const struct dect_mm_locate_param *req;
 
 	mm_debug_entry(mme, "MM_LOCATE-res: accept: %u", accept);
@@ -2305,7 +2305,7 @@ void dect_mm_identity_res(struct dect_handle *dh,
 			  struct dect_mm_endpoint *mme,
 			  const struct dect_mm_identity_param *param)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_procedure *mp = mme->current;
 	struct dect_mm_identity_reply_msg msg;
 
 	mm_debug_entry(mme, "MM_IDENTITY-res");
@@ -2500,7 +2500,7 @@ void dect_mm_identity_assign_res(struct dect_handle *dh,
 				 struct dect_mm_endpoint *mme, bool accept,
 				 const struct dect_mm_identity_assign_param *param)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_procedure *mp = mme->current;
 
 	mm_debug_entry(mme, "MM_IDENTITY_ASSIGN-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_TEMPORARY_IDENTITY_ASSIGNMENT)
@@ -2774,7 +2774,7 @@ static int dect_mm_send_info_reject(const struct dect_handle *dh,
 void dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 		      bool accept, struct dect_mm_info_param *param)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
+	struct dect_mm_procedure *mp = mme->current;
 
 	mm_debug_entry(mme, "MM_INFO-res: accept: %u", accept);
 	if (mp->type != DECT_MMP_PARAMETER_RETRIEVAL)
