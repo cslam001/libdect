@@ -60,7 +60,7 @@ fi
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_ASSERT
-AC_CHECK_HEADERS([fcntl.h inttypes.h libintl.h limits.h malloc.h \
+AC_CHECK_HEADERS([fcntl.h inttypes.h limits.h malloc.h \
 		  stddef.h stdint.h stdlib.h string.h unistd.h \
 		  sys/socket.h], ,
 		 [AC_MSG_ERROR([Header file not found])])
