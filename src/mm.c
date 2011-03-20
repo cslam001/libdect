@@ -2197,7 +2197,6 @@ static void dect_mm_rcv_detach(struct dect_handle *dh,
 			       struct dect_mm_endpoint *mme,
 			       struct dect_msg_buf *mb)
 {
-	struct dect_mm_procedure *mp = &mme->procedure[DECT_TRANSACTION_RESPONDER];
 	struct dect_mm_detach_param *param;
 	struct dect_mm_detach_msg msg;
 
@@ -2223,7 +2222,7 @@ static void dect_mm_rcv_detach(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_transaction_close(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_DETACH-ind");
 	dh->ops->mm_ops->mm_detach_ind(dh, mme, param);
@@ -2829,6 +2828,8 @@ static void dect_mm_rcv_info_request(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
+	dect_mm_procedure_complete(dh, mme);
+
 	mm_debug(mme, "MM_INFO-ind");
 	dh->ops->mm_ops->mm_info_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
@@ -2953,7 +2954,7 @@ static void dect_mm_rcv_info_suggest(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_transaction_close(dh, &mp->transaction, DECT_DDL_RELEASE_PARTIAL);
+	dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_INFO-ind");
 	dh->ops->mm_ops->mm_info_ind(dh, mme, param);
