@@ -1632,8 +1632,23 @@ void dect_transaction_close(struct dect_handle *dh, struct dect_transaction *ta,
 		if (!list_empty(&ddl->transactions))
 			break;
 	case DECT_DATA_LINK_ESTABLISH_PENDING:
-		/* link establishment was unsucessful */
-		return dect_ddl_destroy(dh, ddl);
+		/* 14.2 states: "If a higher entity releases a call, whilst the
+		 * initial messages are still queued, the queued messages shall
+		 * be discarded, and the link establishment shall be immediately
+		 * terminated".
+		 *
+		 * The term "call" is used ambiguously though, in order to support
+		 * transactions that only send a single message and immediately
+		 * close the transaction again, a call is interpreted to only
+		 * refer to CC and COMS instances.
+		 *
+		 * In case of other higher layer protocols we wait until link
+		 * establishment has succeeded or timed out.
+		 */
+		if (ta->pd == DECT_PD_CC || ta->pd == DECT_PD_COMS)
+			return dect_ddl_destroy(dh, ddl);
+		else
+			return;
 	default:
 		break;
 	}
