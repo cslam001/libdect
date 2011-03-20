@@ -1,7 +1,7 @@
 CFLAGS		+= $(EVENT_CFLAGS)
 LDFLAGS		+= -Wl,-rpath $(PWD)/src -Lsrc -ldect $(EVENT_LDFLAGS)
 PROGRAMS	+= ss hijack
-PROGRAMS	+= fp-mm fp-cc fp-clms fp-broadcast-page
+PROGRAMS	+= fp-mm fp-locate-suggest fp-cc fp-clms fp-broadcast-page
 PROGRAMS	+= fp-siemens-proprietary
 PROGRAMS	+= pp-access-rights pp-access-rights-terminate pp-location-update
 PROGRAMS	+= pp-detach pp-info-request pp-cc pp-list-access pp-clms
@@ -20,6 +20,10 @@ ss-obj		+= ss.o
 fp-mm-destdir			:= $(destdir)
 fp-mm-obj			+= $(fp-common-obj)
 fp-mm-obj			+= fp-mm.o
+
+fp-locate-suggest-destdir	:= $(destdir)
+fp-locate-suggest-obj		+= $(fp-common-obj)
+fp-locate-suggest-obj		+= fp-locate-suggest.o
 
 fp-cc-destdir			:= $(destdir)
 fp-cc-obj			+= $(fp-common-obj)
