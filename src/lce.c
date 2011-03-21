@@ -1766,8 +1766,8 @@ int dect_lce_init(struct dect_handle *dh)
 		memset(&s_addr, 0, sizeof(s_addr));
 		s_addr.dect_family = AF_DECT;
 		s_addr.dect_index  = dh->index;
-		s_addr.dect_lln    = 1;
-		s_addr.dect_sapi   = 0;
+		s_addr.dect_lln    = DECT_LLN_ANY;
+		s_addr.dect_sapi   = DECT_SAPI_ANY;
 
 		if (bind(dh->s_sap->fd, (struct sockaddr *)&s_addr,
 			 sizeof(s_addr)) < 0)
