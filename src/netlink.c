@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include <errno.h>
+#include <linux/dect_netlink.h>
 
 #include <netlink/netlink.h>
 #include <netlink/object.h>
