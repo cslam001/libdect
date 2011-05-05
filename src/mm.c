@@ -2352,7 +2352,7 @@ static void dect_mm_rcv_identity_request(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	mm_debug(mme, "MM_IDENTIY-ind");
+	mm_debug(mme, "MM_IDENTITY-ind");
 	dh->ops->mm_ops->mm_identity_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
 
