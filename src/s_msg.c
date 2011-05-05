@@ -52,7 +52,7 @@ static int dect_sfmt_parse_repeat_indicator(const struct dect_handle *dh,
 					    struct dect_ie_common **ie,
 					    const struct dect_sfmt_ie *src)
 {
-	struct dect_ie_list *dst = dect_ie_container(dst, *ie);
+	struct dect_ie_list *dst = (struct dect_ie_list *)ie;
 
 	dst->type = src->data[0] & DECT_SFMT_IE_FIXED_VAL_MASK;
 	switch (dst->type) {
