@@ -2828,7 +2828,8 @@ static void dect_mm_rcv_info_request(struct dect_handle *dh,
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-	dect_mm_procedure_complete(dh, mme);
+	if (dh->mode == DECT_MODE_PP)
+		dect_mm_procedure_complete(dh, mme);
 
 	mm_debug(mme, "MM_INFO-ind");
 	dh->ops->mm_ops->mm_info_ind(dh, mme, param);
