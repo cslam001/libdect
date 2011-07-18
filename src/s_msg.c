@@ -718,6 +718,13 @@ static int dect_sfmt_build_allocation_type(struct dect_sfmt_ie *dst,
 	return 0;
 }
 
+static const struct dect_trans_tbl dect_auth_flags[] = {
+	TRANS_TBL(DECT_AUTH_FLAG_INC,		"INC"),
+	TRANS_TBL(DECT_AUTH_FLAG_DEF,		"DEF"),
+	TRANS_TBL(DECT_AUTH_FLAG_TXC,		"TXC"),
+	TRANS_TBL(DECT_AUTH_FLAG_UPC,		"UPC"),
+};
+
 static void dect_sfmt_dump_auth_type(const struct dect_ie_common *_ie)
 {
 	const struct dect_ie_auth_type *ie = dect_ie_container(ie, _ie);
@@ -729,11 +736,8 @@ static void dect_sfmt_dump_auth_type(const struct dect_ie_common *_ie)
 		   dect_val2str(dect_auth_key_types, buf, ie->auth_key_type));
 	sfmt_debug("\tauthentication key number: %u\n", ie->auth_key_num);
 	sfmt_debug("\tcipher key number: %u\n", ie->cipher_key_num);
-	sfmt_debug("\tINC: %u DEF: %u TXC: %u UPC: %u\n",
-		   ie->flags & DECT_AUTH_FLAG_INC ? 1 : 0,
-		   ie->flags & DECT_AUTH_FLAG_DEF ? 1 : 0,
-		   ie->flags & DECT_AUTH_FLAG_TXC ? 1 : 0,
-		   ie->flags & DECT_AUTH_FLAG_UPC ? 1 : 0);
+	sfmt_debug("\tflags: %s\n",
+		   dect_flags2str(dect_auth_flags, buf, ie->flags));
 	if (ie->flags & DECT_AUTH_FLAG_DEF)
 		sfmt_debug("\tdefault cipher key index: %u\n",
 			   ie->defck_index);
