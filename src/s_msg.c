@@ -1909,6 +1909,8 @@ static void dect_sfmt_dump_iwu_to_iwu(const struct dect_ie_common *_ie)
 		   dect_val2str(dect_iwu_to_iwu_sr, buf, ie->sr));
 	sfmt_debug("\tProtocol Discriminator: %s\n",
 		   dect_val2str(dect_iwu_to_iwu_pds, buf, ie->pd));
+	sfmt_debug("\tContent length: %u\n", ie->len);
+	dect_hexdump(DECT_DEBUG_SFMT, "\tInformation", ie->data, ie->len);
 }
 
 static int dect_sfmt_parse_iwu_to_iwu(const struct dect_handle *dh,
