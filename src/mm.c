@@ -522,22 +522,8 @@ dect_mm_endpoint_get_by_link(const struct dect_handle *dh,
 	return NULL;
 }
 
-struct dect_mm_endpoint *dect_mm_endpoint_get(struct dect_handle *dh,
-					      const struct dect_ipui *ipui)
-{
-	struct dect_mm_endpoint *mme;
-
-	list_for_each_entry(mme, &dh->mme_list, list) {
-		if (!dect_ipui_cmp(&mme->link->ipui, ipui))
-			return mme;
-	}
-
-	return dect_mm_endpoint_alloc(dh, ipui);
-}
-EXPORT_SYMBOL(dect_mm_endpoint_get);
-
 struct dect_mm_endpoint *dect_mm_endpoint_alloc(struct dect_handle *dh,
-						const struct dect_ipui *ipui)
+						struct dect_data_link *ddl)
 {
 	struct dect_mm_endpoint *mme;
 
@@ -548,17 +534,11 @@ struct dect_mm_endpoint *dect_mm_endpoint_alloc(struct dect_handle *dh,
 		goto err2;
 	if (dect_mm_procedure_init(dh, mme, DECT_TRANSACTION_RESPONDER) < 0)
 		goto err3;
-
-	if (ipui != NULL) {
-		mme->link = dect_ddl_connect(dh, ipui);
-		if (mme->link == NULL)
-			goto err4;
-	}
+	mme->link = ddl;
 
 	list_add_tail(&mme->list, &dh->mme_list);
 	return mme;
 
-err4:
 	dect_timer_free(dh, mme->procedure[DECT_TRANSACTION_RESPONDER].timer);
 err3:
 	dect_timer_free(dh, mme->procedure[DECT_TRANSACTION_INITIATOR].timer);
@@ -3245,10 +3225,9 @@ static void dect_mm_open(struct dect_handle *dh,
 
 	mme = dect_mm_endpoint_get_by_link(dh, req->link);
 	if (mme == NULL) {
-		mme = dect_mm_endpoint_alloc(dh, NULL);
+		mme = dect_mm_endpoint_alloc(dh, req->link);
 		if (mme == NULL)
 			return;
-		mme->link = req->link;
 	}
 
 	ta = &mme->procedure[DECT_TRANSACTION_RESPONDER].transaction;

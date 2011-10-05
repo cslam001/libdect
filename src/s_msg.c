@@ -2011,11 +2011,11 @@ static const struct dect_trans_tbl dect_mac_dlc_services[] = {
 };
 
 static const struct dect_trans_tbl dect_slot_sizes[] = {
-	TRANS_TBL(DECT_HALF_SLOT,			"half slot"),
-	TRANS_TBL(DECT_LONG_SLOT_640,			"long slot j=640"),
-	TRANS_TBL(DECT_LONG_SLOT_672,			"long slot j=672"),
-	TRANS_TBL(DECT_FULL_SLOT,			"full slot"),
-	TRANS_TBL(DECT_DOUBLE_SLOT,			"double slot"),
+	TRANS_TBL(DECT_HALF_SLOT_SIZE,			"half slot"),
+	TRANS_TBL(DECT_LONG_SLOT_640_SIZE,		"long slot j=640"),
+	TRANS_TBL(DECT_LONG_SLOT_672_SIZE,		"long slot j=672"),
+	TRANS_TBL(DECT_FULL_SLOT_SIZE,			"full slot"),
+	TRANS_TBL(DECT_DOUBLE_SLOT_SIZE,		"double slot"),
 };
 
 static const struct dect_trans_tbl dect_cplane_routing[] = {

@@ -32,13 +32,26 @@ static void dect_iwu_info_req(struct dect_handle *dh, struct dect_call *call)
 	dect_mncc_iwu_info_req(dh, call, &req);
 }
 
-static void dect_mncc_connect_ind(struct dect_handle *dh, struct dect_call *call,
-				  struct dect_mncc_connect_param *param)
+static void dect_mncc_call_proc_ind(struct dect_handle *dh, struct dect_call *call,
+				    struct dect_mncc_call_proc_param *param)
 {
-	struct dect_mncc_connect_param reply = {};
-
-	dect_mncc_connect_res(dh, call, &reply);
 	dect_iwu_info_req(dh, call);
+}
+
+static void dect_mncc_reject_ind(struct dect_handle *dh, struct dect_call *call,
+				 enum dect_causes cause,
+				 struct dect_mncc_release_param *param)
+{
+	dect_event_loop_stop();
+}
+
+static void dect_mncc_release_ind(struct dect_handle *dh, struct dect_call *call,
+				  struct dect_mncc_release_param *param)
+{
+	struct dect_mncc_release_param res = {};
+
+	dect_mncc_release_res(dh, call, &res);
+	dect_event_loop_stop();
 }
 
 static void dect_open_call(struct dect_handle *dh, const struct dect_ipui *ipui)
@@ -53,23 +66,41 @@ static void dect_open_call(struct dect_handle *dh, const struct dect_ipui *ipui)
 	if (call == NULL)
 		return;
 
-	basic_service.class   = DECT_CALL_CLASS_NORMAL;
-	basic_service.service = DECT_SERVICE_BASIC_SPEECH_DEFAULT;
+	basic_service.class   = DECT_CALL_CLASS_LIA_SERVICE_SETUP;
+	basic_service.service = DECT_SERVICE_WIDEBAND_SPEECH;
 
 	dect_mncc_setup_req(dh, call, ipui, &req);
 }
 
+static void dect_dl_establish_cfm(struct dect_handle *dh, bool success,
+				  struct dect_data_link *ddl,
+				  const struct dect_mac_conn_params *mcp)
+{
+	dect_open_call(dh, &ipui);
+}
+
 static struct dect_cc_ops cc_ops = {
-	.mncc_connect_ind	= dect_mncc_connect_ind,
+	.mncc_call_proc_ind	= dect_mncc_call_proc_ind,
+	.mncc_release_ind	= dect_mncc_release_ind,
+	.mncc_reject_ind	= dect_mncc_reject_ind,
+};
+
+static struct dect_lce_ops lce_ops = {
+	.dl_establish_cfm	= dect_dl_establish_cfm,
 };
 
 static struct dect_ops ops = {
+	.lce_ops		= &lce_ops,
 	.cc_ops			= &cc_ops,
 };
 
 int main(int argc, char **argv)
 {
 	const struct dect_fp_capabilities *fpc;
+	struct dect_mac_conn_params mcp = {
+		.service	= DECT_SERVICE_IN_MIN_DELAY,
+		.slot		= DECT_LONG_SLOT_640,
+	};
 
 	dect_pp_common_options(argc, argv);
 	dect_pp_common_init(&ops, cluster, &ipui);
@@ -80,7 +111,7 @@ int main(int argc, char **argv)
 		goto out;
 	}
 
-	dect_open_call(dh, &ipui);
+	dect_dl_establish_req(dh, &ipui, &mcp);
 	dect_event_loop();
 out:
 	dect_common_cleanup(dh);
