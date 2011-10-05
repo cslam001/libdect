@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #ifndef AF_DECT
-#define AF_DECT 39
+#define AF_DECT 40
 #endif
 #ifndef SOL_DECT
 #define SOL_DECT 280
