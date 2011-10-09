@@ -330,18 +330,6 @@ dect_page_capability(const struct dect_handle *dh,
 	return lte->setup_capability->page_capability;
 }
 
-static uint64_t dect_profile_indicator(const struct dect_handle *dh,
-				       const struct dect_ipui *ipui)
-{
-	const struct dect_lte *lte;
-
-	lte = dect_lte_get_by_ipui(dh, ipui);
-	if (lte == NULL ||
-	    lte->terminal_capability == NULL)
-		return 0;
-	return lte->terminal_capability->profile_indicator;
-}
-
 /*
  * Data links
  */
