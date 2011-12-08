@@ -12,7 +12,7 @@
 #define SOL_DECT 280
 #endif
 #ifndef NETLINK_DECT
-#define NETLINK_DECT 21
+#define NETLINK_DECT 22
 #endif
 
 #define __init			__attribute__((constructor))
