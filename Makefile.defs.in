@@ -23,7 +23,7 @@ docdir		= @docdir@
 pdfdir		= @pdfdir@
 confdir		= @sysconfdir@/dect
 
-LDFLAGS		+= @LDFLAGS@
+LDFLAGS		+= @LDFLAGS@ -ldl # libdl for SDL?
 LDFLAGS		+= @LIBS@
 
 CPPFLAGS	+= @CPPFLAGS@
