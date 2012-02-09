@@ -28,6 +28,9 @@ struct dect_lce_page_param {
 	struct dect_ie_escape_to_proprietary	*escape_to_proprietary;
 };
 
+struct dect_mac_conn_params;
+struct dect_data_link;
+
 /**
  * Link Control Entity Ops.
  *
@@ -36,15 +39,25 @@ struct dect_lce_page_param {
  */
 struct dect_lce_ops {
 	bool	(*lce_page_response)(struct dect_handle *dh,
+				     struct dect_data_link *ddl,
 				     struct dect_lce_page_param *param);
 	/**< LCE_PAGE_RESPONSE-ind primitive */
 	void	(*lce_group_ring_ind)(struct dect_handle *dh,
 				      enum dect_alerting_patterns pattern);
 	/**< LCE_GROUP_RING-ind primitive */
+
+	void	(*dl_establish_cfm)(struct dect_handle *dh, bool success,
+				    struct dect_data_link *ddl,
+				    const struct dect_mac_conn_params *mcp);
+	/**< DL_ESTABLISH-cfm primitive */
 };
 
 extern int dect_lce_group_ring_req(struct dect_handle *dh,
 				   enum dect_alerting_patterns pattern);
+
+extern int dect_dl_establish_req(struct dect_handle *dh, const struct dect_ipui *ipui,
+				 const struct dect_mac_conn_params *mcp);
+
 
 /** @} */
 

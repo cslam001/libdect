@@ -29,13 +29,14 @@ static struct dect_mm_ops mm_ops = {
 	.mm_locate_ind		= mm_locate_ind,
 };
 
-static bool lce_page_response(struct dect_handle *dh, struct dect_lce_page_param *param)
+static bool lce_page_response(struct dect_handle *dh, struct dect_data_link *ddl,
+			      struct dect_lce_page_param *param)
 {
 	struct dect_ie_info_type info_type;
 	struct dect_mm_info_param req = { .info_type = &info_type };
 	struct dect_mm_endpoint *mme;
 
-	mme = dect_mm_endpoint_alloc(dh, &param->portable_identity->ipui);
+	mme = dect_mm_endpoint_alloc(dh, ddl);
 	if (mme == NULL)
 		return false;
 
@@ -91,7 +92,19 @@ static void page_timer(struct dect_handle *dh, struct dect_timer *timer)
 	dect_timer_start(dh, timer, 1);
 }
 
+static void dect_mac_me_info_ind(struct dect_handle *dh,
+				 const struct dect_ari *pari,
+				 const struct dect_fp_capabilities *fpc)
+{
+	printf("pari %p fpc %p\n", pari, fpc);
+}
+
+static struct dect_llme_ops_ llme_ops = {
+	.mac_me_info_ind	= dect_mac_me_info_ind,
+};
+
 static struct dect_ops ops = {
+	.llme_ops	= &llme_ops,
 	.lce_ops	= &lce_ops,
 	.mm_ops		= &mm_ops,
 };

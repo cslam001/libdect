@@ -183,9 +183,10 @@ enum dect_data_link_flags {
  * struct dect_data_link
  *
  * @list:		DECT handle link list node
- * @dfd:		Associated socket file descriptor
  * @dlei:		Data Link Endpoint identifier
  * @ipui:		International Portable User ID
+ * @dfd:		Associated socket file descriptor
+ * @mcp:		MAC connections parameters
  * @state:		Data link state
  * @sdu_timer:		Establish without SDU timer (LCE.05)
  * @release_timer:	Normal link release timer (LCE.01)
@@ -198,6 +199,7 @@ struct dect_data_link {
 	struct sockaddr_dect_ssap	dlei;
 	struct dect_ipui		ipui;
 	struct dect_fd			*dfd;
+	struct dect_mac_conn_params	mcp;
 	enum dect_data_link_states	state;
 	enum dect_cipher_states		cipher;
 	struct dect_timer		*sdu_timer;

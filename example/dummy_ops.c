@@ -18,6 +18,7 @@ static struct dect_llme_ops_ dummy_llme_ops;
  */
 
 static bool lce_page_response(struct dect_handle *dh,
+			      struct dect_data_link *ddl,
 			      struct dect_lce_page_param *param)
 {
 	return false;
@@ -25,6 +26,12 @@ static bool lce_page_response(struct dect_handle *dh,
 
 static void lce_group_ring_ind(struct dect_handle *dh,
 			       enum dect_alerting_patterns pattern)
+{
+}
+
+static void dl_establish_cfm(struct dect_handle *dh, bool success,
+			     struct dect_data_link *ddl,
+			     const struct dect_mac_conn_params *mcp)
 {
 }
 
@@ -339,6 +346,8 @@ void dect_dummy_ops_init(struct dect_ops *ops)
 		lce_ops->lce_page_response = lce_page_response;
 	if (!lce_ops->lce_group_ring_ind)
 		lce_ops->lce_group_ring_ind = lce_group_ring_ind;
+	if (!lce_ops->dl_establish_cfm)
+		lce_ops->dl_establish_cfm = dl_establish_cfm;
 
 	if (!ops->cc_ops)
 		ops->cc_ops = &dummy_cc_ops;

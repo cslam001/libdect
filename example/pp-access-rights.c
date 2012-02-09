@@ -149,6 +149,19 @@ static int mm_access_rights_req(struct dect_handle *dh, struct dect_mm_endpoint 
 	return dect_mm_access_rights_req(dh, mme, &param);
 }
 
+static void dl_establish_cfm(struct dect_handle *dh, bool success,
+			     struct dect_data_link *ddl,
+			     const struct dect_mac_conn_params *mcp)
+{
+	struct dect_mm_endpoint *mme;
+
+	mme = dect_mm_endpoint_alloc(dh, ddl);
+	if (mme == NULL)
+		pexit("dect_mm_endpoint_alloc");
+
+	mm_access_rights_req(dh, mme);
+}
+
 static void llme_mac_me_info_ind(struct dect_handle *dh,
 				 const struct dect_ari *pari,
 				 const struct dect_fp_capabilities *fpc)
@@ -156,6 +169,10 @@ static void llme_mac_me_info_ind(struct dect_handle *dh,
 	if (fpc->hlc & DECT_HLC_ACCESS_RIGHTS_REQUESTS)
 		dect_event_loop_stop();
 }
+
+static struct dect_lce_ops lce_ops = {
+	.dl_establish_cfm	= dl_establish_cfm,
+};
 
 static struct dect_llme_ops_ llme_ops = {
 	.mac_me_info_ind	= llme_mac_me_info_ind,
@@ -171,6 +188,7 @@ static struct dect_mm_ops mm_ops = {
 
 static struct dect_ops ops = {
 	.llme_ops		= &llme_ops,
+	.lce_ops		= &lce_ops,
 	.mm_ops			= &mm_ops,
 };
 
@@ -191,7 +209,6 @@ static const struct option options[] = {
 
 int main(int argc, char **argv)
 {
-	struct dect_mm_endpoint *mme;
 	const char *cluster = NULL;
 	int optidx = 0, c;
 
@@ -232,11 +249,7 @@ int main(int argc, char **argv)
 		dect_event_loop();
 	}
 
-	mme = dect_mm_endpoint_alloc(dh, &ipui);
-	if (mme == NULL)
-		pexit("dect_mm_endpoint_alloc");
-
-	mm_access_rights_req(dh, mme);
+	dect_dl_establish_req(dh, &ipui, NULL);
 	dect_event_loop();
 
 	dect_common_cleanup(dh);

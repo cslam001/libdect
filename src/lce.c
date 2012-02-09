@@ -330,18 +330,6 @@ dect_page_capability(const struct dect_handle *dh,
 	return lte->setup_capability->page_capability;
 }
 
-static uint64_t dect_profile_indicator(const struct dect_handle *dh,
-				       const struct dect_ipui *ipui)
-{
-	const struct dect_lte *lte;
-
-	lte = dect_lte_get_by_ipui(dh, ipui);
-	if (lte == NULL ||
-	    lte->terminal_capability == NULL)
-		return 0;
-	return lte->terminal_capability->profile_indicator;
-}
-
 /*
  * Data links
  */
@@ -359,6 +347,28 @@ static const char * const ddl_states[DECT_DATA_LINK_STATE_MAX + 1] = {
 	[DECT_DATA_LINK_SUSPENDED]		= "SUSPENDED",
 	[DECT_DATA_LINK_SUSPEND_PENDING]	= "SUSPEND_PENDING",
 	[DECT_DATA_LINK_RESUME_PENDING]		= "RESUME_PENDING",
+};
+
+static const struct dect_trans_tbl dect_conn_types[] = {
+	TRANS_TBL(DECT_MAC_CONN_BASIC,			"basic"),
+	TRANS_TBL(DECT_MAC_CONN_ADVANCED,		"advanced"),
+};
+
+static const struct dect_trans_tbl dect_slot_types[] = {
+	TRANS_TBL(DECT_FULL_SLOT,			"full slot"),
+	TRANS_TBL(DECT_HALF_SLOT,			"half slot"),
+	TRANS_TBL(DECT_DOUBLE_SLOT,			"double slot"),
+	TRANS_TBL(DECT_LONG_SLOT_640,			"long slot j=640"),
+	TRANS_TBL(DECT_LONG_SLOT_672,			"long slot j=672"),
+};
+
+static const struct dect_trans_tbl dect_service_types[] = {
+	TRANS_TBL(DECT_SERVICE_IN_MIN_DELAY,		"In_minimum_delay"),
+	TRANS_TBL(DECT_SERVICE_IN_NORMAL_DELAY,		"In_normal_delay"),
+	TRANS_TBL(DECT_SERVICE_UNKNOWN,			"unknown"),
+	TRANS_TBL(DECT_SERVICE_C_CHANNEL_ONLY,		"C channel only"),
+	TRANS_TBL(DECT_SERVICE_IP_ERROR_DETECTION,	"Ip_error_detection"),
+	TRANS_TBL(DECT_SERVICE_IPQ_ERROR_DETECTION,	"Ipq_error_detection"),
 };
 
 int dect_ddl_set_ipui(struct dect_handle *dh, struct dect_data_link *ddl,
@@ -846,17 +856,36 @@ static void dect_ddl_complete_direct_establish(struct dect_handle *dh,
 					       struct dect_data_link *ddl)
 {
 	struct dect_msg_buf *mb;
+	socklen_t optlen;
+	char buf1[128], buf2[128], buf3[128];
+
+	dect_fd_unregister(dh, ddl->dfd);
+	if (dect_fd_register(dh, ddl->dfd, DECT_FD_READ) < 0)
+		goto err1;
+
+	optlen = sizeof(ddl->mcp);
+	if (getsockopt(ddl->dfd->fd, SOL_DECT, DECT_DL_MAC_CONN_PARAMS,
+		       &ddl->mcp, &optlen))
+		goto err1;
 
 	ddl->state = DECT_DATA_LINK_ESTABLISHED;
 	ddl_debug(ddl, "complete direct link establishment");
 
-	dect_fd_unregister(dh, ddl->dfd);
-	if (dect_fd_register(dh, ddl->dfd, DECT_FD_READ) < 0)
-		return dect_ddl_shutdown(dh, ddl);
+	ddl_debug(ddl, "MAC connection: type: %s service: %s slot: %s",
+		  dect_val2str(dect_conn_types, buf1, ddl->mcp.type),
+		  dect_val2str(dect_service_types, buf2, ddl->mcp.service),
+		  dect_val2str(dect_slot_types, buf3, ddl->mcp.slot));
+
+	ddl_debug(ddl, "DL_ESTABLISH-cfm: success: 1");
+	dh->ops->lce_ops->dl_establish_cfm(dh, true, ddl, &ddl->mcp);
 
 	/* Send queued messages */
 	while ((mb = ptrlist_dequeue_head(&ddl->msg_queue)))
 		dect_ddl_send(dh, ddl, mb);
+	return;
+
+err1:
+	dect_ddl_shutdown(dh, ddl);
 }
 
 static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
@@ -893,6 +922,9 @@ static void dect_ddl_complete_indirect_establish(struct dect_handle *dh,
 	/* Release pending link */
 	dect_ddl_destroy(dh, req);
 
+	ddl_debug(ddl, "DL_ESTABLISH-cfm: success: 1");
+	dh->ops->lce_ops->dl_establish_cfm(dh, true, ddl, &ddl->mcp);
+
 	/* If the link was established for a connectionless transmission,
 	 * no transaction exists. Perform a partial release. */
 	if (list_empty(&ddl->transactions))
@@ -903,17 +935,24 @@ static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer
 static void dect_lce_data_link_event(struct dect_handle *dh,
 				     struct dect_fd *dfd, uint32_t events);
 
+static const struct dect_mac_conn_params default_mcp = {
+	.service	= DECT_SERVICE_IN_MIN_DELAY,
+	.slot		= DECT_FULL_SLOT,
+};
+
 /**
  * dect_ddl_establish - Establish an outgoing data link
  */
 static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
-						 const struct dect_ipui *ipui)
+						 const struct dect_ipui *ipui,
+						 const struct dect_mac_conn_params *mcp)
 {
 	struct dect_data_link *ddl;
 
 	ddl = dect_ddl_alloc(dh);
 	if (ddl == NULL)
 		goto err1;
+	ddl->mcp   = mcp ? *mcp : default_mcp;
 	ddl->state = DECT_DATA_LINK_ESTABLISH_PENDING;
 	dect_ddl_set_ipui(dh, ddl, ipui);
 
@@ -936,6 +975,11 @@ static struct dect_data_link *dect_ddl_establish(struct dect_handle *dh,
 		ddl->dlei.dect_lln = 1;
 		ddl->dlei.dect_sapi = 0;
 
+		if (mcp != NULL &&
+		    setsockopt(ddl->dfd->fd, SOL_DECT, DECT_DL_MAC_CONN_PARAMS,
+			       mcp, sizeof(*mcp)) < 0)
+			goto err2;
+
 		dect_fd_setup(ddl->dfd, dect_lce_data_link_event, ddl);
 		if (dect_fd_register(dh, ddl->dfd, DECT_FD_WRITE) < 0)
 			goto err2;
@@ -957,6 +1001,16 @@ err1:
 	return NULL;
 }
 
+int dect_dl_establish_req(struct dect_handle *dh, const struct dect_ipui *ipui,
+			  const struct dect_mac_conn_params *mcp)
+{
+	lce_debug("DL_ESTABLISH-req: IPUI: N EMC: %04x PSN: %05x\n",
+		  ipui->pun.n.ipei.emc, ipui->pun.n.ipei.psn);
+	dect_ddl_establish(dh, ipui, mcp);
+	return 0;
+}
+EXPORT_SYMBOL(dect_dl_establish_req);
+
 struct dect_data_link *dect_ddl_connect(struct dect_handle *dh,
 					const struct dect_ipui *ipui)
 {
@@ -964,7 +1018,7 @@ struct dect_data_link *dect_ddl_connect(struct dect_handle *dh,
 
 	ddl = dect_ddl_get_by_ipui(dh, ipui);
 	if (ddl == NULL)
-		ddl = dect_ddl_establish(dh, ipui);
+		ddl = dect_ddl_establish(dh, ipui, NULL);
 	return ddl;
 }
 
@@ -1004,6 +1058,8 @@ static void dect_lce_ssap_listener_event(struct dect_handle *dh,
 {
 	struct dect_data_link *ddl;
 	struct dect_fd *nfd;
+	socklen_t optlen;
+	char buf1[128], buf2[128], buf3[128];
 
 	dect_debug(DECT_DEBUG_LCE, "\n");
 	ddl = dect_ddl_alloc(dh);
@@ -1015,6 +1071,11 @@ static void dect_lce_ssap_listener_event(struct dect_handle *dh,
 	if (nfd == NULL)
 		goto err2;
 	ddl->dfd = nfd;
+
+	optlen = sizeof(ddl->mcp);
+	if (getsockopt(nfd->fd, SOL_DECT, DECT_DL_MAC_CONN_PARAMS,
+		       &ddl->mcp, &optlen))
+		goto err3;
 
 	dect_fd_setup(nfd, dect_lce_data_link_event, ddl);
 	if (dect_fd_register(dh, nfd, DECT_FD_READ) < 0)
@@ -1028,6 +1089,10 @@ static void dect_lce_ssap_listener_event(struct dect_handle *dh,
 	ddl_debug(ddl, "new link: PMID: %x LCN: %u LLN: %u SAPI: %u",
 		  ddl->dlei.dect_pmid, ddl->dlei.dect_lcn,
 		  ddl->dlei.dect_lln, ddl->dlei.dect_sapi);
+	ddl_debug(ddl, "MAC connection: type: %s service: %s slot: %s",
+		  dect_val2str(dect_conn_types, buf1, ddl->mcp.type),
+		  dect_val2str(dect_service_types, buf2, ddl->mcp.service),
+		  dect_val2str(dect_slot_types, buf3, ddl->mcp.slot));
 	return;
 
 err4:
@@ -1084,6 +1149,94 @@ ssize_t dect_lce_broadcast(const struct dect_handle *dh,
 	return 0;
 }
 
+static enum lce_request_page_hdr_codes
+dect_page_service_to_hdr(enum dect_mac_service_types service)
+{
+	switch (service) {
+	case DECT_SERVICE_IN_MIN_DELAY:
+		return DECT_LCE_PAGE_GENERAL_VOICE;
+	case DECT_SERVICE_IN_NORMAL_DELAY:
+		return DECT_LCE_PAGE_AUXILIARY;
+	case DECT_SERVICE_UNKNOWN:
+		return DECT_LCE_PAGE_UNKNOWN_RINGING;
+	case DECT_SERVICE_C_CHANNEL_ONLY:
+		return DECT_LCE_PAGE_U_PLANE_NONE;
+	default:
+		return DECT_LCE_PAGE_GENERAL_PURPOSE;
+	}
+}
+
+static enum dect_mac_service_types
+dect_page_hdr_to_service(enum lce_request_page_hdr_codes hdr)
+{
+	switch (hdr) {
+	case DECT_LCE_PAGE_U_PLANE_NONE:
+		return DECT_SERVICE_C_CHANNEL_ONLY;
+	case DECT_LCE_PAGE_UNKNOWN_RINGING:
+		return DECT_SERVICE_UNKNOWN;
+	case DECT_LCE_PAGE_GENERAL_PURPOSE:
+		return DECT_SERVICE_UNKNOWN;
+	case DECT_LCE_PAGE_GENERAL_VOICE:
+		return DECT_SERVICE_IN_MIN_DELAY;
+	case DECT_LCE_PAGE_AUXILIARY:
+		return DECT_SERVICE_IN_NORMAL_DELAY;
+	default:
+		BUG();	// FIXME
+	}
+}
+
+static enum dect_request_page_slot_types
+dect_page_slot_to_info(enum dect_slot_types slot)
+{
+	switch (slot) {
+	case DECT_FULL_SLOT:
+		return DECT_LCE_PAGE_FULL_SLOT;
+	case DECT_HALF_SLOT:
+		return DECT_LCE_PAGE_HALF_SLOT;
+	case DECT_DOUBLE_SLOT:
+		return DECT_LCE_PAGE_DOUBLE_SLOT;
+	case DECT_LONG_SLOT_640:
+		return DECT_LCE_PAGE_LONG_SLOT_J640;
+	case DECT_LONG_SLOT_672:
+		return DECT_LCE_PAGE_LONG_SLOT_J672;
+	default:
+		BUG();
+	}
+}
+
+static enum dect_slot_types
+dect_page_info_to_slot(enum dect_request_page_slot_types slot)
+{
+	/* 8.2.4.2: backwards compatibility: bit 8 indicates "full slot" */
+	if (slot & 0x80)
+		return DECT_FULL_SLOT;
+
+	switch (slot) {
+	case DECT_LCE_PAGE_HALF_SLOT:
+		return DECT_HALF_SLOT;
+	case DECT_LCE_PAGE_LONG_SLOT_J640:
+		return DECT_LONG_SLOT_640;
+	case DECT_LCE_PAGE_LONG_SLOT_J672:
+		return DECT_LONG_SLOT_672;
+	case DECT_LCE_PAGE_FULL_SLOT:
+		return DECT_FULL_SLOT;
+	case DECT_LCE_PAGE_DOUBLE_SLOT:
+		return DECT_DOUBLE_SLOT;
+	default:
+		BUG();	// FIXME
+	}
+}
+
+static enum dect_request_page_setup_info
+dect_page_service_to_setup_info(const struct dect_mac_conn_params *mcp)
+{
+	if (mcp->service == DECT_SERVICE_IN_MIN_DELAY &&
+	    mcp->slot == DECT_FULL_SLOT)
+		return DECT_LCE_PAGE_BASIC_CONN_ATTR_OPTIONAL;
+	else
+		return DECT_LCE_PAGE_NO_SETUP_INFO;
+}
+
 /**
  * Request collective or group ringing
  *
@@ -1113,7 +1266,8 @@ int dect_lce_group_ring_req(struct dect_handle *dh,
 EXPORT_SYMBOL(dect_lce_group_ring_req);
 
 static int dect_lce_send_short_page(const struct dect_handle *dh,
-				    const struct dect_ipui *ipui)
+				    const struct dect_ipui *ipui,
+				    const struct dect_mac_conn_params *mcp)
 {
 	DECT_DEFINE_MSG_BUF_ONSTACK(_mb), *mb = &_mb;
 	struct dect_short_page_msg *msg;
@@ -1123,7 +1277,7 @@ static int dect_lce_send_short_page(const struct dect_handle *dh,
 	uint16_t page;
 
 	msg = dect_mbuf_put(mb, sizeof(*msg));
-	msg->hdr = DECT_LCE_PAGE_GENERAL_VOICE;
+	msg->hdr = dect_page_service_to_hdr(mcp->service);
 
 	tpui = dect_tpui(dh, ipui);
 	if (tpui == NULL)
@@ -1142,7 +1296,8 @@ static int dect_lce_send_short_page(const struct dect_handle *dh,
 }
 
 static int dect_lce_send_full_page(const struct dect_handle *dh,
-				   const struct dect_ipui *ipui)
+				   const struct dect_ipui *ipui,
+				   const struct dect_mac_conn_params *mcp)
 {
 	DECT_DEFINE_MSG_BUF_ONSTACK(_mb), *mb = &_mb;
 	struct dect_full_page_msg *msg;
@@ -1153,7 +1308,7 @@ static int dect_lce_send_full_page(const struct dect_handle *dh,
 	uint32_t page;
 
 	msg = dect_mbuf_put(mb, sizeof(*msg));
-	msg->hdr = DECT_LCE_PAGE_GENERAL_VOICE;
+	msg->hdr = dect_page_service_to_hdr(mcp->service);
 
 	if (1) {
 		msg->hdr |= DECT_LCE_PAGE_W_FLAG;
@@ -1163,9 +1318,9 @@ static int dect_lce_send_full_page(const struct dect_handle *dh,
 			tpui = dect_ipui_to_tpui(&_tpui, ipui);
 
 		page  = dect_build_tpui(tpui) << DECT_LCE_FULL_PAGE_TPUI_SHIFT;
-		page |= DECT_LCE_PAGE_FULL_SLOT <<
+		page |= dect_page_slot_to_info(mcp->slot) <<
 			DECT_LCE_FULL_PAGE_SLOT_TYPE_SHIFT;
-		page |= DECT_LCE_PAGE_BASIC_CONN_ATTR_OPTIONAL <<
+		page |= dect_page_service_to_setup_info(mcp) <<
 			DECT_LCE_FULL_PAGE_SETUP_INFO_SHIFT;
 	} else {
 		dect_build_ipui(ipui_buf, ipui);
@@ -1185,12 +1340,14 @@ static int dect_lce_send_full_page(const struct dect_handle *dh,
 }
 
 static int dect_lce_page(const struct dect_handle *dh,
-			 const struct dect_ipui *ipui)
+			 const struct dect_ipui *ipui,
+			 const struct dect_mac_conn_params *mcp)
 {
-	if (dect_profile_indicator(dh, ipui) & DECT_PROFILE_NG_DECT_PART_1)
-		return dect_lce_send_full_page(dh, ipui);
+	if (mcp->service == DECT_SERVICE_IN_MIN_DELAY &&
+	    mcp->slot == DECT_FULL_SLOT)
+		return dect_lce_send_short_page(dh, ipui, mcp);
 	else
-		return dect_lce_send_short_page(dh, ipui);
+		return dect_lce_send_full_page(dh, ipui, mcp);
 }
 
 static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer)
@@ -1202,10 +1359,12 @@ static void dect_ddl_page_timer(struct dect_handle *dh, struct dect_timer *timer
 		ddl_debug(ddl, "<LCE.03>: Page timer");
 	}
 
-	if (ddl->page_count++ == DECT_DDL_PAGE_RETRANS_MAX)
+	if (ddl->page_count++ == DECT_DDL_PAGE_RETRANS_MAX) {
+		ddl_debug(ddl, "DL_ESTABLISH-cfm: success: 0");
+		dh->ops->lce_ops->dl_establish_cfm(dh, false, NULL, NULL);
 		dect_ddl_shutdown(dh, ddl);
-	else {
-		dect_lce_page(dh, &ddl->ipui);
+	} else {
+		dect_lce_page(dh, &ddl->ipui, &ddl->mcp);
 		dect_timer_start(dh, ddl->page_timer, DECT_DDL_PAGE_TIMEOUT);
 	}
 }
@@ -1269,7 +1428,7 @@ static void dect_lce_rcv_page_response(struct dect_handle *dh,
 		param->cipher_info		= dect_ie_hold(msg.cipher_info);
 		param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
 
-		reject = !dh->ops->lce_ops->lce_page_response(dh, param);
+		reject = !dh->ops->lce_ops->lce_page_response(dh, ta->link, param);
 		dect_ie_collection_put(dh, param);
 	}
 err:
@@ -1297,8 +1456,10 @@ static void dect_lce_rcv_page_reject(struct dect_handle *dh,
 	dect_msg_free(dh, &lce_page_reject_msg_desc, &msg.common);
 }
 
-static void dect_lce_send_page_response(struct dect_handle *dh)
+static void dect_lce_send_page_response(struct dect_handle *dh,
+					const struct dect_mac_conn_params *mcp)
 {
+	struct dect_data_link *ddl;
 	struct dect_ie_portable_identity portable_identity;
 	struct dect_ie_fixed_identity fixed_identity;
 	struct dect_lce_page_response_msg msg = {
@@ -1312,12 +1473,20 @@ static void dect_lce_send_page_response(struct dect_handle *dh)
 	fixed_identity.type    = DECT_FIXED_ID_TYPE_PARK;
 	fixed_identity.ari     = dh->pari;
 
-	if (dect_transaction_open(dh, &dh->page_transaction, &dh->ipui,
-				  DECT_PD_LCE) < 0)
+	ddl = dect_ddl_establish(dh, &dh->ipui, mcp);
+	if (ddl == NULL)
 		return;
+
+	if (dect_ddl_transaction_open(dh, &dh->page_transaction, ddl,
+				      DECT_PD_LCE) < 0)
+		goto err1;
 
 	dect_lce_send(dh, &dh->page_transaction, &lce_page_response_msg_desc,
 		      &msg.common, DECT_LCE_PAGE_RESPONSE);
+	return;
+
+err1:
+	dect_ddl_destroy(dh, ddl);
 }
 
 static void dect_lce_rcv_short_page(struct dect_handle *dh,
@@ -1363,7 +1532,7 @@ static void dect_lce_rcv_short_page(struct dect_handle *dh,
 				return;
 		}
 
-		dect_lce_send_page_response(dh);
+		dect_lce_send_page_response(dh, NULL);
 	}
 }
 
@@ -1371,9 +1540,10 @@ static void dect_lce_rcv_full_page(struct dect_handle *dh,
 				   struct dect_msg_buf *mb)
 {
 	struct dect_full_page_msg *msg = (void *)mb->data;
+	struct dect_mac_conn_params mcp;
 	uint32_t info, ipui, tpui, t;
 	uint8_t ipui_buf[8];
-	uint8_t hdr, pattern;
+	uint8_t hdr, pattern, slot, setup;
 	bool w;
 
 	w    = msg->hdr & DECT_LCE_PAGE_W_FLAG;
@@ -1399,6 +1569,8 @@ static void dect_lce_rcv_full_page(struct dect_handle *dh,
 		lce_debug("LCE_GROUP_RING-ind: pattern: %x\n", pattern);
 		dh->ops->lce_ops->lce_group_ring_ind(dh, pattern);
 	} else {
+		memset(&mcp, 0, sizeof(mcp));
+
 		if (w == 0) {
 			/* IPUI */
 			dect_build_ipui(ipui_buf, &dh->ipui);
@@ -1416,11 +1588,19 @@ static void dect_lce_rcv_full_page(struct dect_handle *dh,
 			       DECT_LCE_FULL_PAGE_TPUI_SHIFT;
 
 			t = dect_build_tpui(&dh->tpui);
-			if (tpui != t && tpui != DECT_TPUI_CBI)
+			if (0 && tpui != t && tpui != DECT_TPUI_CBI)
 				return;
+
+			slot  = (info & DECT_LCE_FULL_PAGE_SLOT_TYPE_MASK) >>
+			        DECT_LCE_FULL_PAGE_SLOT_TYPE_SHIFT;
+			setup = (info & DECT_LCE_FULL_PAGE_SETUP_INFO_MASK) >>
+				DECT_LCE_FULL_PAGE_SETUP_INFO_SHIFT;
+
+			mcp.service = dect_page_hdr_to_service(hdr);
+			mcp.slot    = dect_page_info_to_slot(slot);
 		}
 
-		dect_lce_send_page_response(dh);
+		dect_lce_send_page_response(dh, &mcp);
 	}
 }
 

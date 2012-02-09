@@ -2083,11 +2083,11 @@ enum dect_mac_dlc_service {
 
 /** Slot sizes */
 enum dect_slot_size {
-	DECT_HALF_SLOT				= 0x0, /**< Half slot; j = 0. */
-	DECT_LONG_SLOT_640			= 0x1, /**< Long slot; j = 640 */
-	DECT_LONG_SLOT_672			= 0x2, /**< Long slot; j = 640 */
-	DECT_FULL_SLOT				= 0x4, /**< Full slot */
-	DECT_DOUBLE_SLOT			= 0x5, /**< Double slot */
+	DECT_HALF_SLOT_SIZE			= 0x0, /**< Half slot; j = 0. */
+	DECT_LONG_SLOT_640_SIZE			= 0x1, /**< Long slot; j = 640 */
+	DECT_LONG_SLOT_672_SIZE			= 0x2, /**< Long slot; j = 640 */
+	DECT_FULL_SLOT_SIZE			= 0x4, /**< Full slot */
+	DECT_DOUBLE_SLOT_SIZE			= 0x5, /**< Double slot */
 };
 
 /** C-Plane routing options */
