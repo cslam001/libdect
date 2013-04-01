@@ -19,12 +19,12 @@
 #include <errno.h>
 #include <linux/dect_netlink.h>
 
-#include <netlink/netlink.h>
-#include <netlink/object.h>
-#include <netlink/msg.h>
-#include <netlink/dect/cluster.h>
-#include <netlink/dect/llme.h>
-#include <netlink/dect/ari.h>
+#include <libnl3/netlink/netlink.h>
+#include <libnl3/netlink/object.h>
+#include <libnl3/netlink/msg.h>
+#include <libnl3/netlink/dect/cluster.h>
+#include <libnl3/netlink/dect/llme.h>
+#include <libnl3/netlink/dect/ari.h>
 
 #include <libdect.h>
 #include <netlink.h>

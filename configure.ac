@@ -36,8 +36,8 @@ AC_ARG_ENABLE([doc],
 AC_CHECK_LIB([nl], [nl_socket_alloc], ,
 	     [AC_MSG_ERROR([No suitable version of libnl found])])
 
-AC_CHECK_LIB([nl-dect], [nl_dect_cluster_alloc], ,
-	     [AC_MSG_ERROR([No suitable version of libnl-dect found])])
+AC_CHECK_LIB([nl-dect-3], [nl_dect_cluster_alloc], ,
+	     [AC_MSG_ERROR([No suitable version of libnl-dect-3 found])])
 
 AC_CHECK_LIB([ev], [event_init],
 	     [EVENTLIB="-lev"],
