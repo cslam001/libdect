@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 	const struct dect_fp_capabilities *fpc;
 	struct dect_mac_conn_params mcp = {
 		.service	= DECT_SERVICE_IN_MIN_DELAY,
-		.slot		= DECT_LONG_SLOT_640,
+                .slot       = DECT_FULL_SLOT,
 	};
 
 	dect_pp_common_options(argc, argv);
