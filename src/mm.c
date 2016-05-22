@@ -2756,7 +2756,7 @@ void dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	struct dect_mm_procedure *mp = mme->current;
 
 	mm_debug_entry(mme, "MM_INFO-res: accept: %u", accept);
-	if (mp->type != DECT_MMP_PARAMETER_RETRIEVAL)
+	if (!mp || mp->type != DECT_MMP_PARAMETER_RETRIEVAL)
 		return;
 
 	if (accept)
@@ -2764,7 +2764,8 @@ void dect_mm_info_res(struct dect_handle *dh, struct dect_mm_endpoint *mme,
 	else
 		dect_mm_send_info_reject(dh, mme, param);
 
-	dect_mm_procedure_complete(dh, mme);
+	if (mme->current)
+		dect_mm_procedure_complete(dh, mme);
 }
 EXPORT_SYMBOL(dect_mm_info_res);
 
@@ -2934,9 +2935,8 @@ static void dect_mm_rcv_info_suggest(struct dect_handle *dh,
 	param->network_parameter	= dect_ie_hold(msg.network_parameter);
 	param->iwu_to_iwu		= dect_ie_hold(msg.iwu_to_iwu);
 	param->escape_to_proprietary	= dect_ie_hold(msg.escape_to_proprietary);
-
-	dect_mm_procedure_complete(dh, mme);
-
+	if (mme->current)
+		dect_mm_procedure_complete(dh, mme);
 	mm_debug(mme, "MM_INFO-ind");
 	dh->ops->mm_ops->mm_info_ind(dh, mme, param);
 	dect_ie_collection_put(dh, param);
