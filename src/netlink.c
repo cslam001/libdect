@@ -367,6 +367,7 @@ static int dect_netlink_mac_me_info_req(struct dect_handle *dh)
 		.request	= true,
 	};
 	struct nl_dect_llme_msg *lmsg;
+	struct nl_dect_ari *pari;
 	int err;
 
 	nl_debug_entry("MAC_ME_INFO-req\n");
@@ -375,6 +376,8 @@ static int dect_netlink_mac_me_info_req(struct dect_handle *dh)
 		return -1;
 
 	dect_netlink_set_callback(dh, dect_netlink_msg_rcv, &handler);
+	pari = (void *)nl_dect_llme_mac_info_get_pari(lmsg);
+	nl_dect_llme_mac_info_set_pari(lmsg, pari);
 	err = nl_dect_llme_request(dh->nlsock, lmsg);
 	dect_netlink_set_callback(dh, dect_netlink_event_rcv, dh);
 	nl_dect_llme_msg_put(lmsg);
