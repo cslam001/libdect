@@ -736,8 +736,8 @@ static void dect_sfmt_dump_auth_type(const struct dect_ie_common *_ie)
 		   dect_val2str(dect_auth_key_types, buf, ie->auth_key_type));
 	sfmt_debug("\tauthentication key number: %u\n", ie->auth_key_num);
 	sfmt_debug("\tcipher key number: %u\n", ie->cipher_key_num);
-	sfmt_debug("\tflags: %s\n",
-		   dect_flags2str(dect_auth_flags, buf, ie->flags));
+	sfmt_debug("\tflags: %d\n", ie->flags);
+//		   dect_flags2str(dect_auth_flags, buf, ie->flags));
 	if (ie->flags & DECT_AUTH_FLAG_DEF)
 		sfmt_debug("\tdefault cipher key index: %u\n",
 			   ie->defck_index);
@@ -1486,15 +1486,15 @@ static void dect_sfmt_dump_terminal_capability(const struct dect_ie_common *_ie)
 		   dect_val2str(dect_noise_rejection_capabilities, buf, ie->noise_rejection));
 	sfmt_debug("\tadaptive volume control provision: %s\n",
 		   dect_val2str(dect_volume_ctrl_provisions, buf, ie->volume_ctrl));
-	sfmt_debug("\tslot capabilities: %s\n",
-		   dect_flags2str(dect_slot_capabilities, buf, ie->slot));
+	sfmt_debug("\tslot capabilities: %d\n", ie->slot);
+//		   dect_flags2str(dect_slot_capabilities, buf, ie->slot));
 	sfmt_debug("\tdisplay memory: %u\n", ie->display_memory);
 	sfmt_debug("\tdisplay lines: %u\n", ie->display_lines);
 	sfmt_debug("\tdisplay columns: %u\n", ie->display_columns);
 	sfmt_debug("\tscrolling behaviour: %s\n",
 		   dect_val2str(dect_scrolling_behaviour, buf, ie->scrolling));
-	sfmt_debug("\tprofile indicator: %s\n",
-		   dect_flags2str(dect_profile_indicators, buf, ie->profile_indicator));
+	sfmt_debug("\tprofile indicator: %d\n", ie->profile_indicator);
+//		   dect_flags2str(dect_profile_indicators, buf, ie->profile_indicator));
 	sfmt_debug("\tdisplay control: %x\n", ie->display_control);
 	sfmt_debug("\tdisplay charsets: %x\n", ie->display_charsets);
 }
