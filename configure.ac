@@ -33,8 +33,8 @@ AC_ARG_ENABLE([doc],
 	      [DOXYGEN=/bin/true])
 
 # Checks for libraries.
-AC_CHECK_LIB([nl], [nl_socket_alloc], ,
-	     [AC_MSG_ERROR([No suitable version of libnl found])])
+AC_CHECK_LIB([nl-3], [nl_socket_alloc], ,
+	     [AC_MSG_ERROR([No suitable version of libnl-3 found])])
 
 AC_CHECK_LIB([nl-dect-3], [nl_dect_cluster_alloc], ,
 	     [AC_MSG_ERROR([No suitable version of libnl-dect-3 found])])
